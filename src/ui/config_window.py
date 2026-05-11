@@ -390,7 +390,7 @@ def _config_combo_row(parent: ttk.Frame, label_text: str, variable: tk.Variable,
     row = ttk.Frame(parent)
     row.pack(fill="x", pady=3)
     ttk.Label(row, text=label_text, width=22).pack(side="left")
-    combo = ttk.Combobox(row, textvariable=variable, values=values, state="readonly")
+    combo = ttk.Combobox(row, textvariable=variable, values=values, state="readonly", width=30)
     combo.pack(side="left", fill="x", expand=True)
 
 

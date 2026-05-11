@@ -34,6 +34,15 @@ OMNI_SCORING_FOLDERS: dict[str, str] = {
     "omniintegrationprocedures": "Integration Procedures",
     "omniuicard": "Omni UI Cards",
     "omnidatatransforms": "Data Transforms",
+    # Business Rules Engine
+    "decisionmatrices": "Decision Matrices",
+    "decisionmatrixdefinitions": "Decision Matrix Definitions",
+    "decisionmatrixdefinitionversions": "Decision Matrix Versions",
+    "decisiontables": "Decision Tables",
+    "expressionsets": "Expression Sets",
+    "expressionsetdefinitions": "Expression Set Definitions",
+    "calculationmatrices": "Calculation Matrices",
+    "recommendationstrategies": "Recommendation Strategies",
 }
 
 
@@ -180,7 +189,7 @@ def write_omni_pages(
     *,
     analyzer_report=None,
 ) -> dict[str, list[dict[str, object]]]:
-    rows = snapshot.inventory.get("omnistudio") or []
+    rows = (snapshot.inventory.get("omnistudio") or []) + (snapshot.inventory.get("business_rules_engine") or [])
     dt_findings = getattr(analyzer_report, "data_transforms", {}) if analyzer_report else {}
     grouped: dict[str, list[dict[str, object]]] = {}
     for row in rows:

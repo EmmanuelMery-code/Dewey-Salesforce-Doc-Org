@@ -22,6 +22,15 @@ def _child(node: ET.Element, tag: str, default: str = "") -> str:
     return child.text.strip()
 
 
+def _to_float(value: str | None) -> float | None:
+    if value is None or not value.strip():
+        return None
+    try:
+        return float(value.strip())
+    except ValueError:
+        return None
+
+
 def load_rules(path: str | Path | None = None) -> list[Rule]:
     """Charge le catalogue de regles depuis le XML.
 
@@ -53,6 +62,8 @@ def load_rules(path: str | Path | None = None) -> list[Rule]:
                 description=_child(node, "description"),
                 rationale=_child(node, "rationale"),
                 remediation=_child(node, "remediation"),
+                min_api_version=_to_float(node.get("min_api_version")),
+                max_api_version=_to_float(node.get("max_api_version")),
             )
         )
     return rules

@@ -95,6 +95,13 @@ class SalesforceMetadataParser:
         "business_rule": "business_rule",
         "business_rules": "business_rule",
         "bre": "business_rule",
+        "field": "field",
+        "fields": "field",
+        "champ": "field",
+        "champs": "field",
+        "record_type": "record_type",
+        "record_types": "record_type",
+        "rt": "record_type",
     }
 
     def __init__(
@@ -218,6 +225,20 @@ class SalesforceMetadataParser:
                     path
                     for path in (package_root / "aiPredictions").glob("*.aiPrediction-meta.xml")
                     if not self._is_excluded("ai_prediction", path.stem.replace(".aiPrediction-meta", ""))
+                ]
+            )
+            metrics.bre_decision_matrices += len(
+                [
+                    path
+                    for path in (package_root / "decisionMatrices").glob("*.decisionMatrix-meta.xml")
+                    if not self._is_excluded("business_rule", path.stem.replace(".decisionMatrix-meta", ""))
+                ]
+            )
+            metrics.bre_expression_sets += len(
+                [
+                    path
+                    for path in (package_root / "expressionSets").glob("*.expressionSet-meta.xml")
+                    if not self._is_excluded("business_rule", path.stem.replace(".expressionSet-meta", ""))
                 ]
             )
 
@@ -425,16 +446,22 @@ class SalesforceMetadataParser:
                 info.deployment_status = child_text(root, "deploymentStatus")
                 info.sharing_model = child_text(root, "sharingModel") or child_text(root, "externalSharingModel")
                 info.visibility = child_text(root, "visibility")
+                # Sometimes apiVersion is in the object file (though rare)
+                info.api_version = child_text(root, "apiVersion")
 
             fields_dir = object_dir / "fields"
             if fields_dir.exists():
                 for field_file in sorted(fields_dir.glob("*.field-meta.xml")):
-                    info.fields.append(self._parse_field(field_file))
+                    field_info = self._parse_field(field_file)
+                    if not self._is_excluded("field", f"{api_name}.{field_info.api_name}", field_info.api_name):
+                        info.fields.append(field_info)
 
             record_types_dir = object_dir / "recordTypes"
             if record_types_dir.exists():
                 for record_type_file in sorted(record_types_dir.glob("*.recordType-meta.xml")):
-                    info.record_types.append(self._parse_record_type(record_type_file))
+                    rt_info = self._parse_record_type(record_type_file)
+                    if not self._is_excluded("record_type", f"{api_name}.{rt_info.full_name}", rt_info.full_name):
+                        info.record_types.append(rt_info)
 
             validation_rules_dir = object_dir / "validationRules"
             if validation_rules_dir.exists():
@@ -489,6 +516,7 @@ class SalesforceMetadataParser:
             error_display_field=child_text(root, "errorDisplayField"),
             error_message=child_text(root, "errorMessage"),
             error_condition_formula=child_text(root, "errorConditionFormula"),
+            api_version=child_text(root, "apiVersion"),
         )
 
     def _parse_security_folder(self, folder: Path, kind: str) -> list[SecurityArtifact]:
@@ -1045,10 +1073,12 @@ class SalesforceMetadataParser:
                 "calculationmatrix",
                 "ruleset",
                 "recommendationstrategy",
+                "decisionmatrix",
             )
             known_folders = {
                 "decisionmatrices",
                 "decisionmatrixdefinitions",
+                "decisionmatrixdefinitionversions",
                 "decisiontables",
                 "expressionsets",
                 "expressionsetdefinitions",

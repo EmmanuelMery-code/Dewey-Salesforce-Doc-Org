@@ -29,7 +29,7 @@ from src.reporting.html.page_shell import (
 LogCallback = Callable[[str], None]
 
 
-def render_object_page(
+def render_object_body(
     item: ObjectInfo,
     snapshot: MetadataSnapshot,
     current_path: Path,
@@ -123,8 +123,7 @@ def render_object_page(
             ("Analyseur", analyzer_content),
         ],
     )
-    body = f"""
-{index_back_link(current_path, output_dir, "objets")}
+    return f"""
 <h1>{html_value(item.api_name)}</h1>
 <div class="cards">
   <div class="card"><span>Champs</span><span class="value">{len(item.fields)}</span></div>
@@ -134,7 +133,57 @@ def render_object_page(
 </div>
 {tabs}
 """
+
+
+def render_object_page(
+    item: ObjectInfo,
+    snapshot: MetadataSnapshot,
+    current_path: Path,
+    output_dir: Path,
+    assets_dir: Path,
+    object_findings: list[Finding] | None = None,
+    validation_findings: list[Finding] | None = None,
+) -> str:
+    body = f"""
+{index_back_link(current_path, output_dir, "objets")}
+{render_object_body(item, snapshot, current_path, output_dir, assets_dir, object_findings, validation_findings)}
+"""
     return render_page(item.api_name, body, current_path, assets_dir)
+
+
+def render_combined_objects_page(
+    snapshot: MetadataSnapshot,
+    current_path: Path,
+    output_dir: Path,
+    assets_dir: Path,
+    *,
+    analyzer_report=None,
+) -> str:
+    object_findings = getattr(analyzer_report, "objects", {}) if analyzer_report else {}
+    validation_findings = getattr(analyzer_report, "validation_rules", {}) if analyzer_report else {}
+    
+    bodies = []
+    for item in snapshot.objects:
+        vr_findings_for_object: list[Finding] = []
+        for vr in item.validation_rules:
+            key = f"{item.api_name}.{vr.full_name}"
+            vr_findings_for_object.extend(validation_findings.get(key, []))
+            
+        bodies.append(
+            render_object_body(
+                item,
+                snapshot,
+                current_path,
+                output_dir,
+                assets_dir,
+                object_findings.get(item.api_name, []),
+                vr_findings_for_object,
+            )
+        )
+        bodies.append("<hr style='margin: 40px 0; border: 0; border-top: 2px solid #e2e8f0;'/>")
+        
+    body = "\n".join(bodies)
+    return render_page("Data Dictionary", body, current_path, assets_dir)
 
 
 def write_object_pages(

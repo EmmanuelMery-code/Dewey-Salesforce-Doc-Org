@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from src.analyzer.apex_analyzer import (
     _strip_comments_and_strings,
     analyze_apex_artifact,
 )
 from src.analyzer.flow_analyzer import analyze_flow
-from src.analyzer.models import Finding, SEVERITY_ORDER
+from src.analyzer.models import Finding, Rule, SEVERITY_ORDER
 from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule
 from src.analyzer.omni_analyzer import analyze_data_transform
 from src.analyzer.rule_catalog import RuleCatalog
@@ -28,34 +29,132 @@ IDENTIFIER_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\b")
 class AnalyzerEngine:
     """Orchestrateur de l'analyse statique ; retourne un ensemble de findings par artefact."""
 
-    def __init__(self, catalog: RuleCatalog | None = None) -> None:
+    def __init__(self, catalog: RuleCatalog | None = None, exclusion_path: Path | str | None = None) -> None:
         self.catalog = catalog or RuleCatalog.load()
+        self.rule_exclusions: dict[str, set[str]] = {}  # rule_id -> set of metadata names
+        
+        if exclusion_path:
+            self.exclusion_path = Path(exclusion_path)
+        else:
+            # On cherche exclusion_PV.xlsx ou exclusion.xlsx
+            candidate_pv = Path("exclusion_PV.xlsx")
+            candidate_std = Path("exclusion.xlsx")
+            if candidate_pv.exists():
+                self.exclusion_path = candidate_pv
+            elif candidate_std.exists():
+                self.exclusion_path = candidate_std
+            else:
+                self.exclusion_path = None
+        
+        if self.exclusion_path:
+            self._load_rule_exclusions()
+
+    def _load_rule_exclusions(self) -> None:
+        """Charge les exclusions de règles spécifiques par métadonnée depuis l'Excel.
+        
+        Format attendu dans l'onglet 'exclusions regles' :
+        Colonne A : Type Metadata (optionnel, pour lisibilité)
+        Colonne B : Nom Metadata
+        Colonne C : ID Règle (ou 'all')
+        """
+        if not self.exclusion_path or not self.exclusion_path.exists():
+            return
+
+        try:
+            from openpyxl import load_workbook
+            workbook = load_workbook(self.exclusion_path, data_only=True, read_only=True)
+            
+            sheet = None
+            for name in workbook.sheetnames:
+                if name.strip().lower() in ("exclusions regles", "exclusions règles"):
+                    sheet = workbook[name]
+                    break
+            
+            if sheet:
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    if not row or len(row) < 3:
+                        continue
+                    
+                    metadata_name = str(row[1] or "").strip()
+                    rule_id = str(row[2] or "").strip()
+                    
+                    if metadata_name and rule_id:
+                        if rule_id.lower() == "all":
+                            # On pourrait gérer 'all' ici si besoin, mais le parser global le fait déjà.
+                            # Ici on se concentre sur les exclusions de règles spécifiques.
+                            pass
+                        
+                        self.rule_exclusions.setdefault(rule_id, set()).add(metadata_name.lower())
+            
+            workbook.close()
+        except Exception:
+            # On ignore silencieusement les erreurs de lecture Excel pour ne pas bloquer l'analyse
+            pass
+
+    def _is_rule_applicable(self, rule: Rule, metadata_name: str, api_version: str | None = None) -> bool:
+        """Vérifie si une règle doit être appliquée à une métadonnée donnée."""
+        # 1. Vérification de l'exclusion spécifique
+        if rule.id in self.rule_exclusions:
+            if metadata_name.lower() in self.rule_exclusions[rule.id]:
+                return False
+        
+        # 2. Vérification de la version d'API
+        if api_version:
+            try:
+                version = float(api_version)
+                if rule.min_api_version is not None and version < rule.min_api_version:
+                    return False
+                if rule.max_api_version is not None and version > rule.max_api_version:
+                    return False
+            except (ValueError, TypeError):
+                pass
+                
+        return True
 
     # ------------------------------------------------------------------ per-artifact API
 
     def analyze_apex(self, artifact: ApexArtifact) -> list[Finding]:
-        return _sorted(analyze_apex_artifact(artifact, self.catalog))
+        findings = analyze_apex_artifact(artifact, self.catalog)
+        filtered = [f for f in findings if self._is_rule_applicable(f.rule, artifact.name, artifact.api_version)]
+        return _sorted(filtered)
 
     def analyze_flow(self, flow: FlowInfo) -> list[Finding]:
-        return _sorted(analyze_flow(flow, self.catalog))
+        findings = analyze_flow(flow, self.catalog)
+        filtered = [f for f in findings if self._is_rule_applicable(f.rule, flow.name, flow.api_version)]
+        return _sorted(filtered)
 
     def analyze_object(self, obj: ObjectInfo) -> list[Finding]:
-        return _sorted(analyze_object(obj, self.catalog))
+        findings = analyze_object(obj, self.catalog)
+        filtered = [f for f in findings if self._is_rule_applicable(f.rule, obj.api_name, obj.api_version)]
+        return _sorted(filtered)
 
     def analyze_validation_rule(
         self, vr: ValidationRuleInfo, object_name: str
     ) -> list[Finding]:
-        return _sorted(analyze_validation_rule(vr, object_name, self.catalog))
+        findings = analyze_validation_rule(vr, object_name, self.catalog)
+        # Pour les VR, on peut exclure soit par "Objet.NomVR", soit juste "NomVR"
+        vr_full_name = f"{object_name}.{vr.full_name}"
+        filtered = [
+            f for f in findings 
+            if self._is_rule_applicable(f.rule, vr_full_name, vr.api_version)
+            and self._is_rule_applicable(f.rule, vr.full_name, vr.api_version)
+        ]
+        return _sorted(filtered)
 
     def analyze_data_transform(
         self, name: str, xml_content: str
     ) -> list[Finding]:
-        return _sorted(analyze_data_transform(name, xml_content, self.catalog))
+        findings = analyze_data_transform(name, xml_content, self.catalog)
+        # On n'a pas forcément la version d'API pour les Data Transforms ici
+        filtered = [f for f in findings if self._is_rule_applicable(f.rule, name)]
+        return _sorted(filtered)
 
     def analyze_agent(self, agent: AgentInfo) -> list[Finding]:
         rules = self.catalog.for_scope("agent")
         findings: list[Finding] = []
         for rule in rules:
+            if not self._is_rule_applicable(rule, agent.name):
+                continue
             if rule.id == "AGENT-READ-001" and not agent.description:
                 findings.append(
                     Finding(
@@ -72,6 +171,8 @@ class AnalyzerEngine:
         rules = self.catalog.for_scope("prompt")
         findings: list[Finding] = []
         for rule in rules:
+            if not self._is_rule_applicable(rule, prompt.name):
+                continue
             if rule.id == "PROMPT-READ-001" and not prompt.description:
                 findings.append(
                     Finding(
