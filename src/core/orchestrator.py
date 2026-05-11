@@ -469,7 +469,7 @@ class SalesforceDocumentationGenerator:
         self.log(
             f"Catalogue analyzer : {enabled_count}/{total_count} regles actives."
         )
-        analyzer_engine = AnalyzerEngine(analyzer_catalog)
+        analyzer_engine = AnalyzerEngine(analyzer_catalog, exclusion_path=self.exclusion_config_path)
         analyzer_report = analyzer_engine.analyze_snapshot(snapshot)
         result.analyzer_report = analyzer_report
         self.log(

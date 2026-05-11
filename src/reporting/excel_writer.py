@@ -265,13 +265,14 @@ class ExcelReportWriter:
         output_dir: str | Path,
         *,
         max_object_sheets: int = MAX_OBJECT_SHEETS_PER_WORKBOOK,
+        filename_base: str = "data_dictionary",
     ) -> list[Path]:
         """Generate the Data Dictionary workbook(s).
 
         Each workbook starts with a "Synthese" sheet listing the objects it
         contains (general info) followed by one sheet per object describing
         its fields. When the number of object sheets exceeds
-        ``max_object_sheets`` a new workbook is created (``data_dictionary_part_2.xlsx``,
+        ``max_object_sheets`` a new workbook is created (``{filename_base}_part_2.xlsx``,
         ``..._part_3.xlsx`` and so on) so Excel stays responsive.
 
         Returns the list of written file paths in order.
@@ -292,7 +293,7 @@ class ExcelReportWriter:
         if not documented_objects:
             # Still produce an (almost) empty workbook so that the index page
             # and the HTML preview pipeline expose the absence of data clearly.
-            path = output_base / "data_dictionary.xlsx"
+            path = output_base / f"{filename_base}.xlsx"
             workbook = Workbook()
             summary = workbook.active
             summary.title = "Synthese"
@@ -315,7 +316,7 @@ class ExcelReportWriter:
         total_parts = len(chunks)
         written: list[Path] = []
         for part_index, chunk in enumerate(chunks, start=1):
-            path = output_base / self._data_dictionary_filename(part_index)
+            path = output_base / self._data_dictionary_filename(part_index, filename_base)
             self._write_data_dictionary_workbook(
                 chunk,
                 path,
@@ -332,10 +333,10 @@ class ExcelReportWriter:
         return written
 
     @staticmethod
-    def _data_dictionary_filename(part_index: int) -> str:
+    def _data_dictionary_filename(part_index: int, filename_base: str = "data_dictionary") -> str:
         if part_index <= 1:
-            return "data_dictionary.xlsx"
-        return f"data_dictionary_part_{part_index}.xlsx"
+            return f"{filename_base}.xlsx"
+        return f"{filename_base}_part_{part_index}.xlsx"
 
     @staticmethod
     def _data_dictionary_summary_headers() -> list[str]:

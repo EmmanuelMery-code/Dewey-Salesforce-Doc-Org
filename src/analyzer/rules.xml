@@ -28,7 +28,7 @@
 
   <rule id="APEX-SEC-001" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
         severity="Critical" source="PMD ApexSharingViolations + Well-Architected Data Security"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="10.0" max_api_version="100.0">
     <title>Classe Apex sans declaration de partage explicite</title>
     <description>Detecte une classe non-test qui ne declare ni 'with sharing', ni 'without sharing', ni 'inherited sharing'.</description>
     <rationale>
@@ -41,7 +41,7 @@
 
   <rule id="APEX-SEC-002" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
         severity="Major" source="PMD AvoidHardcodingId"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_errorprone.html#avoidhardcodingid">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_errorprone.html#avoidhardcodingid" min_api_version="10.0" max_api_version="100.0">
     <title>Identifiant Salesforce code en dur</title>
     <description>Detecte la presence d'un Id Salesforce 15/18 caracteres ecrit en dur dans le code.</description>
     <rationale>
@@ -53,7 +53,7 @@
 
   <rule id="APEX-REL-001" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
         severity="Major" source="Well-Architected Reliable + PMD ExceptionHandling"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/reliable">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/reliable" min_api_version="10.0" max_api_version="100.0">
     <title>Aucun try/catch autour de traitements DML ou SOQL</title>
     <description>La classe contient au moins un DML ou SOQL mais aucun bloc try/catch n'est detecte.</description>
     <rationale>
@@ -66,7 +66,7 @@
 
   <rule id="APEX-PERF-001" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
         severity="Critical" source="PMD OperationWithLimitsInLoop"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop" min_api_version="10.0" max_api_version="100.0">
     <title>SOQL potentiellement execute dans une boucle</title>
     <description>Une requete SOQL apparait dans une boucle 'for' ou 'while', ce qui epuise rapidement les gouverneurs.</description>
     <rationale>
@@ -78,7 +78,7 @@
 
   <rule id="APEX-PERF-002" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
         severity="Critical" source="PMD OperationWithLimitsInLoop"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop" min_api_version="10.0" max_api_version="100.0">
     <title>DML potentiellement execute dans une boucle</title>
     <description>Une instruction DML (insert, update, upsert, delete) apparait dans une boucle.</description>
     <rationale>
@@ -90,7 +90,7 @@
 
   <rule id="APEX-REL-002" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
         severity="Major" source="Apex recursion anti-pattern + Well-Architected Reliable"
-        reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_bestpractices.htm">
+        reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_bestpractices.htm" min_api_version="10.0" max_api_version="100.0">
     <title>Methode Apex suspectee de recursion sans garde</title>
     <description>Une methode (ou l'une de ses surcharges) est invoquee depuis son propre corps, sans mecanisme visible de garde de reentrance (variable statique, compteur, Set d'Ids deja traites).</description>
     <rationale>
@@ -104,7 +104,7 @@
 
   <rule id="APEX-REL-003" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
         severity="Major" source="Apex recursion anti-pattern + Well-Architected Composable"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/composable">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/composable" min_api_version="10.0" max_api_version="100.0">
     <title>Cycle d'appels detecte entre plusieurs classes Apex</title>
     <description>La classe participe a un cycle d'invocations avec d'autres classes Apex (A appelle B, B appelle A, ou cycle plus long). Un tel graphe d'appels peut boucler sans controle.</description>
     <rationale>
@@ -119,7 +119,7 @@
 
   <rule id="APEX-MAINT-001" enabled="true" scope="apex_class" category="Easy" subcategory="Maintainability"
         severity="Minor" source="PMD ExcessiveClassLength"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#excessiveclasslength">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#excessiveclasslength" min_api_version="10.0" max_api_version="100.0">
     <title>Classe Apex trop longue</title>
     <description>Classe depassant 500 lignes, seuil propose par PMD pour les composants Apex.</description>
     <rationale>
@@ -131,7 +131,7 @@
 
   <rule id="APEX-MAINT-002" enabled="true" scope="apex_class" category="Easy" subcategory="Readability"
         severity="Minor" source="PMD CommentDensity"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_documentation.html#apexdoc">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_documentation.html#apexdoc" min_api_version="10.0" max_api_version="100.0">
     <title>Densite de commentaires faible</title>
     <description>Moins de 5% de lignes commentees sur une classe depassant 80 lignes.</description>
     <rationale>
@@ -143,7 +143,7 @@
 
   <rule id="APEX-MAINT-003" enabled="true" scope="apex_class" category="Easy" subcategory="Readability"
         severity="Minor" source="PMD AvoidDebugStatements"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_bestpractices.html#debugsshouldusellogginglevel">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_bestpractices.html#debugsshouldusellogginglevel" min_api_version="10.0" max_api_version="100.0">
     <title>Trop de System.debug non nettoyes</title>
     <description>Plus de 10 appels 'System.debug' dans la classe.</description>
     <rationale>
@@ -157,7 +157,7 @@
 
   <rule id="TRIG-MAINT-001" enabled="true" scope="apex_trigger" category="Adaptable" subcategory="Composable"
         severity="Major" source="PMD AvoidLogicInTrigger + Apex Trigger Pattern"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/composable">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/composable" min_api_version="10.0" max_api_version="100.0">
     <title>Logique metier directement dans le trigger</title>
     <description>Le trigger contient plus de 10 lignes non-commentaire ou des DML/SOQL inline.</description>
     <rationale>
@@ -169,7 +169,7 @@
 
   <rule id="TRIG-REL-001" enabled="true" scope="apex_trigger" category="Trusted" subcategory="Reliable"
         severity="Critical" source="Salesforce Apex Trigger Best Practices"
-        reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_bestpractices.htm">
+        reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_bestpractices.htm" min_api_version="10.0" max_api_version="100.0">
     <title>Trigger after insert/update re-ecrivant les enregistrements declencheurs</title>
     <description>Un trigger "after insert" ou "after update" execute un DML (update / upsert / Database.update) sur Trigger.new, Trigger.newMap ou une copie de ces collections, ce qui re-declenche immediatement le meme trigger.</description>
     <rationale>
@@ -184,7 +184,7 @@
 
   <rule id="TRIG-PERF-001" enabled="true" scope="apex_trigger" category="Easy" subcategory="Efficiency"
         severity="Critical" source="PMD OperationWithLimitsInLoop"
-        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop">
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop" min_api_version="10.0" max_api_version="100.0">
     <title>SOQL ou DML dans une boucle du trigger</title>
     <description>Le trigger realise des operations de donnees au sein d'une boucle.</description>
     <rationale>
@@ -198,7 +198,7 @@
 
   <rule id="FLOW-READ-001" enabled="true" scope="flow" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability + Admin Best Practices"
-        reference="https://admin.salesforce.com/">
+        reference="https://admin.salesforce.com/" min_api_version="10.0" max_api_version="100.0">
     <title>Flow sans description globale</title>
     <description>Le flow ne fournit pas de description au niveau metadata.</description>
     <rationale>
@@ -210,7 +210,7 @@
 
   <rule id="FLOW-READ-002" enabled="true" scope="flow" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Taux d'elements decrits inferieur a 50%</title>
     <description>Moins d'un element de flow sur deux porte une description.</description>
     <rationale>
@@ -221,7 +221,7 @@
 
   <rule id="FLOW-MAINT-001" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
         severity="Major" source="Well-Architected Easy Maintainability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Flow volumineux</title>
     <description>Flow comportant plus de 40 elements.</description>
     <rationale>
@@ -233,7 +233,7 @@
 
   <rule id="FLOW-MAINT-002" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
         severity="Minor" source="Well-Architected Easy Maintainability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Trop de decisions dans le flow</title>
     <description>Plus de 8 decisions dans un seul flow.</description>
     <rationale>
@@ -245,7 +245,7 @@
 
   <rule id="FLOW-PERF-001" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
         severity="Major" source="Well-Architected Easy Efficiency"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/automated">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/automated" min_api_version="10.0" max_api_version="100.0">
     <title>Beaucoup d'operations de donnees</title>
     <description>Plus de 6 operations recordCreate/recordUpdate/recordDelete/recordLookup.</description>
     <rationale>
@@ -257,7 +257,7 @@
 
   <rule id="FLOW-MAINT-003" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
         severity="Minor" source="Well-Architected Easy Maintainability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Profondeur d'imbrication excessive</title>
     <description>Le flow presente une profondeur superieure a 4.</description>
     <rationale>
@@ -268,7 +268,7 @@
 
   <rule id="FLOW-ADAPT-001" enabled="true" scope="flow" category="Adaptable" subcategory="Resilient"
         severity="Info" source="Well-Architected Adaptable Lifecycle"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/resilient">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/resilient" min_api_version="10.0" max_api_version="100.0">
     <title>Flow inactif present dans le package</title>
     <description>Le flow n'est pas a l'etat 'Active'.</description>
     <rationale>
@@ -281,7 +281,7 @@
 
   <rule id="OBJ-READ-001" enabled="true" scope="object" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Objet personnalise sans description</title>
     <description>Un objet custom ne dispose d'aucune description au niveau metadata.</description>
     <rationale>
@@ -293,7 +293,7 @@
 
   <rule id="OBJ-ADAPT-001" enabled="true" scope="object" category="Adaptable" subcategory="Resilient"
         severity="Minor" source="Well-Architected Adaptable Resilient"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/resilient">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/resilient" min_api_version="10.0" max_api_version="100.0">
     <title>Objet avec un grand nombre de champs personnalises</title>
     <description>Plus de 50 champs custom sur un seul objet.</description>
     <rationale>
@@ -305,7 +305,7 @@
 
   <rule id="OBJ-MAINT-001" enabled="true" scope="object" category="Easy" subcategory="Maintainability"
         severity="Minor" source="Salesforce Admins Best Practices"
-        reference="https://admin.salesforce.com/">
+        reference="https://admin.salesforce.com/" min_api_version="10.0" max_api_version="100.0">
     <title>Beaucoup de validation rules sur l'objet</title>
     <description>Plus de 10 validation rules actives sur le meme objet.</description>
     <rationale>
@@ -317,7 +317,7 @@
 
   <rule id="OBJ-MAINT-002" enabled="true" scope="object" category="Easy" subcategory="Maintainability"
         severity="Info" source="Well-Architected Easy Maintainability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Plusieurs record types actifs</title>
     <description>Plus de 3 record types actifs sur le meme objet.</description>
     <rationale>
@@ -331,7 +331,7 @@
 
   <rule id="FIELD-READ-001" enabled="true" scope="field" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability + Admins Best Practices"
-        reference="https://admin.salesforce.com/">
+        reference="https://admin.salesforce.com/" min_api_version="10.0" max_api_version="100.0">
     <title>Champ personnalise sans description</title>
     <description>Un champ custom (__c) ne porte ni description ni help text.</description>
     <rationale>
@@ -345,7 +345,7 @@
 
   <rule id="VR-READ-001" enabled="true" scope="validation_rule" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Validation rule sans description</title>
     <description>La validation rule ne fournit pas de description.</description>
     <rationale>
@@ -356,7 +356,7 @@
 
   <rule id="VR-MAINT-001" enabled="true" scope="validation_rule" category="Easy" subcategory="Maintainability"
         severity="Minor" source="Well-Architected Easy Maintainability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Formule de validation tres longue</title>
     <description>La formule comporte plus de 500 caracteres ou plus de 8 operateurs logiques (AND/OR/NOT/IF).</description>
     <rationale>
@@ -370,7 +370,7 @@
 
   <rule id="OMNI-READ-001" enabled="true" scope="omni_data_transform" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Data Transform sans description</title>
     <description>Le composant OmniStudio Data Transform ne porte pas de description.</description>
     <rationale>
@@ -382,7 +382,7 @@
 
   <rule id="OMNI-MAINT-001" enabled="true" scope="omni_data_transform" category="Easy" subcategory="Maintainability"
         severity="Minor" source="Well-Architected Easy Maintainability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Items Data Transform desactives non nettoyes</title>
     <description>Plus de 3 omniDataTransformItem desactives persistent dans la definition.</description>
     <rationale>
@@ -394,7 +394,7 @@
 
   <rule id="OMNI-ADAPT-001" enabled="true" scope="omni_data_transform" category="Adaptable" subcategory="Resilient"
         severity="Info" source="Well-Architected Adaptable Composable"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/composable">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/composable" min_api_version="10.0" max_api_version="100.0">
     <title>Data Transform volumineux</title>
     <description>Plus de 40 omniDataTransformItem dans un seul Data Transform.</description>
     <rationale>
@@ -408,7 +408,7 @@
 
   <rule id="AGENT-READ-001" enabled="true" scope="agent" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Agent sans description</title>
     <description>L'agent ne dispose d'aucune description au niveau metadata.</description>
     <rationale>
@@ -422,7 +422,7 @@
 
   <rule id="PROMPT-READ-001" enabled="true" scope="prompt" category="Easy" subcategory="Readability"
         severity="Minor" source="Well-Architected Easy Readability"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
     <title>Prompt Template sans description</title>
     <description>Le prompt template ne dispose d'aucune description au niveau metadata.</description>
     <rationale>

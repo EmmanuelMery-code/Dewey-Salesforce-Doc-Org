@@ -33,6 +33,8 @@ class Rule:
     description: str
     rationale: str
     remediation: str
+    min_api_version: float | None = None
+    max_api_version: float | None = None
 
 
 @dataclass(slots=True)

@@ -4,6 +4,7 @@ from ast import Delete
 import json
 import os
 import re
+import sys
 import time
 import tkinter as tk
 import webbrowser
@@ -53,6 +54,8 @@ from src.ui import (
 from src.ui.scoring_screens import show_adopt_adapt_screen, show_scoring_screen
 from src.ui.history_screen import show_history_screen
 from src.ui.config_window import show_configuration_screen
+from src.ui.exclusion_screen import show_exclusion_screen
+from src.ui.data_dictionary_screen import show_data_dictionary_screen
 from src.ui.task_manager import TaskManager
 from src.ui.settings import (
     DEFAULT_AI_USAGE_TAGS,
@@ -153,6 +156,7 @@ class Application(tk.Tk):
 
     def __init__(self) -> None:
         super().__init__()
+        self._setup_styles()
         self.geometry("980x760")
         self.minsize(900, 620)
         self.app_dir = Path(__file__).resolve().parent.parent.parent
@@ -199,6 +203,8 @@ class Application(tk.Tk):
         self.system_prompt = stored_prompt
         self._config_system_prompt_widget: scrolledtext.ScrolledText | None = None
         self._analyzer_rule_vars: dict[str, tk.BooleanVar] = {}
+        self._analyzer_rule_min_api_vars: dict[str, tk.StringVar] = {}
+        self._analyzer_rule_max_api_vars: dict[str, tk.StringVar] = {}
         self._analyzer_rules_cache: list[Rule] = []
         self._analyzer_rules_file: Path = DEFAULT_RULES_PATH
         self._analyzer_rule_rows: list[dict[str, object]] = []
@@ -568,6 +574,11 @@ class Application(tk.Tk):
             label=self._t("menu_generate_word"),
             command=self._menu_generate_word,
         )
+        documentation_menu.add_separator()
+        documentation_menu.add_command(
+            label=self._t("menu_create_data_dictionary"),
+            command=self._show_data_dictionary_screen,
+        )
         menu_bar.add_cascade(
             label=self._t("documentation_menu"), menu=documentation_menu
         )
@@ -595,6 +606,10 @@ class Application(tk.Tk):
         configuration_menu.add_command(
             label=self._t("show_configuration_screen"),
             command=self._show_configuration_screen,
+        )
+        configuration_menu.add_command(
+            label=self._t("manage_exclusions_menu_item"),
+            command=self._show_exclusion_screen,
         )
         configuration_menu.add_command(
             label=self._t("view_scoring_menu_item"),
@@ -642,6 +657,12 @@ class Application(tk.Tk):
     def _show_configuration_screen(self) -> None:
         show_configuration_screen(self)
 
+    def _show_exclusion_screen(self) -> None:
+        show_exclusion_screen(self)
+
+    def _show_data_dictionary_screen(self) -> None:
+        show_data_dictionary_screen(self)
+
     def _on_generation_result(self, result: GenerationResult) -> None:
         index_path = result.index
         if index_path is not None:
@@ -687,6 +708,36 @@ class Application(tk.Tk):
             self.hero_label.configure(image=self.hero_image)
         except tk.TclError:
             self._append_log(self._t("branding_error"))
+
+    def _setup_styles(self) -> None:
+        """Configure global styles for the application, with fixes for macOS."""
+        style = ttk.Style(self)
+        
+        # On macOS, the default 'aqua' theme sometimes has issues with Combobox visibility
+        # or rendering in certain layouts.
+        if sys.platform == "darwin":
+            # Ensure we are using aqua if available
+            if "aqua" in style.theme_names():
+                style.theme_use("aqua")
+            
+            # Specific fixes for Combobox on macOS to ensure they are visible and readable
+            # On some macOS versions, readonly comboboxes can have white text on white background
+            # or be completely invisible.
+            style.configure("TCombobox", padding=2, borderwidth=1)
+            style.map("TCombobox", 
+                fieldbackground=[("readonly", "white"), ("!disabled", "white")],
+                foreground=[("readonly", "black"), ("!disabled", "black")],
+                background=[("readonly", "white")],
+                selectbackground=[("readonly", "#007aff")], # macOS accent color
+                selectforeground=[("readonly", "white")]
+            )
+            
+            # Also fix for TEntry which can have similar issues
+            style.configure("TEntry", padding=1)
+            style.map("TEntry",
+                fieldbackground=[("!disabled", "white")],
+                foreground=[("!disabled", "black")]
+            )
 
     def _load_settings(self) -> dict[str, Any]:
         return load_settings(self.settings_path)
@@ -777,6 +828,10 @@ class Application(tk.Tk):
             "adopt_adapt_thresholds": list(self.adopt_adapt_thresholds),
             "ai_usage_tags": list(self.ai_usage_tags),
             "posture_adopt_adapt": serialize_posture_config(self.posture_config),
+            "dd_html": self.settings.get("dd_html", True),
+            "dd_word": self.settings.get("dd_word", True),
+            "dd_excel": self.settings.get("dd_excel", True),
+            "dd_selected_objects": self.settings.get("dd_selected_objects", []),
         }
         payload.update(self._current_index_card_visibility().to_settings())
         save_settings(self.settings_path, payload)

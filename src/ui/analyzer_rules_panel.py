@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 import tkinter as tk
 import webbrowser
-from tkinter import scrolledtext, ttk
+from tkinter import scrolledtext, ttk, simpledialog
 from typing import TYPE_CHECKING
 
 from src.analyzer.models import Rule
@@ -70,23 +70,60 @@ def persist_changes(app: Application) -> None:
     updated = raw
     for rule in app._analyzer_rules_cache:
         var = app._analyzer_rule_vars.get(rule.id)
+        min_var = app._analyzer_rule_min_api_vars.get(rule.id)
+        max_var = app._analyzer_rule_max_api_vars.get(rule.id)
+        
         if var is None:
             continue
-        desired = bool(var.get())
-        if desired == rule.enabled:
-            continue
-        new_value = "true" if desired else "false"
-        pattern = re.compile(
-            r'(<rule\s+id="' + re.escape(rule.id) + r'"[^>]*?)enabled="(?:true|false)"',
+            
+        desired_enabled = "true" if bool(var.get()) else "false"
+        desired_min = min_var.get().strip() if min_var else ""
+        desired_max = max_var.get().strip() if max_var else ""
+
+        # Find the rule start tag
+        rule_pattern = re.compile(
+            r'(<rule\s+id="' + re.escape(rule.id) + r'"[^>]*?>)',
             re.DOTALL,
         )
-        updated, count = pattern.subn(
-            lambda m, value=new_value: m.group(1) + f'enabled="{value}"',
-            updated,
-            count=1,
-        )
-        if count:
-            changes += count
+        
+        match = rule_pattern.search(updated)
+        if not match:
+            continue
+            
+        tag = match.group(1)
+        new_tag = tag
+        
+        # Update enabled
+        if 'enabled="' in new_tag:
+            new_tag = re.sub(r'enabled="[^"]*"', f'enabled="{desired_enabled}"', new_tag)
+        else:
+            # Insert after <rule
+            new_tag = re.sub(r'<rule', f'<rule enabled="{desired_enabled}"', new_tag)
+
+        # Update min_api_version
+        if desired_min:
+            if 'min_api_version="' in new_tag:
+                new_tag = re.sub(r'min_api_version="[^"]*"', f'min_api_version="{desired_min}"', new_tag)
+            else:
+                # Add before the closing >
+                new_tag = new_tag[:-1] + f' min_api_version="{desired_min}">'
+        elif 'min_api_version="' in new_tag:
+            # Remove it if empty
+            new_tag = re.sub(r'\s*min_api_version="[^"]*"', '', new_tag)
+
+        # Update max_api_version
+        if desired_max:
+            if 'max_api_version="' in new_tag:
+                new_tag = re.sub(r'max_api_version="[^"]*"', f'max_api_version="{desired_max}"', new_tag)
+            else:
+                new_tag = new_tag[:-1] + f' max_api_version="{desired_max}">'
+        elif 'max_api_version="' in new_tag:
+            new_tag = re.sub(r'\s*max_api_version="[^"]*"', '', new_tag)
+
+        if new_tag != tag:
+            # Use the match span to replace only this specific occurrence
+            updated = updated[:match.start()] + new_tag + updated[match.end():]
+            changes += 1
     if changes == 0:
         return
     try:
@@ -107,9 +144,14 @@ def reset_state(app: Application) -> None:
     """
 
     app._analyzer_rule_vars = {}
+    app._analyzer_rule_min_api_vars = {}
+    app._analyzer_rule_max_api_vars = {}
     app._analyzer_rules_cache = []
     app._analyzer_rule_rows = []
+    app._analyzer_rule_selected_id = None
     app._analyzer_rule_count_var = None
+    app._analyzer_rule_min_api_entry_var = None
+    app._analyzer_rule_max_api_entry_var = None
     app._analyzer_rule_detail_widget = None
     app._analyzer_rule_filter_severity = None
     app._analyzer_rule_filter_category = None
@@ -169,6 +211,16 @@ def _build_controls(app: Application, parent: ttk.Frame) -> None:
         controls,
         text=app._t("configuration_rules_reload"),
         command=lambda: _reload_rules(app),
+    ).pack(side="left", padx=(6, 0))
+    ttk.Button(
+        controls,
+        text=app._t("configuration_rules_set_all_min"),
+        command=lambda: _set_all_api_versions(app, "min"),
+    ).pack(side="left", padx=(6, 0))
+    ttk.Button(
+        controls,
+        text=app._t("configuration_rules_set_all_max"),
+        command=lambda: _set_all_api_versions(app, "max"),
     ).pack(side="left", padx=(6, 0))
 
     count_var = tk.StringVar(value="")
@@ -294,6 +346,34 @@ def _build_list_pane(app: Application, parent: ttk.Frame) -> ttk.Frame:
     app._analyzer_rule_detail_widget = detail_widget
     _set_detail_text(app, app._t("configuration_rules_detail_empty"))
 
+    # API Version fields
+    api_version_row = ttk.Frame(detail_frame)
+    api_version_row.pack(fill="x", pady=(6, 0))
+    
+    ttk.Label(api_version_row, text=app._t("configuration_rules_min_api_version")).pack(side="left")
+    app._analyzer_rule_min_api_entry_var = tk.StringVar()
+    min_entry = ttk.Entry(api_version_row, textvariable=app._analyzer_rule_min_api_entry_var, width=10)
+    min_entry.pack(side="left", padx=(4, 12))
+    
+    ttk.Label(api_version_row, text=app._t("configuration_rules_max_api_version")).pack(side="left")
+    app._analyzer_rule_max_api_entry_var = tk.StringVar()
+    max_entry = ttk.Entry(api_version_row, textvariable=app._analyzer_rule_max_api_entry_var, width=10)
+    max_entry.pack(side="left", padx=(4, 0))
+
+    # Sync entry fields back to the rule-specific vars
+    def _sync_min(*_args):
+        rule_id = getattr(app, "_analyzer_rule_selected_id", None)
+        if rule_id and rule_id in app._analyzer_rule_min_api_vars:
+            app._analyzer_rule_min_api_vars[rule_id].set(app._analyzer_rule_min_api_entry_var.get())
+            
+    def _sync_max(*_args):
+        rule_id = getattr(app, "_analyzer_rule_selected_id", None)
+        if rule_id and rule_id in app._analyzer_rule_max_api_vars:
+            app._analyzer_rule_max_api_vars[rule_id].set(app._analyzer_rule_max_api_entry_var.get())
+
+    app._analyzer_rule_min_api_entry_var.trace_add("write", _sync_min)
+    app._analyzer_rule_max_api_entry_var.trace_add("write", _sync_max)
+
     ref_row = ttk.Frame(detail_frame)
     ref_row.pack(fill="x", pady=(6, 0))
     app._analyzer_rule_selected_reference = ""
@@ -397,6 +477,14 @@ def _render_single_rule_row(app: Application, parent: ttk.Frame, rule: Rule) -> 
     app._analyzer_rule_vars[rule.id] = var
     var.trace_add("write", lambda *_args: _refresh_rule_count(app))
 
+    # Initialize API version vars with current Salesforce version (60.0) if None
+    current_sf_version = "60.0"
+    min_val = str(rule.min_api_version) if rule.min_api_version is not None else current_sf_version
+    max_val = str(rule.max_api_version) if rule.max_api_version is not None else current_sf_version
+    
+    app._analyzer_rule_min_api_vars[rule.id] = tk.StringVar(value=min_val)
+    app._analyzer_rule_max_api_vars[rule.id] = tk.StringVar(value=max_val)
+
     check = ttk.Checkbutton(row, variable=var)
     check.pack(side="left", padx=(0, 4))
 
@@ -441,7 +529,15 @@ def _render_single_rule_row(app: Application, parent: ttk.Frame, rule: Rule) -> 
 
 
 def _select_rule(app: Application, rule: Rule) -> None:
+    app._analyzer_rule_selected_id = rule.id
     app._analyzer_rule_selected_reference = rule.reference or ""
+    
+    # Update API version entry fields
+    if rule.id in app._analyzer_rule_min_api_vars:
+        app._analyzer_rule_min_api_entry_var.set(app._analyzer_rule_min_api_vars[rule.id].get())
+    if rule.id in app._analyzer_rule_max_api_vars:
+        app._analyzer_rule_max_api_entry_var.set(app._analyzer_rule_max_api_vars[rule.id].get())
+
     lines: list[str] = [f"{rule.id} - {rule.title}", ""]
     lines.append(
         f"{app._t('configuration_rules_column_severity')}: "
@@ -554,3 +650,28 @@ def _reload_rules(app: Application) -> None:
         app._t("configuration_rules_reloaded", path=str(app._analyzer_rules_file))
     )
     app._show_configuration_screen()
+
+
+def _set_all_api_versions(app: Application, target: str) -> None:
+    """Prompt for a version and apply it to all rules (min or max)."""
+    title = app._t(f"configuration_rules_set_all_{target}")
+    prompt = app._t("configuration_rules_set_all_prompt")
+    
+    new_version = simpledialog.askstring(title, prompt, parent=app.configuration_window)
+    if new_version is None: # User cancelled
+        return
+        
+    new_version = new_version.strip()
+    
+    vars_dict = app._analyzer_rule_min_api_vars if target == "min" else app._analyzer_rule_max_api_vars
+    
+    for rule_id, var in vars_dict.items():
+        var.set(new_version)
+        
+    # If a rule is currently selected, update the detail entry field as well
+    selected_id = getattr(app, "_analyzer_rule_selected_id", None)
+    if selected_id:
+        if target == "min":
+            app._analyzer_rule_min_api_entry_var.set(new_version)
+        else:
+            app._analyzer_rule_max_api_entry_var.set(new_version)

@@ -92,6 +92,25 @@ class HtmlReportWriter:
             analyzer_report=analyzer_report,
         )
 
+    def write_combined_data_dictionary_html(
+        self,
+        snapshot: MetadataSnapshot,
+        output_path: Path,
+        *,
+        analyzer_report=None,
+    ) -> Path:
+        content = objects_renderer.render_combined_objects_page(
+            snapshot,
+            output_path,
+            self.output_dir,
+            self.assets_dir,
+            analyzer_report=analyzer_report,
+        )
+        from src.core.utils import write_text
+        write_text(output_path, content)
+        self.log(f"Data Dictionary HTML combine genere : {output_path}")
+        return output_path
+
     def write_apex_pages(
         self,
         snapshot: MetadataSnapshot,

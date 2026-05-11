@@ -46,6 +46,7 @@ def build_panel(app: Application, parent: ttk.Frame) -> None:
         org_row,
         textvariable=app.selected_org_var,
         state="readonly",
+        width=40,
     )
     app.org_combo.pack(side="left", fill="x", expand=True, padx=(0, 8))
     app.org_combo.bind("<<ComboboxSelected>>", app._on_org_selected)

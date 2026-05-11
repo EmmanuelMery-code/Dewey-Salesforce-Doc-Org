@@ -406,7 +406,7 @@ def render_index(
                 excel_links,
             ),
             (
-                "Omni",
+                "Omni / BRE",
                 omni_panel,
             ),
             (
@@ -456,6 +456,8 @@ def render_index(
         + metrics.omni_integration_procedures
         + metrics.omni_ui_cards
         + metrics.omni_data_transforms
+        + metrics.bre_decision_matrices
+        + metrics.bre_expression_sets
     )
     findings_card = ""
     if analyzer_report is not None and visibility.show_findings:
@@ -528,7 +530,7 @@ def render_index(
         f'<span class="value">{metrics.score}</span>'
         f'<div style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.75rem; color: #64748b;">'
         f'<span>No: {metrics.custom_objects * metrics._weight("custom_objects") + metrics.custom_fields * metrics._weight("custom_fields") + metrics.record_types * metrics._weight("record_types") + metrics.validation_rules * metrics._weight("validation_rules") + metrics.layouts * metrics._weight("layouts") + metrics.custom_tabs * metrics._weight("custom_tabs") + metrics.custom_apps * metrics._weight("custom_apps") + metrics.einstein_predictions * metrics._weight("einstein_predictions")}</span>'
-        f'<span>Low: {metrics.flows * metrics._weight("flows") + metrics.omni_scripts * metrics._weight("omni_scripts") + metrics.omni_integration_procedures * metrics._weight("omni_integration_procedures") + metrics.omni_ui_cards * metrics._weight("omni_ui_cards") + metrics.omni_data_transforms * metrics._weight("omni_data_transforms") + metrics.gen_ai_prompts * metrics._weight("gen_ai_prompts")}</span>'
+        f'<span>Low: {metrics.flows * metrics._weight("flows") + metrics.omni_scripts * metrics._weight("omni_scripts") + metrics.omni_integration_procedures * metrics._weight("omni_integration_procedures") + metrics.omni_ui_cards * metrics._weight("omni_ui_cards") + metrics.omni_data_transforms * metrics._weight("omni_data_transforms") + metrics.bre_decision_matrices * metrics._weight("bre_decision_matrices") + metrics.bre_expression_sets * metrics._weight("bre_expression_sets") + metrics.gen_ai_prompts * metrics._weight("gen_ai_prompts")}</span>'
         f'<span>Pro: {metrics.apex_classes * metrics._weight("apex_classes") + metrics.apex_triggers * metrics._weight("apex_triggers") + metrics.agents * metrics._weight("agents")}</span>'
         f'</div></div>\n'
         if visibility.show_score
@@ -545,7 +547,7 @@ def render_index(
         f'<span class="value">{metrics.adopt_adapt_score}</span>'
         f'<div style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.75rem; color: #64748b;">'
         f'<span>No: {metrics.custom_objects * metrics._aa_weight("custom_objects") + metrics.custom_fields * metrics._aa_weight("custom_fields") + metrics.einstein_predictions * metrics._aa_weight("einstein_predictions")}</span>'
-        f'<span>Low: {metrics.flows * metrics._aa_weight("flows") + metrics.lwc_count * metrics._aa_weight("lwc") + metrics.flexipage_count * metrics._aa_weight("flexipages") + metrics.omni_scripts * metrics._aa_weight("omni_scripts") + metrics.omni_integration_procedures * metrics._aa_weight("omni_integration_procedures") + metrics.omni_ui_cards * metrics._aa_weight("omni_ui_cards") + metrics.omni_data_transforms * metrics._aa_weight("omni_data_transforms") + metrics.gen_ai_prompts * metrics._aa_weight("gen_ai_prompts")}</span>'
+        f'<span>Low: {metrics.flows * metrics._aa_weight("flows") + metrics.lwc_count * metrics._aa_weight("lwc") + metrics.flexipage_count * metrics._aa_weight("flexipages") + metrics.omni_scripts * metrics._aa_weight("omni_scripts") + metrics.omni_integration_procedures * metrics._aa_weight("omni_integration_procedures") + metrics.omni_ui_cards * metrics._aa_weight("omni_ui_cards") + metrics.omni_data_transforms * metrics._aa_weight("omni_data_transforms") + metrics.bre_decision_matrices * metrics._aa_weight("bre_decision_matrices") + metrics.bre_expression_sets * metrics._aa_weight("bre_expression_sets") + metrics.gen_ai_prompts * metrics._aa_weight("gen_ai_prompts")}</span>'
         f'<span>Pro: {metrics.apex_classes * metrics._aa_weight("apex_classes") + metrics.agents * metrics._aa_weight("agents")}</span>'
         f'</div></div>\n'
         if visibility.show_adopt_adapt_score

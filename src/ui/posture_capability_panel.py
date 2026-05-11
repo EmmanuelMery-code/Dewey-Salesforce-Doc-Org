@@ -428,7 +428,7 @@ def _add_capability_dialog(app: "Application") -> None:
         metric_keys.append(key)
     metric_var = tk.StringVar(value=metric_choices[0])
     metric_combo = ttk.Combobox(
-        metric_frame, textvariable=metric_var, values=metric_choices, state="readonly"
+        metric_frame, textvariable=metric_var, values=metric_choices, state="readonly", width=30
     )
     metric_combo.pack(side="left", fill="x", expand=True)
 
@@ -452,6 +452,7 @@ def _add_capability_dialog(app: "Application") -> None:
         textvariable=level_var,
         values=level_choices,
         state="readonly",
+        width=30,
     ).pack(side="left", fill="x", expand=True)
 
     suggestion_label = ttk.Label(

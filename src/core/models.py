@@ -33,6 +33,7 @@ class ValidationRuleInfo:
     error_display_field: str = ""
     error_message: str = ""
     error_condition_formula: str = ""
+    api_version: str = ""
 
 
 @dataclass(slots=True)
@@ -52,6 +53,7 @@ class ObjectInfo:
     sharing_model: str = ""
     visibility: str = ""
     custom: bool = False
+    api_version: str = ""
     fields: list[FieldInfo] = field(default_factory=list)
     record_types: list[RecordTypeInfo] = field(default_factory=list)
     validation_rules: list[ValidationRuleInfo] = field(default_factory=list)
@@ -246,6 +248,8 @@ DEFAULT_SCORING_WEIGHTS: dict[str, int] = {
     "agents": 5,
     "gen_ai_prompts": 4,
     "einstein_predictions": 5,
+    "bre_decision_matrices": 4,
+    "bre_expression_sets": 4,
 }
 
 DEFAULT_ADOPT_ADAPT_WEIGHTS: dict[str, int] = {
@@ -259,6 +263,8 @@ DEFAULT_ADOPT_ADAPT_WEIGHTS: dict[str, int] = {
     "omni_integration_procedures": 20,
     "omni_ui_cards": 20,
     "omni_data_transforms": 15,
+    "bre_decision_matrices": 20,
+    "bre_expression_sets": 20,
     "agents": 30,
     "gen_ai_prompts": 25,
     "einstein_predictions": 30,
@@ -288,6 +294,8 @@ class CustomizationMetrics:
     omni_integration_procedures: int = 0
     omni_ui_cards: int = 0
     omni_data_transforms: int = 0
+    bre_decision_matrices: int = 0
+    bre_expression_sets: int = 0
     agents: int = 0
     gen_ai_prompts: int = 0
     einstein_predictions: int = 0
@@ -333,6 +341,8 @@ class CustomizationMetrics:
             + self.omni_integration_procedures * self._weight("omni_integration_procedures")
             + self.omni_ui_cards * self._weight("omni_ui_cards")
             + self.omni_data_transforms * self._weight("omni_data_transforms")
+            + self.bre_decision_matrices * self._weight("bre_decision_matrices")
+            + self.bre_expression_sets * self._weight("bre_expression_sets")
             + self.agents * self._weight("agents")
             + self.gen_ai_prompts * self._weight("gen_ai_prompts")
             + self.einstein_predictions * self._weight("einstein_predictions")
@@ -364,6 +374,8 @@ class CustomizationMetrics:
             + self.omni_integration_procedures * self._aa_weight("omni_integration_procedures")
             + self.omni_ui_cards * self._aa_weight("omni_ui_cards")
             + self.omni_data_transforms * self._aa_weight("omni_data_transforms")
+            + self.bre_decision_matrices * self._aa_weight("bre_decision_matrices")
+            + self.bre_expression_sets * self._aa_weight("bre_expression_sets")
             + self.agents * self._aa_weight("agents")
             + self.gen_ai_prompts * self._aa_weight("gen_ai_prompts")
             + self.einstein_predictions * self._aa_weight("einstein_predictions")
