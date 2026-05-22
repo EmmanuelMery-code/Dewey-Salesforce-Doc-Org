@@ -1,4 +1,4 @@
-# Lucie : Salesforce Doc Generator
+# Dewey : Doc Org - Salesforce
 
 Application Python avec interface `Tkinter` pour :
 - se connecter a une org Salesforce via Salesforce CLI

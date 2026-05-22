@@ -689,7 +689,7 @@ class Application(tk.Tk):
         show_history_screen(self)
 
     def _load_branding(self) -> None:
-        image_path = self.app_dir / "image" / "Lucie.png"
+        image_path = self.app_dir / "image" / "Dewey.png"
         if not image_path.exists():
             return
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 from typing import Callable
 
@@ -645,7 +646,7 @@ def render_index(
 
     title_suffix = f" : {html_value(alias)}" if alias else ""
     body = f"""
-<h1>Documentation Salesforce{title_suffix}</h1>
+<h1>Documentation Salesforce{title_suffix} ({date.today().isoformat()})</h1>
 <p>Source analysee: <code>{html_value(snapshot.source_dir)}</code></p>
 {summary_tabs}
 {tabs}

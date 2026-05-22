@@ -1,13 +1,13 @@
 {
   "language": "fr",
   "login_target": "sandbox",
-  "instance_url": "https://test.salesforce.com",
-  "alias": "mh PV",
-  "source_folder": "C:/Users/emery/Desktop/Lucie/org/retrieve 20260430/PV/retrieve",
-  "output_folder": "C:/Users/emery/Desktop/Lucie/org/retrieve 20260430/PV/Documentation",
-  "exclusion_file": "C:/Users/emery/Desktop/Lucie/code/20260506_refacto_prompt_agent/exclusion.xlsx",
+  "instance_url": "https://malakoff-humanis--mhint.sandbox.my.salesforce.com",
+  "alias": "mh integration",
+  "source_folder": "C:/Users/emery/Desktop/Lucie/org/sandbox int/20260519/retrieve",
+  "output_folder": "C:/Users/emery/Desktop/Lucie/org/sandbox int/20260519/documentation",
+  "exclusion_file": "C:/Users/emery/Desktop/Lucie/org/sandbox int/exclusion.xlsx",
   "pmd_enabled": true,
-  "pmd_ruleset_file": "C:/Users/emery/Desktop/code/HtmlDocGenerator/2026/apex-ruleset.xml",
+  "pmd_ruleset_file": "C:/Users/emery/Desktop/Lucie/org/sandbox int/apex-ruleset.xml",
   "org_check_type": "apex-classes",
   "ai_provider": "Claude",
   "claude_api_key": "",
@@ -36,7 +36,9 @@
     "omni_data_transforms": 10,
     "agents": 5,
     "gen_ai_prompts": 4,
-    "einstein_predictions": 5
+    "einstein_predictions": 5,
+    "bre_decision_matrices": 4,
+    "bre_expression_sets": 4
   },
   "adopt_adapt_weights": {
     "custom_objects": 5,
@@ -49,6 +51,8 @@
     "omni_integration_procedures": 10,
     "omni_ui_cards": 5,
     "omni_data_transforms": 10,
+    "bre_decision_matrices": 20,
+    "bre_expression_sets": 20,
     "agents": 30,
     "gen_ai_prompts": 25,
     "einstein_predictions": 30
@@ -272,6 +276,22 @@
       }
     ]
   },
+  "dd_html": false,
+  "dd_word": true,
+  "dd_excel": false,
+  "dd_selected_objects": [
+    "Activity",
+    "Lead",
+    "NomenclatureCCN__c",
+    "Case",
+    "Account",
+    "AccountContactRole",
+    "In_App_Checklist_Settings__c",
+    "NomenclatureNAF__c",
+    "AccountContactRelation",
+    "Event",
+    "Opportunity"
+  ],
   "show_card_customization_level": true,
   "show_card_score": true,
   "show_card_adopt_vs_adapt": true,
