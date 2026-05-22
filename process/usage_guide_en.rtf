@@ -3,7 +3,7 @@
 {\colortbl ;\red0\green0\blue0;\red0\green70\blue140;\red80\green80\blue80;\red200\green80\blue40;}
 {\*\generator Lucie Process Doc;}\viewkind4\uc1
 \paperw11906\paperh16838\margl1134\margr1134\margt1134\margb1134
-\pard\sa120\sl276\slmult1\f0\fs22 \pard\sb240\sa120\keepn\f0\fs40\b\cf2 Lucie: Salesforce Doc Generator\b0\cf1\fs22\par
+\pard\sa120\sl276\slmult1\f0\fs22 \pard\sb240\sa120\keepn\f0\fs40\b\cf2 Dewey : Doc Org - Salesforce\b0\cf1\fs22\par
 \pard\sb240\sa120\keepn\f0\fs40\b\cf2 Usage guide for Squads, Tech Leads and the Design Review\b0\cf1\fs22\par
 \pard\sa120\sl276\slmult1\fs22 This document explains step-by-step how Squads, Tech Leads and the Design Review use Lucie to produce, share and leverage a high-quality Salesforce documentation. It emphasises the benefits brought by the tool and the collaborative aspect across the team.\par
 \page
@@ -42,11 +42,11 @@
 \pard\sa120\sl276\slmult1\li567\ri567\i\cf3\fs22 Tip: versioning exclusion.xlsx, rules.xml and the PMD ruleset in a shared Git repository ensures consistent analyses across all Squads.\i0\cf1\par
 \page
 \pard\sb240\sa120\keepn\f0\fs40\b\cf2 4. How Squads use the tool\b0\cf1\fs22\par
-\pard\sa120\sl276\slmult1\fs22 Each Squad uses Lucie for everyday needs: exploring the org, preparing a story, auditing before a release.\par
+\pard\sa120\sl276\slmult1\fs22 Each Squad uses Dewey for everyday needs: exploring the org, preparing a story, auditing before a release.\par
 \pard\sb200\sa100\keepn\f0\fs30\b\cf2 4.1 Standard run\b0\cf1\fs22\par
-\pard\fi-360\li720\sa80\sl276\slmult1\fs22 1.\tab Open Lucie via python app.py.\par
+\pard\fi-360\li720\sa80\sl276\slmult1\fs22 1.\tab Open Dewey via python app.py.\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 2.\tab Pick the source folder (Salesforce retrieve output or clone of the Squad repo).\par
-\pard\fi-360\li720\sa80\sl276\slmult1\fs22 3.\tab Pick the shared output folder, in a Squad-specific dated subfolder (e.g. \\\\share\\lucie\\squad-alpha\\2026-04-25).\par
+\pard\fi-360\li720\sa80\sl276\slmult1\fs22 3.\tab Pick the shared output folder, in a Squad-specific dated subfolder (e.g. \\\\share\\dewey\\squad-alpha\\2026-04-25).\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 4.\tab Load the Salesforce org: either via Web login + alias then Generate manifest and Run retrieve, or directly via the Manifest + Retrieve + Doc button which chains everything.\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 5.\tab Click Generate documentation.\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 6.\tab Open the HTML index and explore the generated docs.\par
@@ -104,7 +104,7 @@
 \pard\sb240\sa120\keepn\f0\fs40\b\cf2 7. Collaborative aspect and shared folder\b0\cf1\fs22\par
 \pard\sa120\sl276\slmult1\fs22 The tool delivers its full value when shared and when every actor works from the same reference folder.\par
 \pard\sb200\sa100\keepn\f0\fs30\b\cf2 7.1 Suggested layout\b0\cf1\fs22\par
-\pard\sa60\sl240\slmult1\li360\f1\fs20\cf4 \\\\share\\lucie\\\line +-- _config\\\line |   +-- exclusion.xlsx\line |   +-- rules.xml\line |   +-- pmd_ruleset.xml\line +-- squad-alpha\\\line |   +-- 2026-04-11\\\line |   |   +-- index.html\line |   |   +-- excel\\...\line |   |   +-- word\\data_dictionary.docx\line |   |   +-- word\\summary.docx\line |   +-- 2026-04-25\\\line +-- squad-beta\\\line +-- design-review\\\line     +-- 2026-04-15-minutes.docx\line     +-- 2026-04-29-minutes.docx\line \f0\fs22\cf1\par
+\pard\sa60\sl240\slmult1\li360\f1\fs20\cf4 \\\\share\\dewey\\\line +-- _config\\\line |   +-- exclusion.xlsx\line |   +-- rules.xml\line |   +-- pmd_ruleset.xml\line +-- squad-alpha\\\line |   +-- 2026-04-11\\\line |   |   +-- index.html\line |   |   +-- excel\\...\line |   |   +-- word\\data_dictionary.docx\line |   |   +-- word\\summary.docx\line |   +-- 2026-04-25\\\line +-- squad-beta\\\line +-- design-review\\\line     +-- 2026-04-15-minutes.docx\line     +-- 2026-04-29-minutes.docx\line \f0\fs22\cf1\par
 \pard\sb200\sa100\keepn\f0\fs30\b\cf2 7.2 Collaborative benefits\b0\cf1\fs22\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab Single view: everyone reads the same data and the same rules.\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab Capitalisation: the generation history works as the collective memory of the org.\par

@@ -158,7 +158,7 @@ def build_document(parts: list[str]) -> str:
 def french_document() -> str:
     parts: list[str] = []
 
-    parts.append(h1("Lucie : Salesforce Doc Generator"))
+    parts.append(h1("Dewey : Doc Org - Salesforce"))
     parts.append(h1("Guide d'utilisation pour Squads, Tech Leads et Design Review"))
     parts.append(
         paragraph(
@@ -312,12 +312,12 @@ def french_document() -> str:
     parts.append(
         numbered(
             [
-                "Ouvrir Lucie via la commande python app.py.",
+                "Ouvrir Dewey via la commande python app.py.",
                 "S\u00e9lectionner le dossier source (r\u00e9sultat d'un "
                 "retrieve Salesforce ou clone du repo de la Squad).",
                 "S\u00e9lectionner le dossier de sortie commun, dans un "
                 "sous-dossier propre \u00e0 la Squad et dat\u00e9 (ex. "
-                "\\\\share\\lucie\\squad-alpha\\2026-04-25).",
+                "\\\\share\\dewey\\squad-alpha\\2026-04-25).",
                 "Charger l'org Salesforce : via Web login + alias puis "
                 "G\u00e9n\u00e9rer manifest et Faire retrieve, ou directement "
                 "via le bouton Manifest + Retrieve + Doc qui encha\u00eene "
@@ -528,7 +528,7 @@ def french_document() -> str:
     parts.append(
         code_block(
             [
-                "\\\\share\\lucie\\",
+                "\\\\share\\dewey\\",
                 "+-- _config\\",
                 "|   +-- exclusion.xlsx",
                 "|   +-- rules.xml",
@@ -636,7 +636,7 @@ def french_document() -> str:
 def english_document() -> str:
     parts: list[str] = []
 
-    parts.append(h1("Lucie: Salesforce Doc Generator"))
+    parts.append(h1("Dewey : Doc Org - Salesforce"))
     parts.append(h1("Usage guide for Squads, Tech Leads and the Design Review"))
     parts.append(
         paragraph(
@@ -779,7 +779,7 @@ def english_document() -> str:
                 "Pick the source folder (Salesforce retrieve output or clone "
                 "of the Squad repo).",
                 "Pick the shared output folder, in a Squad-specific dated "
-                "subfolder (e.g. \\\\share\\lucie\\squad-alpha\\2026-04-25).",
+                "subfolder (e.g. \\\\share\\dewey\\squad-alpha\\2026-04-25).",
                 "Load the Salesforce org: either via Web login + alias then "
                 "Generate manifest and Run retrieve, or directly via the "
                 "Manifest + Retrieve + Doc button which chains everything.",
@@ -969,7 +969,7 @@ def english_document() -> str:
     parts.append(
         code_block(
             [
-                "\\\\share\\lucie\\",
+                "\\\\share\\dewey\\",
                 "+-- _config\\",
                 "|   +-- exclusion.xlsx",
                 "|   +-- rules.xml",

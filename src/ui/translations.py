@@ -2,8 +2,8 @@ from __future__ import annotations
 
 TRANSLATIONS = {
     "fr": {
-        "window_title": "Lucie : Salesforce Doc Generator",
-        "header_title": "Lucie : Salesforce Doc Generator",
+        "window_title": "Dewey : Doc Org - Salesforce",
+        "header_title": "Dewey : Doc Org - Salesforce",
         "header_description": "Choisissez les dossiers de travail, pilotez Salesforce CLI, puis lancez la generation de documentation.",
         "language": "Langue",
         "download_menu": "Telechargement",
@@ -356,7 +356,7 @@ TRANSLATIONS = {
         "org_check_ready": "Excel Org Check genere: {path}",
         "doc_in_progress": "Generation de la documentation en cours...",
         "doc_done": "Generation terminee.",
-        "branding_error": "Impossible de charger l'image Lucie.png pour le branding.",
+        "branding_error": "Impossible de charger l'image Dewey.png pour le branding.",
         "source_log": "Source: {path}",
         "output_log": "Sortie: {path}",
         "pipeline_log": "Pipeline complet sur l'org: {org}",
@@ -438,8 +438,8 @@ TRANSLATIONS = {
         "exclusions_confirm_delete": "Voulez-vous vraiment supprimer cette exclusion ?",
     },
     "en": {
-        "window_title": "Lucie: Salesforce Doc Generator",
-        "header_title": "Lucie: Salesforce Doc Generator",
+        "window_title": "Dewey : Doc Org - Salesforce",
+        "header_title": "Dewey : Doc Org - Salesforce",
         "header_description": "Choose working folders, use Salesforce CLI, then generate the documentation.",
         "language": "Language",
         "download_menu": "Downloads",
@@ -802,7 +802,7 @@ TRANSLATIONS = {
         "org_check_ready": "Org check Excel generated: {path}",
         "doc_in_progress": "Documentation generation in progress...",
         "doc_done": "Generation completed.",
-        "branding_error": "Unable to load Lucie.png for branding.",
+        "branding_error": "Unable to load Dewey.png for branding.",
         "source_log": "Source: {path}",
         "output_log": "Output: {path}",
         "pipeline_log": "Full pipeline for org: {org}",
