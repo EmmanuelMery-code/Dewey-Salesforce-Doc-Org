@@ -9,7 +9,7 @@
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Excel workbooks (permission sets, profiles, metadata inventory, PMD);\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a {\b complexity score} and an {\b Adopt vs Adapt} score with fully configurable weights;\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a configurable {\b static analyzer} (PMD rules + Well-Architected + Admin best practices);\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab an {\b AI assistant} (Claude / Gemini) to chat about the documented org.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab an {\b AI assistant} (Claude / Gemini / Gateway) to chat about the documented org.\sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Table of contents\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\field{\*\fldinst{HYPERLINK "#1-prerequisites-and-installation"}}{\fldrslt{\ul
@@ -52,8 +52,8 @@ Downloads menu
 Troubleshooting
 }}}
 \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 11.\tx360\tab {\field{\*\fldinst{HYPERLINK "#11-how-to-get-a-gemini-api-key-and-a-claude-api-key"}}{\fldrslt{\ul
-How to get a Gemini API key and a Claude API key
+{\pard \ql \f0 \sa0 \li360 \fi-360 11.\tx360\tab {\field{\*\fldinst{HYPERLINK "#11-how-to-get-a-gemini-claude-or-gateway-api-key"}}{\fldrslt{\ul
+How to get a Gemini, Claude or Gateway API key
 }}}
 \sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
@@ -140,7 +140,7 @@ https://pmd.github.io/latest/pmd_userdocs_installation.html
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 python -m venv .venv\line
 .venv\\Scripts\\activate\line
 pip install -r requirements.txt\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 {\f1 requirements.txt} installs (among others) {\f1 openpyxl} (Excel), {\f1 anthropic} (Claude) and {\f1 google-generativeai} (Gemini).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\f1 requirements.txt} installs (among others) {\f1 openpyxl} (Excel), {\f1 anthropic} (Claude), {\f1 google-genai} (Gemini) and {\f1 requests} (Gateway).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Local preferences\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The application keeps its preferences in {\f1 app_settings.json} at the project root (language, alias, folders, API keys, scoring weights, system prompt, analyzer rules etc.). This file stays local (it is listed in {\f1 .gitignore}).\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
@@ -186,8 +186,8 @@ pip install -r requirements.txt\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Those toggles are persisted in {\f1 app_settings.json}.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 4. Main window: Discussion tab (AI)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The Discussion tab lets you chat with an AI assistant (Claude or Gemini) using the documented org as context.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Provider}: reflects the provider chosen in Configuration (Gemini by default).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Discussion tab lets you chat with an AI assistant (Claude, Gemini or Gateway) using the documented org as context.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Provider}: reflects the provider chosen in Configuration (Gemini, Claude or Gateway).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Context status}:\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\i "No context available"}: as long as no generation has been run, no org summary is sent to the model.\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\i "Context available"}: after a run, a summary of the metadata (objects, Apex classes, flows, OmniStudio, analyzer findings, ...) is appended automatically under the system prompt for every message.\sa180\par}
@@ -229,8 +229,8 @@ chapter 11
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Analysis}: enable PMD + ruleset file.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Reports to generate}: Excel / ORG CHECK checkboxes.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 6.2 Discussion tab\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b AI provider}: {\f1 Gemini} or {\f1 Claude}.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Claude key / Gemini key}: masked fields (password-style input).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b AI provider}: {\f1 Gemini}, {\f1 Claude} or {\f1 Gateway}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Claude key / Gemini key / Gateway key}: masked fields (password-style input).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b System prompt}: multi-line editor with a {\i "Reset to default"} button that restores the prompt shipped with the application (honouring the current language).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 6.3 Analyzer rules tab\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b File path}: {\f1 src/analyzer/rules.xml} (read-only indicator).\par}
@@ -377,7 +377,7 @@ chapter 11
 {\pard \ql \f0 \sa180 \li0 \fi0 \par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The execution log (text area at the bottom of the main screen) contains detailed error traces and can be selected / copied.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 11. How to get a Gemini API key and a Claude API key\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 11. How to get a Gemini, Claude or Gateway API key\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The discussion assistant stays neutral: you keep ownership of your key and your account. Keys are stored only in the local {\f1 app_settings.json}. No key is sent anywhere other than the selected provider.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.1 Getting a Google Gemini API key\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Gemini offers a generous {\b free tier} (with daily and per-minute quotas). It is the fastest way to try Lucie end-to-end.\par}
@@ -446,7 +446,14 @@ https://www.anthropic.com/pricing
 {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Paste the key into the {\b Claude API key} field.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Click {\b Save}.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab From the main window's {\b Discussion} tab, confirm that the provider indicator displays {\i "Claude"} then send your first message.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.3 Security best practices\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.3 Using the LLM Gateway (Salesforce)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The {\b Gateway} mode allows connecting to a centralized entry point (Salesforce internal) that routes requests to various models (GPT-5, Claude 3.7, Gemini 2.5, etc.).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Configuration}:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Set {\b AI provider: Gateway}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Enter your {\b Gateway API Key}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Select the desired {\b Gateway Model} from the dropdown.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Provide the path to the security certificate in {\b Certificate Path (PEM)} (default is {\f1 config/Salesforce_Internal_Root_CA_3.pem}).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.4 Security best practices\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Never} share an API key in a Git repository, a support ticket or an instant-messaging channel. {\f1 app_settings.json} is excluded from git by default.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Create a distinct key per workstation or per use case and keep its name meaningful in the provider console \u8212- this allows targeted revocation.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab If you suspect a leak, revoke the key immediately (the {\i Delete} button in the provider console) and generate a new one.\par}

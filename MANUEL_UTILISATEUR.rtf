@@ -9,7 +9,7 @@
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab des classeurs Excel (permission sets, profiles, inventaire metadata, PMD) ;\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab un {\b score de complexite} et un score {\b Adopt vs Adapt} avec ponderation personnalisable ;\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab un {\b analyseur statique} configurable (regles PMD + Well-Architected + bonnes pratiques Admin) ;\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab un {\b assistant IA} (Claude / Gemini) pour discuter de l'org documentee.\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab un {\b assistant IA} (Claude / Gemini / Gateway) pour discuter de l'org documentee.\sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Table des matieres\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\field{\*\fldinst{HYPERLINK "#1-prerequis-et-installation"}}{\fldrslt{\ul
@@ -52,8 +52,8 @@ Menu Telechargement
 Depannage courant
 }}}
 \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 11.\tx360\tab {\field{\*\fldinst{HYPERLINK "#11-obtenir-sa-cle-api-gemini-et-sa-cle-api-claude"}}{\fldrslt{\ul
-Obtenir sa cle API Gemini et sa cle API Claude
+{\pard \ql \f0 \sa0 \li360 \fi-360 11.\tx360\tab {\field{\*\fldinst{HYPERLINK "#11-obtenir-sa-cle-api-gemini-claude-ou-gateway"}}{\fldrslt{\ul
+Obtenir sa cle API Gemini, Claude ou Gateway
 }}}
 \sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
@@ -140,7 +140,7 @@ https://pmd.github.io/latest/pmd_userdocs_installation.html
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 python -m venv .venv\line
 .venv\\Scripts\\activate\line
 pip install -r requirements.txt\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Le fichier {\f1 requirements.txt} installe notamment {\f1 openpyxl} (Excel), {\f1 anthropic} (Claude) et {\f1 google-generativeai} (Gemini).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Le fichier {\f1 requirements.txt} installe notamment {\f1 openpyxl} (Excel), {\f1 anthropic} (Claude), {\f1 google-genai} (Gemini) et {\f1 requests} (Gateway).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Preferences locales\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 L'application memorise les choix de l'utilisateur dans {\f1 app_settings.json} a la racine du projet (langue, alias, dossiers, cles API, poids de scoring, prompt systeme, regles analyseur, etc.). Ce fichier reste local (il est dans {\f1 .gitignore}).\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
@@ -186,8 +186,8 @@ pip install -r requirements.txt\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Ces reglages sont memorises dans {\f1 app_settings.json}.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 4. Ecran principal : onglet Discussion (IA)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 L'onglet Discussion permet de dialoguer avec un assistant IA (Claude ou Gemini) en utilisant l'org documentee comme contexte.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Fournisseur} : affiche le fournisseur selectionne dans la configuration (Gemini par defaut).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 L'onglet Discussion permet de dialoguer avec un assistant IA (Claude, Gemini ou Gateway) en utilisant l'org documentee comme contexte.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Fournisseur} : affiche le fournisseur selectionne dans la configuration (Gemini, Claude ou Gateway).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Statut du contexte} :\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\i "Aucun contexte disponible"} : tant qu'une generation n'a pas ete lancee, aucune synthese d'org n'est transmise.\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \endash \tx360\tab {\i "Contexte disponible"} : apres generation, un resume des metadonnees (objets, classes Apex, flows, OmniStudio, findings analyseur, etc.) est ajoute automatiquement apres le prompt systeme, a chaque message.\sa180\par}
@@ -229,8 +229,8 @@ chapitre 11
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Analyse} : activation PMD + ruleset.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Rapports a generer} : cases a cocher Excel / ORG CHECK.\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 6.2 Onglet Discussion\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Fournisseur IA} : {\f1 Gemini} ou {\f1 Claude}.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Cle Claude / Cle Gemini} : champs masques (saisie type mot de passe).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Fournisseur IA} : {\f1 Gemini}, {\f1 Claude} ou {\f1 Gateway}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Cle Claude / Cle Gemini / Cle Gateway} : champs masques (saisie type mot de passe).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Prompt systeme} : editeur multi-lignes avec bouton {\i "Reinitialiser par defaut"} qui restaure le prompt fourni par l'application (en respectant la langue courante).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 6.3 Onglet Regles d'analyse\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Chemin du fichier} : {\f1 src/analyzer/rules.xml} (indique en lecture seule).\par}
@@ -377,7 +377,7 @@ chapitre 11
 {\pard \ql \f0 \sa180 \li0 \fi0 \par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Le journal d'execution (zone de texte en bas de l'ecran) contient les details d'erreurs et peut etre selectionne / copie.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 11. Obtenir sa cle API Gemini et sa cle API Claude\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 11. Obtenir sa cle API Gemini, Claude ou Gateway\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 L'assistant de discussion est neutre : vous restez proprietaire de vos cles et de votre compte. Elles sont stockees uniquement dans le fichier local {\f1 app_settings.json}. Aucune cle n'est transmise a un tiers autre que le fournisseur choisi.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.1 Obtenir une cle API Google Gemini\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Gemini dispose d'un {\b palier gratuit} genereux (avec quota journalier). C'est la solution la plus rapide pour tester Lucie.\par}
@@ -446,7 +446,14 @@ https://www.anthropic.com/pricing
 {\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Collez la cle dans le champ {\b Cle API Claude}.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Cliquez sur {\b Enregistrer}.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab Depuis l'onglet {\b Discussion} du menu principal, verifiez que l'indicateur de fournisseur affiche {\i "Claude"} puis envoyez votre premier message.\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.3 Bonnes pratiques de securite\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.3 Utiliser le LLM Gateway (Salesforce)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Le mode {\b Gateway} permet de se connecter a un point d'entree centralise (interne Salesforce) qui redistribue les requetes vers differents modeles (GPT-5, Claude 3.7, Gemini 2.5, etc.).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Configuration} :\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Choisissez {\b Fournisseur IA : Gateway}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Saisissez votre {\b Cle API Gateway}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Selectionnez le {\b Modele Gateway} souhaite dans la liste deroulante.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Indiquez le chemin vers le certificat de securite dans {\b Chemin Certificat (PEM)} (par defaut {\f1 config/Salesforce_Internal_Root_CA_3.pem}).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 11.4 Bonnes pratiques de securite\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ne partagez {\b jamais} votre cle API dans un depot Git, un ticket de support ou un message instantane. {\f1 app_settings.json} est dans {\f1 .gitignore} par defaut.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Creez une cle distincte par poste ou par usage et tracez son nom dans la console du fournisseur (permet la revocation ciblee).\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Si vous pensez qu'une cle a fuite, revoquez-la immediatement (bouton {\i Delete} dans la console correspondante) et generez-en une nouvelle.\par}

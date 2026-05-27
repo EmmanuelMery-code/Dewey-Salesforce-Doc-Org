@@ -50,6 +50,7 @@ python app.py
   - generation du manifest
   - retrieve
   - generation de la documentation
+- Assistant IA (Claude, Gemini ou Gateway) pour discuter de l'org documentee
 
 ## Sorties generees
 
