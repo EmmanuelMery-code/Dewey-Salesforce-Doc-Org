@@ -398,9 +398,13 @@ def _has_generated_documentation(directory: str | None) -> bool:
         return False
     if not path.is_dir():
         return False
-    if (path / "index.html").is_file():
+    if (path / "html" / "index.html").is_file():
         return True
-    return any((path / sub).is_dir() for sub in ("objects", "apex", "flows", "omni"))
+    # Fallback: any typical sub-folder is a good indicator too.
+    for probe in ("html", "excel", "word"):
+        if (path / probe).is_dir():
+            return True
+    return any((path / "html" / sub).is_dir() for sub in ("objects", "apex", "flows", "omni"))
 
 
 def toggle_force_existing_docs(app: Application) -> None:
