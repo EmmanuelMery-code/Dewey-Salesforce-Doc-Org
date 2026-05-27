@@ -18,6 +18,7 @@ ENV/
 
 # Local app settings
 app_settings.json
+config/
 
 # Local Salesforce CLI / SFDX state
 .sf_cli_project/
