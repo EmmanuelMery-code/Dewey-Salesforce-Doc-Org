@@ -101,8 +101,21 @@ class Application(tk.Tk):
     AI_PROVIDERS = UI_AI_PROVIDERS
     GEMINI_MODEL_CHOICES = GEMINI_MODELS
     CLAUDE_MODEL_CHOICES = CLAUDE_MODELS
+    GATEWAY_MODEL_CHOICES = [
+        "claude-sonnet-4-20250514",
+        "claude-3-7-sonnet-20250219",
+        "claude-3-5-sonnet-20241022",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gpt-5",
+        "gpt-5-mini",
+        "gpt-40",
+        "gpt-4o-mini",
+    ]
     DEFAULT_GEMINI_MODEL = GEMINI_MODELS[0]
     DEFAULT_CLAUDE_MODEL = CLAUDE_MODELS[0]
+    DEFAULT_GATEWAY_MODEL = "gpt-5"
     DISCUSSION_MIN_INTERVAL_SECONDS = 5.0  # stay safely under 15 RPM free tier
     TRANSLATIONS = UI_TRANSLATIONS
 
@@ -188,6 +201,8 @@ class Application(tk.Tk):
         self.ai_provider_var = tk.StringVar(value=default_provider)
         self.claude_api_key_var = tk.StringVar(value=self.settings.get("claude_api_key", ""))
         self.gemini_api_key_var = tk.StringVar(value=self.settings.get("gemini_api_key", ""))
+        self.gateway_api_key_var = tk.StringVar(value=self.settings.get("gateway_api_key", ""))
+        self.gateway_cert_path_var = tk.StringVar(value=self.settings.get("gateway_cert_path", "config/Salesforce_Internal_Root_CA_3.pem"))
         stored_claude_model = str(self.settings.get("claude_model", "") or "").strip()
         if stored_claude_model not in self.CLAUDE_MODEL_CHOICES:
             stored_claude_model = self.DEFAULT_CLAUDE_MODEL
@@ -196,8 +211,12 @@ class Application(tk.Tk):
         # gemini-2.0-* in March 2026) to the most generous 2.5 option.
         if stored_gemini_model not in self.GEMINI_MODEL_CHOICES:
             stored_gemini_model = self.DEFAULT_GEMINI_MODEL
+        stored_gateway_model = str(self.settings.get("gateway_model", "") or "").strip()
+        if stored_gateway_model not in self.GATEWAY_MODEL_CHOICES:
+            stored_gateway_model = self.DEFAULT_GATEWAY_MODEL
         self.claude_model_var = tk.StringVar(value=stored_claude_model)
         self.gemini_model_var = tk.StringVar(value=stored_gemini_model)
+        self.gateway_model_var = tk.StringVar(value=stored_gateway_model)
         stored_prompt = self.settings.get("system_prompt")
         if not isinstance(stored_prompt, str) or not stored_prompt.strip():
             stored_prompt = build_system_prompt(self.language)
@@ -821,8 +840,11 @@ class Application(tk.Tk):
             "ai_provider": self.ai_provider_var.get().strip() or self.AI_PROVIDERS[0],
             "claude_api_key": self.claude_api_key_var.get(),
             "gemini_api_key": self.gemini_api_key_var.get(),
+            "gateway_api_key": self.gateway_api_key_var.get(),
+            "gateway_cert_path": self.gateway_cert_path_var.get(),
             "claude_model": self.claude_model_var.get().strip() or self.DEFAULT_CLAUDE_MODEL,
             "gemini_model": self.gemini_model_var.get().strip() or self.DEFAULT_GEMINI_MODEL,
+            "gateway_model": self.gateway_model_var.get().strip() or self.DEFAULT_GATEWAY_MODEL,
             "system_prompt": self.system_prompt,
             "generate_excels": bool(self.generate_excels_var.get()),
             "generate_org_check_reports": bool(self.generate_org_check_reports_var.get()),

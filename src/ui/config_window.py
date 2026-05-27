@@ -99,8 +99,11 @@ def show_configuration_screen(app: Application) -> None:
         "ai_provider": tk.StringVar(value=app.ai_provider_var.get()),
         "claude_key": tk.StringVar(value=app.claude_api_key_var.get()),
         "gemini_key": tk.StringVar(value=app.gemini_api_key_var.get()),
+        "gateway_key": tk.StringVar(value=app.gateway_api_key_var.get()),
+        "gateway_cert": tk.StringVar(value=app.gateway_cert_path_var.get()),
         "claude_model": tk.StringVar(value=app.claude_model_var.get()),
         "gemini_model": tk.StringVar(value=app.gemini_model_var.get()),
+        "gateway_model": tk.StringVar(value=app.gateway_model_var.get()),
         "generate_excels": tk.BooleanVar(value=bool(app.generate_excels_var.get())),
         "generate_org_check_reports": tk.BooleanVar(
             value=bool(app.generate_org_check_reports_var.get())
@@ -250,30 +253,62 @@ def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dic
 def _build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
     ai_frame = ttk.LabelFrame(parent, text=app._t("configuration_section_ai"), padding=10)
     ai_frame.pack(fill="x", pady=(0, 8))
-    _config_combo_row(
-        ai_frame,
-        app._t("configuration_ai_provider"),
-        edit_vars["ai_provider"],
-        list(app.AI_PROVIDERS),
-    )
+    
+    # Active provider selection
+    provider_row = ttk.Frame(ai_frame)
+    provider_row.pack(fill="x", pady=(0, 10))
+    ttk.Label(provider_row, text=app._t("configuration_ai_provider"), width=22).pack(side="left")
+    
+    for p in app.AI_PROVIDERS:
+        ttk.Radiobutton(
+            provider_row, 
+            text=p, 
+            variable=edit_vars["ai_provider"], 
+            value=p
+        ).pack(side="left", padx=10)
+
+    # Claude (Anthropic)
+    claude_frame = ttk.LabelFrame(ai_frame, text="Claude (Anthropic)", padding=10)
+    claude_frame.pack(fill="x", pady=5)
     _config_entry_row(
-        ai_frame, app._t("configuration_claude_key"), edit_vars["claude_key"], show="*"
+        claude_frame, app._t("configuration_claude_key"), edit_vars["claude_key"], show="*"
     )
     _config_combo_row(
-        ai_frame,
+        claude_frame,
         app._t("configuration_claude_model"),
         edit_vars["claude_model"],
         list(app.CLAUDE_MODEL_CHOICES),
     )
+
+    # Gemini (Google)
+    gemini_frame = ttk.LabelFrame(ai_frame, text="Gemini (Google)", padding=10)
+    gemini_frame.pack(fill="x", pady=5)
     _config_entry_row(
-        ai_frame, app._t("configuration_gemini_key"), edit_vars["gemini_key"], show="*"
+        gemini_frame, app._t("configuration_gemini_key"), edit_vars["gemini_key"], show="*"
     )
     _config_combo_row(
-        ai_frame,
+        gemini_frame,
         app._t("configuration_gemini_model"),
         edit_vars["gemini_model"],
         list(app.GEMINI_MODEL_CHOICES),
     )
+
+    # LLM Gateway (Salesforce)
+    gateway_frame = ttk.LabelFrame(ai_frame, text="LLM Gateway (Salesforce)", padding=10)
+    gateway_frame.pack(fill="x", pady=5)
+    _config_entry_row(
+        gateway_frame, app._t("configuration_gateway_key"), edit_vars["gateway_key"], show="*"
+    )
+    _config_combo_row(
+        gateway_frame,
+        app._t("configuration_gateway_model"),
+        edit_vars["gateway_model"],
+        list(app.GATEWAY_MODEL_CHOICES),
+    )
+    _config_entry_row(
+        gateway_frame, app._t("configuration_gateway_cert"), edit_vars["gateway_cert"]
+    )
+
     ttk.Label(
         ai_frame,
         text=app._t("configuration_model_hint"),
@@ -378,7 +413,7 @@ def _build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[
             ).pack(anchor="w", pady=(2, 2))
 
 
-def _config_entry_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, show: str | None = None) -> None:
+def _config_entry_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, show: str | None = None) -> ttk.Frame:
     row = ttk.Frame(parent)
     row.pack(fill="x", pady=3)
     ttk.Label(row, text=label_text, width=22).pack(side="left")
@@ -386,14 +421,16 @@ def _config_entry_row(parent: ttk.Frame, label_text: str, variable: tk.Variable,
     if show is not None:
         entry.configure(show=show)
     entry.pack(side="left", fill="x", expand=True)
+    return row
 
 
-def _config_combo_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, values: list[str]) -> None:
+def _config_combo_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, values: list[str]) -> ttk.Frame:
     row = ttk.Frame(parent)
     row.pack(fill="x", pady=3)
     ttk.Label(row, text=label_text, width=22).pack(side="left")
     combo = ttk.Combobox(row, textvariable=variable, values=values, state="readonly", width=30)
     combo.pack(side="left", fill="x", expand=True)
+    return row
 
 
 def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variable], window: tk.Toplevel) -> None:
@@ -424,6 +461,8 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
 
     app.claude_api_key_var.set(edit_vars["claude_key"].get())
     app.gemini_api_key_var.set(edit_vars["gemini_key"].get())
+    app.gateway_api_key_var.set(edit_vars["gateway_key"].get())
+    app.gateway_cert_path_var.set(edit_vars["gateway_cert"].get())
 
     claude_model_choice = edit_vars["claude_model"].get().strip()
     if claude_model_choice in app.CLAUDE_MODEL_CHOICES:
@@ -431,6 +470,9 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     gemini_model_choice = edit_vars["gemini_model"].get().strip()
     if gemini_model_choice in app.GEMINI_MODEL_CHOICES:
         app.gemini_model_var.set(gemini_model_choice)
+    gateway_model_choice = edit_vars["gateway_model"].get().strip()
+    if gateway_model_choice in app.GATEWAY_MODEL_CHOICES:
+        app.gateway_model_var.set(gateway_model_choice)
     app.generate_excels_var.set(bool(edit_vars["generate_excels"].get()))
     app.generate_org_check_reports_var.set(
         bool(edit_vars["generate_org_check_reports"].get())

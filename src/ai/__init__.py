@@ -10,6 +10,7 @@ from .ai_service import (
     DailyQuotaExceeded,
     GEMINI_MODELS,
     GeminiService,
+    GatewayService,
     create_service,
 )
 from .context_builder import build_org_context, build_system_prompt
@@ -22,6 +23,7 @@ __all__ = [
     "ClaudeService",
     "DailyQuotaExceeded",
     "GeminiService",
+    "GatewayService",
     "CLAUDE_MODELS",
     "GEMINI_MODELS",
     "create_service",
