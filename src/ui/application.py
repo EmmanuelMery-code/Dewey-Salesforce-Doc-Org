@@ -169,6 +169,7 @@ class Application(tk.Tk):
         self.exclusion_file_var = tk.StringVar(value=self.settings.get("exclusion_file", ""))
         self.pmd_enabled_var = tk.BooleanVar(value=bool(self.settings.get("pmd_enabled", False)))
         self.pmd_ruleset_var = tk.StringVar(value=self.settings.get("pmd_ruleset_file", ""))
+        self.analyzer_rules_file_var = tk.StringVar(value=self.settings.get("analyzer_rules_file", str(DEFAULT_RULES_PATH)))
         self.alias_var = tk.StringVar(value=self.settings.get("alias", ""))
         self.language_label_var = tk.StringVar(value=self.LANGUAGES.get(self.language, "Francais"))
         self.login_target_key = self.settings.get("login_target", "production")
@@ -206,7 +207,7 @@ class Application(tk.Tk):
         self._analyzer_rule_min_api_vars: dict[str, tk.StringVar] = {}
         self._analyzer_rule_max_api_vars: dict[str, tk.StringVar] = {}
         self._analyzer_rules_cache: list[Rule] = []
-        self._analyzer_rules_file: Path = DEFAULT_RULES_PATH
+        self._analyzer_rules_file: Path = Path(self.analyzer_rules_file_var.get())
         self._analyzer_rule_rows: list[dict[str, object]] = []
         self._analyzer_rule_count_var: tk.StringVar | None = None
         self._analyzer_rule_detail_widget: scrolledtext.ScrolledText | None = None
@@ -440,6 +441,12 @@ class Application(tk.Tk):
             self.pmd_ruleset_var,
             self._choose_pmd_ruleset_file,
             self._open_pmd_ruleset_file,
+        )
+        self.analyzer_rules_file_widgets = self._file_picker(
+            self.doc_frame,
+            self.analyzer_rules_file_var,
+            self._choose_analyzer_rules_file,
+            self._open_analyzer_rules_file,
         )
 
         button_row = ttk.Frame(self.doc_frame)
@@ -809,6 +816,7 @@ class Application(tk.Tk):
             "exclusion_file": self.exclusion_file_var.get().strip(),
             "pmd_enabled": bool(self.pmd_enabled_var.get()),
             "pmd_ruleset_file": self.pmd_ruleset_var.get().strip(),
+            "analyzer_rules_file": self.analyzer_rules_file_var.get().strip(),
             "org_check_type": self.org_check_choice_var.get().strip(),
             "ai_provider": self.ai_provider_var.get().strip() or self.AI_PROVIDERS[0],
             "claude_api_key": self.claude_api_key_var.get(),
@@ -887,6 +895,9 @@ class Application(tk.Tk):
         self.pmd_file_widgets["label"].configure(text=self._t("pmd_ruleset_file"))
         self.pmd_file_widgets["browse_button"].configure(text=self._t("browse"))
         self.pmd_file_widgets["open_button"].configure(text=self._t("open"))
+        self.analyzer_rules_file_widgets["label"].configure(text=self._t("configuration_rules_file_label"))
+        self.analyzer_rules_file_widgets["browse_button"].configure(text=self._t("browse"))
+        self.analyzer_rules_file_widgets["open_button"].configure(text=self._t("open"))
         self.login_button.configure(text=self._t("web_login"))
         self.refresh_button.configure(text=self._t("refresh"))
         self.generate_manifest_button.configure(text=self._t("generate_manifest"))
@@ -972,6 +983,16 @@ class Application(tk.Tk):
             self.pmd_ruleset_var.set(selected_path)
             self._save_settings()
 
+    def _choose_analyzer_rules_file(self) -> None:
+        selected_path = filedialog.askopenfilename(
+            title=self._t("choose_analyzer_rules_file"),
+            filetypes=[("XML", "*.xml"), ("All files", "*.*")],
+        )
+        if selected_path:
+            self.analyzer_rules_file_var.set(selected_path)
+            self._analyzer_rules_file = Path(selected_path)
+            self._save_settings()
+
     def _open_folder(self, variable: tk.StringVar) -> None:
         folder = variable.get().strip()
         if not folder or not Path(folder).exists():
@@ -994,6 +1015,13 @@ class Application(tk.Tk):
 
     def _open_pmd_ruleset_file(self) -> None:
         file_path = self.pmd_ruleset_var.get().strip()
+        if not file_path or not Path(file_path).exists():
+            messagebox.showerror(self._t("error_title"), self._t("directory_missing_to_open"))
+            return
+        os.startfile(file_path)  # type: ignore[attr-defined]
+
+    def _open_analyzer_rules_file(self) -> None:
+        file_path = self.analyzer_rules_file_var.get().strip()
         if not file_path or not Path(file_path).exists():
             messagebox.showerror(self._t("error_title"), self._t("directory_missing_to_open"))
             return
@@ -1244,6 +1272,7 @@ class Application(tk.Tk):
                 adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
+                analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
                 log_callback=self.task_manager.queue_log,
@@ -1381,6 +1410,7 @@ class Application(tk.Tk):
                 adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
+                analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
                 log_callback=self.task_manager.queue_log,

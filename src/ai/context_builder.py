@@ -37,8 +37,9 @@ def build_system_prompt(language: str = "fr") -> str:
             "Open the relevant source files (*.xml, *.cls, *.trigger, *.js, *.html, "
             "*.css, meta.xml, *.flow-meta.xml, *.object-meta.xml, "
             "validationRules/*.xml) AND the matching HTML documentation pages "
-            "(index.html, objects/*.html, apex/*.html, flows/*.html, omni/*.html, "
-            "adopt_adapt.html, scoring.html, data_dictionary.html) before "
+            "(html/index.html, html/objects/*.html, html/apex/*.html, "
+            "html/flows/*.html, html/omni/*.html, html/adopt_adapt.html, "
+            "html/scoring.html, html/data_dictionary.html) before "
             "answering. Cross-reference code and documentation, and cite the exact "
             "file paths you relied on.\n\n"
             "If a detail is missing, say so, explain which folders / files you would "
@@ -60,9 +61,9 @@ def build_system_prompt(language: str = "fr") -> str:
         "staticresources/, customMetadata/, etc.). Ouvre les fichiers sources "
         "pertinents (*.xml, *.cls, *.trigger, *.js, *.html, *.css, meta.xml, "
         "*.flow-meta.xml, *.object-meta.xml, validationRules/*.xml) ET les pages "
-        "HTML de documentation correspondantes (index.html, objects/*.html, "
-        "apex/*.html, flows/*.html, omni/*.html, adopt_adapt.html, scoring.html, "
-        "data_dictionary.html) avant de repondre. Recoupe systematiquement le code "
+        "HTML de documentation correspondantes (html/index.html, html/objects/*.html, "
+        "html/apex/*.html, html/flows/*.html, html/omni/*.html, html/adopt_adapt.html, "
+        "html/scoring.html, html/data_dictionary.html) avant de repondre. Recoupe systematiquement le code "
         "et la documentation, et cite les chemins exacts des fichiers consultes.\n\n"
         "Si une information manque, dis-le, precise quels dossiers ou fichiers "
         "resteraient a ouvrir et propose la facon de la recuperer. Prefere des "
@@ -210,14 +211,14 @@ def _documentation_already_generated(value: str | Path | None) -> bool:
     path = _resolve_path(value)
     if path is None or not path.is_dir():
         return False
-    # Lucie always emits index.html at the root of the documentation folder.
-    if (path / "index.html").is_file():
+    # Dewey now emits index.html in the 'html' subfolder.
+    if (path / "html" / "index.html").is_file():
         return True
     # Fallback: any typical sub-folder is a good indicator too.
-    for probe in ("objects", "apex", "flows", "omni"):
+    for probe in ("html", "excel", "word"):
         if (path / probe).is_dir():
             return True
-    return False
+    return any((path / "html" / sub).is_dir() for sub in ("objects", "apex", "flows", "omni"))
 
 
 def _directory_has_content(value: str | Path | None) -> bool:

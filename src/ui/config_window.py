@@ -94,6 +94,7 @@ def show_configuration_screen(app: Application) -> None:
         "exclusion_file": tk.StringVar(value=app.exclusion_file_var.get()),
         "pmd_enabled": tk.BooleanVar(value=bool(app.pmd_enabled_var.get())),
         "pmd_ruleset": tk.StringVar(value=app.pmd_ruleset_var.get()),
+        "analyzer_rules_file": tk.StringVar(value=app.analyzer_rules_file_var.get()),
         "org_check_type": tk.StringVar(value=app.org_check_choice_var.get()),
         "ai_provider": tk.StringVar(value=app.ai_provider_var.get()),
         "claude_key": tk.StringVar(value=app.claude_api_key_var.get()),
@@ -214,6 +215,7 @@ def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dic
         analysis, text=app._t("pmd_enabled"), variable=edit_vars["pmd_enabled"]
     ).pack(anchor="w", pady=(0, 4))
     _config_entry_row(analysis, app._t("pmd_ruleset_file"), edit_vars["pmd_ruleset"])
+    _config_entry_row(analysis, app._t("configuration_rules_file_label"), edit_vars["analyzer_rules_file"])
     _config_combo_row(
         analysis,
         app._t("org_check_type"),
@@ -409,6 +411,8 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     app.exclusion_file_var.set(edit_vars["exclusion_file"].get().strip())
     app.pmd_enabled_var.set(bool(edit_vars["pmd_enabled"].get()))
     app.pmd_ruleset_var.set(edit_vars["pmd_ruleset"].get().strip())
+    app.analyzer_rules_file_var.set(edit_vars["analyzer_rules_file"].get().strip())
+    app._analyzer_rules_file = Path(edit_vars["analyzer_rules_file"].get().strip())
 
     org_check_choice = edit_vars["org_check_type"].get().strip()
     if org_check_choice:
