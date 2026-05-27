@@ -13,4 +13,4 @@ LOGIN_TARGETS = {
 
 LANGUAGES = {"fr": "Francais", "en": "English"}
 ORG_CHECK_CHOICES = ["apex-classes", "global-view", "hardcoded-urls"]
-AI_PROVIDERS = ["Gemini", "Claude"]
+AI_PROVIDERS = ["Gemini", "Claude", "Gateway"]

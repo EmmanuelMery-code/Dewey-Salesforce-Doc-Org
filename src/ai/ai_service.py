@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 import time
+import json
+import requests
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -416,6 +418,89 @@ class GeminiService(AIServiceBase):
         return text.strip() or "(Reponse vide de Gemini)"
 
 
+class GatewayService(AIServiceBase):
+    """LLM Gateway chat service."""
+
+    name = "Gateway"
+    default_model = "gpt-5"
+    url = "https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl/chat/completions"
+
+    def __init__(self, api_key: str, model: str | None = None, cert_path: str | None = None) -> None:
+        super().__init__(api_key, model)
+        self.cert_path = cert_path or "config/Salesforce_Internal_Root_CA_3.pem"
+
+    def chat(
+        self,
+        messages: list[AIMessage],
+        system_prompt: str = "",
+        max_tokens: int = 4096,
+        *,
+        on_retry: RetryNotifier | None = None,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+    ) -> str:
+        if not self.api_key:
+            raise AIProviderNotConfigured(
+                "Aucune cle API Gateway configuree. Ajoutez-la dans Configuration > Discussion."
+            )
+
+        payload_messages = []
+        if system_prompt:
+            payload_messages.append({"role": "system", "content": system_prompt})
+        
+        for msg in messages:
+            payload_messages.append({"role": msg.role, "content": msg.content})
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": self.model,
+            "messages": payload_messages,
+            "max_tokens": max_tokens
+        }
+
+        def _call() -> Any:
+            response = requests.post(
+                self.url, 
+                headers=headers, 
+                json=payload, 
+                verify=self.cert_path,
+                timeout=60
+            )
+            response.raise_for_status()
+            return response.json()
+
+        try:
+            result = _call_with_retry(
+                _call,
+                provider_label=self.name,
+                on_retry=on_retry,
+                max_retries=max_retries,
+            )
+            
+            # Extract content from OpenAI-compatible response format
+            if "choices" in result and len(result["choices"]) > 0:
+                choice = result["choices"][0]
+                if "message" in choice and "content" in choice["message"]:
+                    return choice["message"]["content"].strip()
+            
+            return "(Reponse vide du Gateway)"
+        except requests.exceptions.RequestException as e:
+            error_msg = str(e)
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_data = e.response.json()
+                    if "error" in error_data and "message" in error_data["error"]:
+                        error_msg = error_data["error"]["message"]
+                    else:
+                        error_msg = e.response.text
+                except Exception:
+                    error_msg = e.response.text
+            raise Exception(f"Erreur Gateway : {error_msg}") from e
+
+
 def _call_with_retry(
     callable_: Callable[[], Any],
     *,
@@ -469,5 +554,11 @@ def create_service(provider: str, settings: dict[str, Any]) -> AIServiceBase:
         return GeminiService(
             api_key=str(settings.get("gemini_api_key", "") or ""),
             model=str(settings.get("gemini_model", "") or "") or None,
+        )
+    if provider_norm == "gateway":
+        return GatewayService(
+            api_key=str(settings.get("gateway_api_key", "") or ""),
+            model=str(settings.get("gateway_model", "") or "") or None,
+            cert_path=str(settings.get("gateway_cert_path", "") or "") or None,
         )
     raise ValueError(f"Fournisseur IA inconnu : {provider}")
