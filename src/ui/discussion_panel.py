@@ -476,7 +476,15 @@ def send_message(app: Application) -> None:
     app.discussion_question_index = None
     update_navigation_state(app)
 
-    key_var = app.claude_api_key_var if provider == "Claude" else app.gemini_api_key_var
+    if provider == "Claude":
+        key_var = app.claude_api_key_var
+    elif provider == "Gemini":
+        key_var = app.gemini_api_key_var
+    elif provider == "Gateway":
+        key_var = app.gateway_api_key_var
+    else:
+        key_var = app.gemini_api_key_var # Fallback
+
     if not key_var.get().strip():
         append_line(
             app,
@@ -502,8 +510,11 @@ def send_message(app: Application) -> None:
     settings_for_service = {
         "claude_api_key": app.claude_api_key_var.get(),
         "gemini_api_key": app.gemini_api_key_var.get(),
+        "gateway_api_key": app.gateway_api_key_var.get(),
+        "gateway_cert_path": app.gateway_cert_path_var.get(),
         "claude_model": app.claude_model_var.get().strip() or app.DEFAULT_CLAUDE_MODEL,
         "gemini_model": app.gemini_model_var.get().strip() or app.DEFAULT_GEMINI_MODEL,
+        "gateway_model": app.gateway_model_var.get().strip() or app.DEFAULT_GATEWAY_MODEL,
     }
 
     try:
