@@ -532,7 +532,7 @@ def send_message(app: Application) -> None:
         app, app._t("discussion_thinking", provider=provider), tag="system"
     )
 
-    queue = app.queue
+    queue = app.task_manager.queue
 
     def on_retry(attempt: int, max_attempts: int, wait_seconds: float) -> None:
         queue.put(
