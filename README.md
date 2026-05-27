@@ -43,6 +43,7 @@ python app.py
 
 - Connexion web Salesforce avec alias
 - Choix d'environnement `Production` / `Sandbox` / `Custom`
+- Choix du fichier de regles d'analyse (`src/analyzer/rules.xml` par defaut)
 - Memorisation de la langue de l'interface (`Francais` ou `English`)
 - Ouverture rapide des dossiers source et sortie dans l'explorateur Windows
 - Pipeline complet :
@@ -56,10 +57,12 @@ Dans le dossier de sortie, l'application genere notamment :
 
 - `excel/permission_sets.xlsx`
 - `excel/profiles.xlsx`
-- `objects/*.html`
-- `apex/*.html`
-- `flows/*.html`
-- `index.html`
+- `html/objects/*.html`
+- `html/apex/*.html`
+- `html/flows/*.html`
+- `html/index.html`
+- `word/data_dictionary.docx`
+- `word/summary.docx`
 
 ## Notes
 
