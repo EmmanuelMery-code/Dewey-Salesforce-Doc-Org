@@ -56,6 +56,7 @@ from src.ui.history_screen import show_history_screen
 from src.ui.config_window import show_configuration_screen
 from src.ui.exclusion_screen import show_exclusion_screen
 from src.ui.data_dictionary_screen import show_data_dictionary_screen
+from src.ui.dashboard_designer_screen import show_dashboard_designer_screen
 from src.ui.task_manager import TaskManager
 from src.ui.settings import (
     DEFAULT_AI_USAGE_TAGS,
@@ -605,6 +606,10 @@ class Application(tk.Tk):
             label=self._t("menu_create_data_dictionary"),
             command=self._show_data_dictionary_screen,
         )
+        documentation_menu.add_command(
+            label="Concevoir Dashboard",
+            command=self._show_dashboard_designer_screen,
+        )
         menu_bar.add_cascade(
             label=self._t("documentation_menu"), menu=documentation_menu
         )
@@ -688,6 +693,9 @@ class Application(tk.Tk):
 
     def _show_data_dictionary_screen(self) -> None:
         show_data_dictionary_screen(self)
+
+    def _show_dashboard_designer_screen(self) -> None:
+        show_dashboard_designer_screen(self)
 
     def _on_generation_result(self, result: GenerationResult) -> None:
         index_path = result.index

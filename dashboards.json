@@ -1,0 +1,155 @@
+{
+  "testing Dashboard": {
+    "name": "testing Dashboard",
+    "widgets": [
+      {
+        "id": "findings_summary",
+        "label": "Synthèse des Findings",
+        "chart_type": "bar",
+        "description": "Répartition des alertes par sévérité (Dernière analyse)",
+        "query": "SELECT findings_total, findings_critical, findings_major, findings_minor, findings_info FROM history WHERE alias = :alias ORDER BY timestamp DESC LIMIT 1",
+        "text": "",
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1,
+        "color": "#e74c3c"
+      },
+      {
+        "id": "obj_dist",
+        "label": "Répartition Objets",
+        "chart_type": "pie",
+        "description": "Objets Standards vs Custom",
+        "query": "SELECT 'Custom' as label, custom_objects as value FROM history WHERE alias = :alias ORDER BY timestamp DESC LIMIT 1",
+        "text": "",
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1,
+        "color": "#3498db"
+      },
+      {
+        "id": "score_evolution",
+        "label": "Évolution du Score",
+        "chart_type": "line",
+        "description": "Tendance du score global",
+        "query": "SELECT timestamp as label, score as value FROM history WHERE alias = :alias ORDER BY timestamp ASC LIMIT 20",
+        "text": "",
+        "x": 1,
+        "y": 1,
+        "w": 1,
+        "h": 1,
+        "color": "#2ecc71"
+      },
+      {
+        "id": "71739c35",
+        "label": "Nouveau",
+        "chart_type": "bar",
+        "description": "",
+        "query": "SELECT timestamp as label, (custom_objects + custom_fields) as value FROM history WHERE alias = :alias ORDER BY timestamp ASC LIMIT 20",
+        "text": "",
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 1,
+        "color": "#3498db"
+      }
+    ]
+  },
+  "test2": {
+    "name": "test2",
+    "widgets": [
+      {
+        "id": "findings_summary",
+        "label": "Synthèse des Findings",
+        "chart_type": "bar",
+        "description": "Répartition des alertes par sévérité (Dernière analyse)",
+        "query": "SELECT findings_total, findings_critical, findings_major, findings_minor, findings_info FROM history WHERE alias = :alias ORDER BY timestamp DESC LIMIT 1",
+        "text": "",
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1,
+        "color": "#00ff80"
+      },
+      {
+        "id": "obj_dist",
+        "label": "Répartition Objets",
+        "chart_type": "pie",
+        "description": "Objets Standards vs Custom",
+        "query": "SELECT 'Custom' as label, custom_objects as value FROM history WHERE alias = :alias ORDER BY timestamp DESC LIMIT 1",
+        "text": "",
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1,
+        "color": "#3498db"
+      },
+      {
+        "id": "score_evolution",
+        "label": "Évolution du Score",
+        "chart_type": "line",
+        "description": "Tendance du score global",
+        "query": "SELECT timestamp as label, score as value FROM history WHERE alias = :alias ORDER BY timestamp ASC LIMIT 20",
+        "text": "",
+        "x": 1,
+        "y": 1,
+        "w": 1,
+        "h": 1,
+        "color": "#2ecc71"
+      },
+      {
+        "id": "donut_example",
+        "label": "Donut : Objets",
+        "chart_type": "donut",
+        "description": "Exemple de graphique en anneau",
+        "query": "SELECT 'Custom' as label, custom_objects as value FROM history WHERE alias = :alias ORDER BY timestamp DESC LIMIT 1",
+        "text": "",
+        "x": 0,
+        "y": 2,
+        "w": 1,
+        "h": 1,
+        "color": "#9b59b6"
+      },
+      {
+        "id": "area_example",
+        "label": "Aire : Croissance",
+        "chart_type": "area",
+        "description": "Exemple de graphique à aires",
+        "query": "SELECT timestamp as label, (custom_objects + custom_fields) as value FROM history WHERE alias = :alias ORDER BY timestamp ASC LIMIT 20",
+        "text": "",
+        "x": 1,
+        "y": 2,
+        "w": 1,
+        "h": 1,
+        "color": "#3498db"
+      },
+      {
+        "id": "findings_evolution",
+        "label": "Évolution des Findings",
+        "chart_type": "stacked_bar",
+        "description": "Tendance des alertes par sévérité",
+        "query": "SELECT timestamp as label, findings_critical, findings_major, findings_minor, findings_info FROM history WHERE alias = :alias ORDER BY timestamp ASC LIMIT 20",
+        "text": "",
+        "x": 0,
+        "y": 3,
+        "w": 1,
+        "h": 1,
+        "color": "#ff0000,#ff8000,#ffff00,#00ffff"
+      },
+      {
+        "id": "e7586e40",
+        "label": "",
+        "chart_type": "text",
+        "description": "",
+        "query": "",
+        "text": "C'est pour vérifier si il est possible de dire un truc\n<-- et de passer à la ligne",
+        "x": 1,
+        "y": 3,
+        "w": 2,
+        "h": 1,
+        "color": "#3498db"
+      }
+    ]
+  }
+}
