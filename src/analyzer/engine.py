@@ -37,8 +37,9 @@ class AnalyzerEngine:
             self.exclusion_path = Path(exclusion_path)
         else:
             # On cherche exclusion_PV.xlsx ou exclusion.xlsx
-            candidate_pv = Path("exclusion_PV.xlsx")
-            candidate_std = Path("exclusion.xlsx")
+            app_root = Path(__file__).resolve().parent.parent.parent
+            candidate_pv = app_root / "exclusion_PV.xlsx"
+            candidate_std = app_root / "exclusion.xlsx"
             if candidate_pv.exists():
                 self.exclusion_path = candidate_pv
             elif candidate_std.exists():
