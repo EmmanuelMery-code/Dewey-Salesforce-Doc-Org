@@ -180,9 +180,10 @@ class SalesforceDocumentationGenerator:
             # Convert paths to relative to app_root
             def to_rel(p: Path | str) -> str:
                 try:
-                    return os.path.relpath(p, app_root)
+                    rel = os.path.relpath(p, app_root)
+                    return rel.replace('\\', '/')
                 except Exception:
-                    return str(p)
+                    return str(p).replace('\\', '/')
 
             entry = HistoryEntry(
                 alias=self.alias,
