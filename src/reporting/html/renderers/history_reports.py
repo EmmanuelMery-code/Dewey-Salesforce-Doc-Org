@@ -701,8 +701,8 @@ def render_comparison(
     <div class="section">
         <h2>Répertoires sources</h2>
         <dl>
-            <dt>Source #{old.generation_number}:</dt><dd><code>{html_value(old.source_dir)}</code></dd>
-            <dt>Source #{new.generation_number}:</dt><dd><code>{html_value(new.source_dir)}</code></dd>
+            <dt>Source #{old.generation_number}:</dt><dd><code>{html_value(href_relative(current_path, Path(old.source_dir)))}</code></dd>
+            <dt>Source #{new.generation_number}:</dt><dd><code>{html_value(href_relative(current_path, Path(new.source_dir)))}</code></dd>
         </dl>
     </div>
     """
@@ -716,7 +716,12 @@ def write_history_report(
     filename: str,
 ) -> Path:
     """Write a history report to the output directory of the entry."""
-    output_dir = Path(entry.output_dir) / "html"
+    app_root = Path(__file__).resolve().parent.parent.parent.parent
+    output_dir = Path(entry.output_dir)
+    if not output_dir.is_absolute():
+        output_dir = app_root / output_dir
+        
+    output_dir = output_dir / "html"
     output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / filename
     write_text(path, content)

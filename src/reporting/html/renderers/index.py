@@ -645,9 +645,12 @@ def render_index(
     summary_tabs = tabbed_sections("summary-tabs", summary_tabs_sections) if summary_tabs_sections else ""
 
     title_suffix = f" : {html_value(alias)}" if alias else ""
+    source_rel = href_relative(current_path, snapshot.source_dir)
+    output_rel = href_relative(current_path, root_dir)
     body = f"""
 <h1>Documentation Salesforce{title_suffix} ({date.today().isoformat()})</h1>
-<p>Source analysee: <code>{html_value(snapshot.source_dir)}</code></p>
+<p>Source analysee: <code>{html_value(source_rel)}</code></p>
+<p>Dossier de sortie: <code>{html_value(output_rel)}</code></p>
 {summary_tabs}
 {tabs}
 """
