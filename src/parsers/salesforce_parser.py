@@ -115,8 +115,9 @@ class SalesforceMetadataParser:
         if exclusion_config_path:
             self.exclusion_config_path = Path(exclusion_config_path).resolve()
         else:
-            # Default to exclusion.xlsx in the current directory if it exists
-            candidate = Path("exclusion.xlsx")
+            # Default to exclusion.xlsx in the app directory if it exists
+            app_root = Path(__file__).resolve().parent.parent.parent
+            candidate = app_root / "exclusion.xlsx"
             self.exclusion_config_path = candidate.resolve() if candidate.exists() else None
 
         self.log: LogCallback = log_callback or (lambda message: None)
