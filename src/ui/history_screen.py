@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import os
 import webbrowser
 import tkinter as tk
 from datetime import datetime
@@ -175,6 +176,9 @@ def show_history_screen(app: Application) -> None:
             try:
                 # Delete file
                 p = Path(report_path)
+                if not p.is_absolute():
+                    p = (app.app_dir / p).resolve()
+                    
                 if p.exists():
                     p.unlink()
                 
@@ -216,8 +220,17 @@ def show_history_screen(app: Application) -> None:
         if item.get("tags") and "report" in item["tags"]:
             path_str = item["values"][0]
             path = Path(path_str)
+            if not path.is_absolute():
+                path = (app.app_dir / path).resolve()
+                
             if path.exists():
-                webbrowser.open_new_tab(path.as_uri())
+                try:
+                    if hasattr(os, 'startfile'):
+                        os.startfile(str(path))
+                    else:
+                        webbrowser.open_new_tab(path.as_uri())
+                except Exception as exc:
+                    webbrowser.open_new_tab(path.as_uri())
             else:
                 messagebox.showerror(app._t("error_title"), app._t("history_report_not_found"))
 
