@@ -8,7 +8,7 @@
   "exclusion_file": "../../org/sandbox int/exclusion.xlsx",
   "pmd_enabled": true,
   "pmd_ruleset_file": "../../org/sandbox int/apex-ruleset.xml",
-  "analyzer_rules_file": "../20260511/src/analyzer/rules.xml",
+  "analyzer_rules_file": "src/analyzer/rules.xml",
   "org_check_type": "apex-classes",
   "ai_provider": "Gateway",
   "claude_api_key": "",
