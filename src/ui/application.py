@@ -178,12 +178,12 @@ class Application(tk.Tk):
         self.settings = self._load_settings()
         self.language = self.settings.get("language", "fr")
 
-        self.source_var = tk.StringVar(value=self.settings.get("source_folder", ""))
-        self.output_var = tk.StringVar(value=self.settings.get("output_folder", ""))
-        self.exclusion_file_var = tk.StringVar(value=self.settings.get("exclusion_file", ""))
+        self.source_var = tk.StringVar(value=self._to_abs_path(self.settings.get("source_folder", "")))
+        self.output_var = tk.StringVar(value=self._to_abs_path(self.settings.get("output_folder", "")))
+        self.exclusion_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("exclusion_file", "")))
         self.pmd_enabled_var = tk.BooleanVar(value=bool(self.settings.get("pmd_enabled", False)))
-        self.pmd_ruleset_var = tk.StringVar(value=self.settings.get("pmd_ruleset_file", ""))
-        self.analyzer_rules_file_var = tk.StringVar(value=self.settings.get("analyzer_rules_file", str(DEFAULT_RULES_PATH)))
+        self.pmd_ruleset_var = tk.StringVar(value=self._to_abs_path(self.settings.get("pmd_ruleset_file", "")))
+        self.analyzer_rules_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("analyzer_rules_file", str(DEFAULT_RULES_PATH))))
         self.alias_var = tk.StringVar(value=self.settings.get("alias", ""))
         self.language_label_var = tk.StringVar(value=self.LANGUAGES.get(self.language, "Francais"))
         self.login_target_key = self.settings.get("login_target", "production")
@@ -203,7 +203,7 @@ class Application(tk.Tk):
         self.claude_api_key_var = tk.StringVar(value=self.settings.get("claude_api_key", ""))
         self.gemini_api_key_var = tk.StringVar(value=self.settings.get("gemini_api_key", ""))
         self.gateway_api_key_var = tk.StringVar(value=self.settings.get("gateway_api_key", ""))
-        self.gateway_cert_path_var = tk.StringVar(value=self.settings.get("gateway_cert_path", "config/Salesforce_Internal_Root_CA_3.pem"))
+        self.gateway_cert_path_var = tk.StringVar(value=self._to_abs_path(self.settings.get("gateway_cert_path", "config/Salesforce_Internal_Root_CA_3.pem")))
         stored_claude_model = str(self.settings.get("claude_model", "") or "").strip()
         if stored_claude_model not in self.CLAUDE_MODEL_CHOICES:
             stored_claude_model = self.DEFAULT_CLAUDE_MODEL
@@ -832,24 +832,49 @@ class Application(tk.Tk):
             show_einstein_predictions=bool(self.show_card_einstein_predictions_var.get()),
         )
 
+    def _to_rel_path(self, path_str: str) -> str:
+        """Convert an absolute path string to a path relative to app_dir."""
+        if not path_str:
+            return ""
+        try:
+            p = Path(path_str)
+            if p.is_absolute():
+                # On Windows, relpath might fail if paths are on different drives
+                return os.path.relpath(p, self.app_dir)
+        except Exception:
+            pass
+        return path_str
+
+    def _to_abs_path(self, path_str: str) -> str:
+        """Convert a relative path string to an absolute path string."""
+        if not path_str:
+            return ""
+        try:
+            p = Path(path_str)
+            if not p.is_absolute():
+                return str((self.app_dir / p).resolve())
+        except Exception:
+            pass
+        return path_str
+
     def _save_settings(self) -> None:
         payload: dict[str, Any] = {
             "language": self.language,
             "login_target": self.login_target_key,
             "instance_url": self.instance_url_var.get().strip(),
             "alias": self.alias_var.get().strip(),
-            "source_folder": self.source_var.get().strip(),
-            "output_folder": self.output_var.get().strip(),
-            "exclusion_file": self.exclusion_file_var.get().strip(),
+            "source_folder": self._to_rel_path(self.source_var.get().strip()),
+            "output_folder": self._to_rel_path(self.output_var.get().strip()),
+            "exclusion_file": self._to_rel_path(self.exclusion_file_var.get().strip()),
             "pmd_enabled": bool(self.pmd_enabled_var.get()),
-            "pmd_ruleset_file": self.pmd_ruleset_var.get().strip(),
-            "analyzer_rules_file": self.analyzer_rules_file_var.get().strip(),
+            "pmd_ruleset_file": self._to_rel_path(self.pmd_ruleset_var.get().strip()),
+            "analyzer_rules_file": self._to_rel_path(self.analyzer_rules_file_var.get().strip()),
             "org_check_type": self.org_check_choice_var.get().strip(),
             "ai_provider": self.ai_provider_var.get().strip() or self.AI_PROVIDERS[0],
             "claude_api_key": self.claude_api_key_var.get(),
             "gemini_api_key": self.gemini_api_key_var.get(),
             "gateway_api_key": self.gateway_api_key_var.get(),
-            "gateway_cert_path": self.gateway_cert_path_var.get(),
+            "gateway_cert_path": self._to_rel_path(self.gateway_cert_path_var.get()),
             "claude_model": self.claude_model_var.get().strip() or self.DEFAULT_CLAUDE_MODEL,
             "gemini_model": self.gemini_model_var.get().strip() or self.DEFAULT_GEMINI_MODEL,
             "gateway_model": self.gateway_model_var.get().strip() or self.DEFAULT_GATEWAY_MODEL,

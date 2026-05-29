@@ -292,9 +292,14 @@ def show_history_screen(app: Application) -> None:
         history = service.list_entries_for_alias(alias)
         
         if selected_entry:
-            assets_dir = Path(selected_entry.output_dir) / "html" / "assets"
+            # Resolve relative paths
+            output_dir = Path(selected_entry.output_dir)
+            if not output_dir.is_absolute():
+                output_dir = app.app_dir / output_dir
+            
+            assets_dir = output_dir / "html" / "assets"
             filename = f"dashboard_{selected_entry.generation_number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-            content = render_dashboard(selected_entry, history, Path(selected_entry.output_dir) / "html" / filename, assets_dir)
+            content = render_dashboard(selected_entry, history, output_dir / "html" / filename, assets_dir)
             path = write_history_report(selected_entry, "dashboard", content, filename)
             
             service.add_report(GeneratedReport(
@@ -321,9 +326,15 @@ def show_history_screen(app: Application) -> None:
         if e1 and e2:
             # Sort by generation number
             new, old = (e1, e2) if e1.generation_number > e2.generation_number else (e2, e1)
-            assets_dir = Path(new.output_dir) / "html" / "assets"
+            
+            # Resolve relative paths
+            new_output_dir = Path(new.output_dir)
+            if not new_output_dir.is_absolute():
+                new_output_dir = app.app_dir / new_output_dir
+                
+            assets_dir = new_output_dir / "html" / "assets"
             filename = f"compare_{old.generation_number}_to_{new.generation_number}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-            content = render_comparison(new, old, Path(new.output_dir) / "html" / filename, assets_dir)
+            content = render_comparison(new, old, new_output_dir / "html" / filename, assets_dir)
             path = write_history_report(new, "comparison", content, filename)
             
             service.add_report(GeneratedReport(

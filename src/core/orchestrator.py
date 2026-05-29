@@ -9,6 +9,7 @@ without poking at a stringly-typed dictionary.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
@@ -166,7 +167,8 @@ class SalesforceDocumentationGenerator:
             return
 
         try:
-            db_path = Path(__file__).resolve().parent.parent.parent / "history.db"
+            app_root = Path(__file__).resolve().parent.parent.parent
+            db_path = app_root / "history.db"
             service = HistoryService(db_path)
             
             metrics = snapshot.metrics
@@ -175,10 +177,17 @@ class SalesforceDocumentationGenerator:
             adoption_stats = result.adoption_stats
             sev_counts = analyzer_report.severity_counts()
             
+            # Convert paths to relative to app_root
+            def to_rel(p: Path | str) -> str:
+                try:
+                    return os.path.relpath(p, app_root)
+                except Exception:
+                    return str(p)
+
             entry = HistoryEntry(
                 alias=self.alias,
-                source_dir=str(self.source_dir),
-                output_dir=str(self.output_dir),
+                source_dir=to_rel(self.source_dir),
+                output_dir=to_rel(self.output_dir),
                 score=metrics.score,
                 adopt_adapt_score=metrics.adopt_adapt_score,
                 custom_objects=metrics.custom_objects,
