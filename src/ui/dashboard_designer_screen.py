@@ -47,6 +47,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
     except: pass
 
     service = DashboardService(app.latest_snapshot)
+    exporter = DashboardExporter()
     saved_configs = service.load_configs()
     current_config_name = tk.StringVar(value="Nouveau Dashboard")
     widgets: List[DashboardWidget] = []
@@ -698,8 +699,6 @@ def show_dashboard_designer_screen(app: Application) -> None:
             canvas.draw()
             canvas.get_tk_widget().pack(fill="x", expand=True, padx=5, pady=5)
             
-            # Note: L'interaction souris (drag/drop) ne fonctionnera que sur la dernière page rendue 
-            # si on ne gère pas une liste de canvas. Pour l'instant, on garde la simplicité.
             fig.canvas.mpl_connect('button_press_event', on_click)
             fig.canvas.mpl_connect('motion_notify_event', on_motion)
             fig.canvas.mpl_connect('button_release_event', on_release)
@@ -853,7 +852,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
                 linked_data = []
                 for lw in linked_widgets:
                     linked_data.append({
-                        "title": lw.label, "type": lw.chart_type, "color": lw.color,
+                        "title": lw.label, "id": lw.id, "type": lw.chart_type, "color": lw.color,
                         "x": lw.x, "y": lw.y, "w": lw.w, "h": lw.h, "text": lw.text,
                         "rich_text": lw.rich_text, "text_align": lw.text_align, "text_valign": lw.text_valign,
                         "table_columns": lw.table_columns, "table_rows": lw.table_rows,
@@ -865,7 +864,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
                 pages_to_export.append({"title": w.linked_dashboard, "widgets": linked_data})
             else:
                 current_page_widgets.append({
-                    "title": w.label, "type": w.chart_type, "color": w.color,
+                    "title": w.label, "id": w.id, "type": w.chart_type, "color": w.color,
                     "x": w.x, "y": w.y, "w": w.w, "h": w.h, "text": w.text,
                     "rich_text": w.rich_text, "text_align": w.text_align, "text_valign": w.text_valign,
                     "table_columns": w.table_columns, "table_rows": w.table_rows,
@@ -877,9 +876,9 @@ def show_dashboard_designer_screen(app: Application) -> None:
         
         if current_page_widgets:
             pages_to_export.append({"title": "Page Principale", "widgets": current_page_widgets})
-
-        if not pages_to_export: return
         
+        if not pages_to_export: return
+
         ftypes = {
             "pptx": [("PowerPoint", "*.pptx")],
             "pdf": [("PDF", "*.pdf")],
@@ -900,8 +899,6 @@ def show_dashboard_designer_screen(app: Application) -> None:
             exporter.export_data(all_widgets, Path(file_path), format='excel')
         else:
             # Pour PDF/PNG, on génère une figure par page
-            # Note: L'exporteur actuel ne gère qu'une seule figure. 
-            # Pour le PDF, on pourrait faire un PDF multi-pages.
             if fmt == "pdf":
                 from matplotlib.backends.backend_pdf import PdfPages
                 with PdfPages(file_path) as pdf:
@@ -917,7 +914,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
                     path = Path(file_path).with_stem(Path(file_path).stem + suffix)
                     exporter.export_to_png(fig, path)
                     plt.close(fig)
-        
+
         messagebox.showinfo("Succès", "Export terminé.")
     ttk.Button(footer, text="Générer l'export", command=run_export).pack(side="right", padx=10)
     ttk.Button(footer, text="Fermer", command=window.destroy).pack(side="right")
@@ -931,11 +928,16 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
     # Trier les widgets par z_order pour la superposition
     widgets_data = sorted(widgets_data, key=lambda x: x.get('z_order', 0))
 
-    mx, my = max(1, max(w['x'] + w['w'] for w in widgets_data)), max(1, max(w['y'] + w['h'] for w in widgets_data))
+    mx = max(1, max(w['x'] + w['w'] for w in widgets_data))
+    my = max(1, max(w['y'] + w['h'] for w in widgets_data))
+    
+    fig_h = 2 * my if my < 5 else 1.5 * my
+    grid_rows = my
+
     # On ajoute une marge pour voir les poignées de redimensionnement si besoin
-    fig = Figure(figsize=(10, 2 * my if my < 5 else 1.5 * my), dpi=90)
+    fig = Figure(figsize=(10, fig_h), dpi=90)
     from matplotlib.gridspec import GridSpec
-    gs = GridSpec(my, mx, figure=fig)
+    gs = GridSpec(grid_rows, mx, figure=fig)
     for w in widgets_data:
         try:
             # Vérifier la visibilité (condition)
@@ -950,9 +952,6 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
             # Nettoyer les données pour le rendu (enlever la clé technique 'visible')
             plot_data = {k: v for k, v in d.items() if k != 'visible'} if isinstance(d, dict) else d
             
-            # LOGGING pour débogage
-            print(f"Rendu widget {w.get('id')} ({wt}): data={plot_data}")
-
             # Gestion intelligente de la couleur de fond
             # Pour les graphiques, le fond doit rester neutre pour que les données soient visibles
             # Pour text, image et kpi, la couleur est celle du fond.
@@ -1060,6 +1059,11 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
                     
                     # Support des émojis pour le texte simple
                     ax.text(tx, ty, w['text'], va=va, ha=ha, wrap=True, fontsize=9, transform=ax.transAxes)
+            elif wt == "dashboard":
+                ax.axis('off')
+                linked = w.get('linked_dashboard', '')
+                ax.text(0.5, 0.5, f"Dashboard lié :\n{linked}", ha='center', va='center', 
+                        bbox=dict(facecolor='lightgrey', alpha=0.5, boxstyle='round'))
             elif not plot_data and wt != "image":
                 ax.axis('off')
                 ax.text(0.5, 0.5, "Pas de données", ha='center', va='center')
@@ -1073,7 +1077,6 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
                     labels = list(valid_data.keys())
                     values = list(valid_data.values())
                     
-                    print(f"  Plotting {wt}: labels={labels}, values={values}")
                     if not values:
                         ax.text(0.5, 0.5, "Données nulles", ha='center', va='center')
                     else:
@@ -1090,7 +1093,6 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
                 elif wt == "bar": 
                     labels = [str(k) for k in plot_data.keys()]
                     values = [float(v) if isinstance(v, (int, float, str)) and str(v).replace('.','',1).isdigit() else 0.0 for v in plot_data.values()]
-                    print(f"  Plotting bar: labels={labels}, values={values}")
                     if not values or all(v == 0 for v in values):
                          ax.text(0.5, 0.5, "Données nulles", ha='center', va='center')
                     else:
@@ -1107,7 +1109,6 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
                 elif wt == "stacked_bar":
                     labels = plot_data.get('labels', [])
                     series = plot_data.get('series', {})
-                    print(f"  Plotting stacked_bar: labels={labels}, series_keys={list(series.keys())}")
                     if not labels or not series:
                         ax.text(0.5, 0.5, "Données nulles", ha='center', va='center')
                     else:
@@ -1143,7 +1144,6 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
                             return 0.0
                             
                     values = [safe_float(v) for v in plot_data.values()]
-                    print(f"  Plotting {wt}: labels={labels}, values={values}")
                     
                     if not labels:
                         ax.text(0.5, 0.5, "Pas de données", ha='center', va='center')
@@ -1197,7 +1197,7 @@ def generate_layout_figure(widgets_data: List[Dict[str, Any]], selected_id: Opti
                         bbox_props['alpha'] = 0.0
                     
                     ax.text(0.5, 0.5, txt, ha='center', va='center', fontweight='bold', bbox=bbox_props)
-            
+
             ax.set_title(t, fontsize=10, fontweight='bold')
             ax.set_box_aspect(None) # S'assurer que le graphique s'étire
             

@@ -1,10 +1,10 @@
 {
   "language": "fr",
   "login_target": "sandbox",
-  "instance_url": "https://test.salesforce.com",
+  "instance_url": "https://malakoff-humanis--mhint.sandbox.my.salesforce.com",
   "alias": "mh integration",
-  "source_folder": "..\\..\\org\\sandbox int\\20260524\\retrieve",
-  "output_folder": "..\\..\\org\\sandbox int\\20260524\\documentation",
+  "source_folder": "..\\..\\org\\sandbox int\\20260530\\retrieve",
+  "output_folder": "..\\..\\org\\sandbox int\\20260530\\documentation",
   "exclusion_file": "..\\..\\org\\sandbox int\\exclusion.xlsx",
   "pmd_enabled": true,
   "pmd_ruleset_file": "..\\..\\org\\sandbox int\\apex-ruleset.xml",

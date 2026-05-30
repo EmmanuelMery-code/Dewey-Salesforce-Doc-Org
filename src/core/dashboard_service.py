@@ -159,11 +159,7 @@ class DashboardService:
         if widget.query and self.db_path.exists():
             try:
                 raw_rows = self._execute_sql_raw(widget.query, {"alias": alias})
-                print(f"SQL Dashboard ({widget.id}): query={widget.query}, alias={alias}, results={len(raw_rows)} rows")
                 if not raw_rows: return {"visible": True}
-                if len(raw_rows) < 5:
-                    for i, r in enumerate(raw_rows):
-                        print(f"  Row {i}: {dict(r)}")
 
                 result = {"visible": True}
                 if widget.chart_type == "stacked_bar":
