@@ -327,6 +327,14 @@ class CustomizationMetrics:
     @property
     def score(self) -> int:
         return (
+            self.score_no_code
+            + self.score_low_code
+            + self.score_pro_code
+        )
+
+    @property
+    def score_no_code(self) -> int:
+        return (
             self.custom_objects * self._weight("custom_objects")
             + self.custom_fields * self._weight("custom_fields")
             + self.record_types * self._weight("record_types")
@@ -334,15 +342,25 @@ class CustomizationMetrics:
             + self.layouts * self._weight("layouts")
             + self.custom_tabs * self._weight("custom_tabs")
             + self.custom_apps * self._weight("custom_apps")
-            + self.flows * self._weight("flows")
-            + self.apex_classes * self._weight("apex_classes")
-            + self.apex_triggers * self._weight("apex_triggers")
+        )
+
+    @property
+    def score_low_code(self) -> int:
+        return (
+            self.flows * self._weight("flows")
             + self.omni_scripts * self._weight("omni_scripts")
             + self.omni_integration_procedures * self._weight("omni_integration_procedures")
             + self.omni_ui_cards * self._weight("omni_ui_cards")
             + self.omni_data_transforms * self._weight("omni_data_transforms")
             + self.bre_decision_matrices * self._weight("bre_decision_matrices")
             + self.bre_expression_sets * self._weight("bre_expression_sets")
+        )
+
+    @property
+    def score_pro_code(self) -> int:
+        return (
+            self.apex_classes * self._weight("apex_classes")
+            + self.apex_triggers * self._weight("apex_triggers")
             + self.agents * self._weight("agents")
             + self.gen_ai_prompts * self._weight("gen_ai_prompts")
             + self.einstein_predictions * self._weight("einstein_predictions")
@@ -364,18 +382,36 @@ class CustomizationMetrics:
     def adopt_adapt_score(self) -> int:
         """Calculates the Adopt vs Adapt score based on customization level."""
         return (
+            self.adopt_adapt_score_no_code
+            + self.adopt_adapt_score_low_code
+            + self.adopt_adapt_score_pro_code
+        )
+
+    @property
+    def adopt_adapt_score_no_code(self) -> int:
+        return (
             self.custom_objects * self._aa_weight("custom_objects")
             + self.custom_fields * self._aa_weight("custom_fields")
-            + self.apex_classes * self._aa_weight("apex_classes")
-            + self.flows * self._aa_weight("flows")
-            + self.lwc_count * self._aa_weight("lwc")
             + self.flexipage_count * self._aa_weight("flexipages")
+        )
+
+    @property
+    def adopt_adapt_score_low_code(self) -> int:
+        return (
+            self.flows * self._aa_weight("flows")
             + self.omni_scripts * self._aa_weight("omni_scripts")
             + self.omni_integration_procedures * self._aa_weight("omni_integration_procedures")
             + self.omni_ui_cards * self._aa_weight("omni_ui_cards")
             + self.omni_data_transforms * self._aa_weight("omni_data_transforms")
             + self.bre_decision_matrices * self._aa_weight("bre_decision_matrices")
             + self.bre_expression_sets * self._aa_weight("bre_expression_sets")
+        )
+
+    @property
+    def adopt_adapt_score_pro_code(self) -> int:
+        return (
+            self.apex_classes * self._aa_weight("apex_classes")
+            + self.lwc_count * self._aa_weight("lwc")
             + self.agents * self._aa_weight("agents")
             + self.gen_ai_prompts * self._aa_weight("gen_ai_prompts")
             + self.einstein_predictions * self._aa_weight("einstein_predictions")

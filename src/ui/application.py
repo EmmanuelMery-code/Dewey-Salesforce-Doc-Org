@@ -100,9 +100,10 @@ class Application(tk.Tk):
     LANGUAGES = UI_LANGUAGES
     ORG_CHECK_CHOICES = UI_ORG_CHECK_CHOICES
     AI_PROVIDERS = UI_AI_PROVIDERS
-    GEMINI_MODEL_CHOICES = GEMINI_MODELS
-    CLAUDE_MODEL_CHOICES = CLAUDE_MODELS
-    GATEWAY_MODEL_CHOICES = [
+    
+    DEFAULT_GEMINI_MODELS = list(GEMINI_MODELS)
+    DEFAULT_CLAUDE_MODELS = list(CLAUDE_MODELS)
+    DEFAULT_GATEWAY_MODELS = [
         "claude-sonnet-4-20250514",
         "claude-3-7-sonnet-20250219",
         "claude-3-5-sonnet-20241022",
@@ -114,6 +115,7 @@ class Application(tk.Tk):
         "gpt-40",
         "gpt-4o-mini",
     ]
+    
     DEFAULT_GEMINI_MODEL = GEMINI_MODELS[0]
     DEFAULT_CLAUDE_MODEL = CLAUDE_MODELS[0]
     DEFAULT_GATEWAY_MODEL = "gpt-5"
@@ -196,6 +198,10 @@ class Application(tk.Tk):
         self.org_check_choice_var = tk.StringVar(value=org_check_default)
         self.status_var = tk.StringVar(value=self._t("ready"))
 
+        self.gemini_model_choices = self.settings.get("gemini_models", self.DEFAULT_GEMINI_MODELS)
+        self.claude_model_choices = self.settings.get("claude_models", self.DEFAULT_CLAUDE_MODELS)
+        self.gateway_model_choices = self.settings.get("gateway_models", self.DEFAULT_GATEWAY_MODELS)
+
         default_provider = self.settings.get("ai_provider", self.AI_PROVIDERS[0])
         if default_provider not in self.AI_PROVIDERS:
             default_provider = self.AI_PROVIDERS[0]
@@ -205,15 +211,15 @@ class Application(tk.Tk):
         self.gateway_api_key_var = tk.StringVar(value=self.settings.get("gateway_api_key", ""))
         self.gateway_cert_path_var = tk.StringVar(value=self._to_abs_path(self.settings.get("gateway_cert_path", "config/Salesforce_Internal_Root_CA_3.pem")))
         stored_claude_model = str(self.settings.get("claude_model", "") or "").strip()
-        if stored_claude_model not in self.CLAUDE_MODEL_CHOICES:
+        if stored_claude_model not in self.claude_model_choices:
             stored_claude_model = self.DEFAULT_CLAUDE_MODEL
         stored_gemini_model = str(self.settings.get("gemini_model", "") or "").strip()
         # Silently migrate retired models (Google pulled gemini-1.5-* and
         # gemini-2.0-* in March 2026) to the most generous 2.5 option.
-        if stored_gemini_model not in self.GEMINI_MODEL_CHOICES:
+        if stored_gemini_model not in self.gemini_model_choices:
             stored_gemini_model = self.DEFAULT_GEMINI_MODEL
         stored_gateway_model = str(self.settings.get("gateway_model", "") or "").strip()
-        if stored_gateway_model not in self.GATEWAY_MODEL_CHOICES:
+        if stored_gateway_model not in self.gateway_model_choices:
             stored_gateway_model = self.DEFAULT_GATEWAY_MODEL
         self.claude_model_var = tk.StringVar(value=stored_claude_model)
         self.gemini_model_var = tk.StringVar(value=stored_gemini_model)
@@ -878,6 +884,9 @@ class Application(tk.Tk):
             "claude_model": self.claude_model_var.get().strip() or self.DEFAULT_CLAUDE_MODEL,
             "gemini_model": self.gemini_model_var.get().strip() or self.DEFAULT_GEMINI_MODEL,
             "gateway_model": self.gateway_model_var.get().strip() or self.DEFAULT_GATEWAY_MODEL,
+            "gemini_models": self.gemini_model_choices,
+            "claude_models": self.claude_model_choices,
+            "gateway_models": self.gateway_model_choices,
             "system_prompt": self.system_prompt,
             "generate_excels": bool(self.generate_excels_var.get()),
             "generate_org_check_reports": bool(self.generate_org_check_reports_var.get()),
