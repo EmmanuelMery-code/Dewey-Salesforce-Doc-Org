@@ -1,7 +1,7 @@
 {
   "language": "fr",
   "login_target": "sandbox",
-  "instance_url": "https://malakoff-humanis--mhint.sandbox.my.salesforce.com",
+  "instance_url": "https://test.salesforce.com",
   "alias": "mh integration",
   "source_folder": "..\\..\\org\\sandbox int\\20260530\\retrieve",
   "output_folder": "..\\..\\org\\sandbox int\\20260530\\documentation",
@@ -304,20 +304,20 @@
     ]
   },
   "dd_html": false,
-  "dd_word": true,
-  "dd_excel": false,
+  "dd_word": false,
+  "dd_excel": true,
   "dd_selected_objects": [
     "Activity",
     "Lead",
-    "NomenclatureCCN__c",
-    "Case",
-    "Account",
     "AccountContactRole",
-    "In_App_Checklist_Settings__c",
     "NomenclatureNAF__c",
+    "Opportunity",
+    "Account",
     "AccountContactRelation",
+    "Case",
     "Event",
-    "Opportunity"
+    "In_App_Checklist_Settings__c",
+    "NomenclatureCCN__c"
   ],
   "show_card_customization_level": true,
   "show_card_score": true,

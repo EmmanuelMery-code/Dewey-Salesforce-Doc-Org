@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 from src.core.history_service import HistoryEntry
 from src.core.utils import html_value, write_text
-from src.reporting.html.page_shell import render_page
+from src.reporting.html.page_shell import render_page, href_relative, index_back_link
+from src.reporting.html.assets import write_assets
 
 
 def render_dashboard(
@@ -308,7 +309,7 @@ def render_dashboard(
         }}
     </style>
     <div class="dashboard-page">
-        <div class="topnav no-print" style="margin-bottom: 20px;"><a href="index.html" style="text-decoration: none; color: #1d4ed8;">&larr; Retour à l'index</a></div>
+        {index_back_link(current_path, current_path.parent)}
         
         <div class="dashboard-header">
             <h1>Status de la release : {html_value(selected.alias)}</h1>
@@ -475,11 +476,13 @@ def render_dashboard(
     </div>
     """
     # We use a custom shell for the dashboard to avoid the standard page overhead
+    style_href = href_relative(current_path, assets_dir / "style.css")
     return f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard {html_value(selected.alias)}</title>
+    <link rel="stylesheet" href="{style_href}">
     <style>
         @page {{ size: A4; margin: 0; }}
         body {{ margin: 0; padding: 0; background: #f0f2f5; }}
@@ -498,10 +501,16 @@ def render_comparison(
     assets_dir: Path,
 ) -> str:
     """Render a metadata comparison between two generations."""
+    app_root = Path(__file__).resolve().parent.parent.parent.parent.parent
     
     # 1. Scan directories to find added, modified, deleted files
     new_dir = Path(new.source_dir)
+    if not new_dir.is_absolute():
+        new_dir = (app_root / new_dir).resolve()
+        
     old_dir = Path(old.source_dir)
+    if not old_dir.is_absolute():
+        old_dir = (app_root / old_dir).resolve()
     
     new_files = {p.relative_to(new_dir): p for p in new_dir.rglob("*") if p.is_file() and ".vs" not in p.parts}
     old_files = {p.relative_to(old_dir): p for p in old_dir.rglob("*") if p.is_file() and ".vs" not in p.parts}
@@ -604,7 +613,7 @@ def render_comparison(
         }}
     </style>
 
-    <div class="topnav"><a href="index.html">Retour à l'index</a></div>
+    {index_back_link(current_path, current_path.parent)}
     <h1>Comparaison de métadonnées : {html_value(new.alias)}</h1>
     <p>Comparaison entre la génération #{new.generation_number} ({new.timestamp}) et la génération #{old.generation_number} ({old.timestamp}).</p>
     
@@ -701,8 +710,8 @@ def render_comparison(
     <div class="section">
         <h2>Répertoires sources</h2>
         <dl>
-            <dt>Source #{old.generation_number}:</dt><dd><code>{html_value(href_relative(current_path, Path(old.source_dir)))}</code></dd>
-            <dt>Source #{new.generation_number}:</dt><dd><code>{html_value(href_relative(current_path, Path(new.source_dir)))}</code></dd>
+            <dt>Source #{old.generation_number}:</dt><dd><code>{html_value(href_relative(current_path, (app_root / Path(old.source_dir)).resolve()))}</code></dd>
+            <dt>Source #{new.generation_number}:</dt><dd><code>{html_value(href_relative(current_path, (app_root / Path(new.source_dir)).resolve()))}</code></dd>
         </dl>
     </div>
     """
@@ -716,13 +725,17 @@ def write_history_report(
     filename: str,
 ) -> Path:
     """Write a history report to the output directory of the entry."""
-    app_root = Path(__file__).resolve().parent.parent.parent.parent
+    app_root = Path(__file__).resolve().parent.parent.parent.parent.parent
     output_dir = Path(entry.output_dir)
     if not output_dir.is_absolute():
         output_dir = app_root / output_dir
         
     output_dir = output_dir / "html"
     output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Ensure assets are present
+    write_assets(output_dir / "assets")
+    
     path = output_dir / filename
     write_text(path, content)
     return path
