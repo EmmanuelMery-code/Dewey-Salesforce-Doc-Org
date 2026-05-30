@@ -250,6 +250,93 @@ def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dic
     ).pack(anchor="w", pady=(2, 2))
 
 
+def _build_model_management(
+    app: Application,
+    parent: ttk.Frame,
+    model_var: tk.StringVar,
+    choices_list: list[str],
+    default_choices: list[str],
+    provider_name: str,
+) -> None:
+    """Add Add/Remove/Reset buttons for AI models."""
+    row = ttk.Frame(parent)
+    row.pack(fill="x", pady=(2, 5))
+    ttk.Label(row, text="", width=22).pack(side="left")
+
+    def add_model():
+        from tkinter import simpledialog, messagebox
+
+        name = simpledialog.askstring(
+            app._t("configuration_ai_models_add"),
+            app._t("configuration_ai_models_prompt"),
+            parent=parent,
+        )
+        if name and name.strip():
+            name = name.strip()
+            if name in choices_list:
+                messagebox.showwarning(
+                    app._t("configuration_ai_models_add"),
+                    app._t("configuration_ai_models_duplicate"),
+                )
+                return
+            choices_list.append(name)
+            # Update the combobox if possible. This is tricky because the combobox
+            # is created in _config_combo_row which doesn't return the widget.
+            # But we can find it by looking at children of parent.
+            for child in parent.winfo_children():
+                if isinstance(child, ttk.Frame):
+                    for subchild in child.winfo_children():
+                        if (
+                            isinstance(subchild, ttk.Combobox)
+                            and subchild.cget("textvariable") == str(model_var)
+                        ):
+                            subchild["values"] = list(choices_list)
+                            break
+
+    def remove_model():
+        current = model_var.get()
+        if current in choices_list:
+            choices_list.remove(current)
+            if choices_list:
+                model_var.set(choices_list[0])
+            else:
+                model_var.set("")
+            for child in parent.winfo_children():
+                if isinstance(child, ttk.Frame):
+                    for subchild in child.winfo_children():
+                        if (
+                            isinstance(subchild, ttk.Combobox)
+                            and subchild.cget("textvariable") == str(model_var)
+                        ):
+                            subchild["values"] = list(choices_list)
+                            break
+
+    def reset_models():
+        choices_list.clear()
+        choices_list.extend(default_choices)
+        if choices_list:
+            model_var.set(choices_list[0])
+        for child in parent.winfo_children():
+            if isinstance(child, ttk.Frame):
+                for subchild in child.winfo_children():
+                    if (
+                        isinstance(subchild, ttk.Combobox)
+                        and subchild.cget("textvariable") == str(model_var)
+                    ):
+                        subchild["values"] = list(choices_list)
+                        break
+
+    ttk.Button(
+        row, text=app._t("configuration_ai_models_add"), command=add_model
+    ).pack(side="left", padx=(0, 5))
+    ttk.Button(
+        row, text=app._t("configuration_ai_models_remove"), command=remove_model
+    ).pack(side="left", padx=(0, 5))
+    ttk.Button(
+        row, text=app._t("configuration_ai_models_reset"), command=reset_models
+    ).pack(side="left")
+
+
 def _build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
     ai_frame = ttk.LabelFrame(parent, text=app._t("configuration_section_ai"), padding=10)
     ai_frame.pack(fill="x", pady=(0, 8))
@@ -277,7 +364,15 @@ def _build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
         claude_frame,
         app._t("configuration_claude_model"),
         edit_vars["claude_model"],
-        list(app.CLAUDE_MODEL_CHOICES),
+        list(app.claude_model_choices),
+    )
+    _build_model_management(
+        app,
+        claude_frame,
+        edit_vars["claude_model"],
+        app.claude_model_choices,
+        app.DEFAULT_CLAUDE_MODELS,
+        "Claude",
     )
 
     # Gemini (Google)
@@ -290,7 +385,15 @@ def _build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
         gemini_frame,
         app._t("configuration_gemini_model"),
         edit_vars["gemini_model"],
-        list(app.GEMINI_MODEL_CHOICES),
+        list(app.gemini_model_choices),
+    )
+    _build_model_management(
+        app,
+        gemini_frame,
+        edit_vars["gemini_model"],
+        app.gemini_model_choices,
+        app.DEFAULT_GEMINI_MODELS,
+        "Gemini",
     )
 
     # LLM Gateway (Salesforce)
@@ -303,7 +406,15 @@ def _build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
         gateway_frame,
         app._t("configuration_gateway_model"),
         edit_vars["gateway_model"],
-        list(app.GATEWAY_MODEL_CHOICES),
+        list(app.gateway_model_choices),
+    )
+    _build_model_management(
+        app,
+        gateway_frame,
+        edit_vars["gateway_model"],
+        app.gateway_model_choices,
+        app.DEFAULT_GATEWAY_MODELS,
+        "Gateway",
     )
     _config_entry_row(
         gateway_frame, app._t("configuration_gateway_cert"), edit_vars["gateway_cert"]
@@ -465,13 +576,13 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     app.gateway_cert_path_var.set(edit_vars["gateway_cert"].get())
 
     claude_model_choice = edit_vars["claude_model"].get().strip()
-    if claude_model_choice in app.CLAUDE_MODEL_CHOICES:
+    if claude_model_choice in app.claude_model_choices:
         app.claude_model_var.set(claude_model_choice)
     gemini_model_choice = edit_vars["gemini_model"].get().strip()
-    if gemini_model_choice in app.GEMINI_MODEL_CHOICES:
+    if gemini_model_choice in app.gemini_model_choices:
         app.gemini_model_var.set(gemini_model_choice)
     gateway_model_choice = edit_vars["gateway_model"].get().strip()
-    if gateway_model_choice in app.GATEWAY_MODEL_CHOICES:
+    if gateway_model_choice in app.gateway_model_choices:
         app.gateway_model_var.set(gateway_model_choice)
     app.generate_excels_var.set(bool(edit_vars["generate_excels"].get()))
     app.generate_org_check_reports_var.set(

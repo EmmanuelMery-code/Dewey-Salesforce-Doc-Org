@@ -17,10 +17,29 @@ class HistoryEntry:
     source_dir: str = ""
     output_dir: str = ""
     score: int = 0
+    score_no_code: int = 0
+    score_low_code: int = 0
+    score_pro_code: int = 0
     adopt_adapt_score: int = 0
+    adopt_adapt_score_no_code: int = 0
+    adopt_adapt_score_low_code: int = 0
+    adopt_adapt_score_pro_code: int = 0
     custom_objects: int = 0
+    standard_objects: int = 0
     custom_fields: int = 0
+    standard_fields: int = 0
     flows: int = 0
+    record_types: int = 0
+    validation_rules: int = 0
+    page_layouts: int = 0
+    custom_tabs: int = 0
+    custom_apps: int = 0
+    total_custom_components: int = 0
+    total_standard_components: int = 0
+    adopt_ootb_count: int = 0
+    adopt_decl_count: int = 0
+    adapt_low_count: int = 0
+    adapt_high_count: int = 0
     apex_classes_triggers: int = 0
     omni_components: int = 0
     agents: int = 0
@@ -73,10 +92,29 @@ class HistoryService:
                     source_dir TEXT,
                     output_dir TEXT,
                     score INTEGER,
+                    score_no_code INTEGER,
+                    score_low_code INTEGER,
+                    score_pro_code INTEGER,
                     adopt_adapt_score INTEGER,
+                    adopt_adapt_score_no_code INTEGER,
+                    adopt_adapt_score_low_code INTEGER,
+                    adopt_adapt_score_pro_code INTEGER,
                     custom_objects INTEGER,
+                    standard_objects INTEGER,
                     custom_fields INTEGER,
+                    standard_fields INTEGER,
                     flows INTEGER,
+                    record_types INTEGER,
+                    validation_rules INTEGER,
+                    page_layouts INTEGER,
+                    custom_tabs INTEGER,
+                    custom_apps INTEGER,
+                    total_custom_components INTEGER,
+                    total_standard_components INTEGER,
+                    adopt_ootb_count INTEGER,
+                    adopt_decl_count INTEGER,
+                    adapt_low_count INTEGER,
+                    adapt_high_count INTEGER,
                     apex_classes_triggers INTEGER,
                     omni_components INTEGER,
                     agents INTEGER,
@@ -105,6 +143,25 @@ class HistoryService:
                 ("agents", "INTEGER DEFAULT 0"),
                 ("gen_ai_prompts", "INTEGER DEFAULT 0"),
                 ("einstein_predictions", "INTEGER DEFAULT 0"),
+                ("standard_objects", "INTEGER DEFAULT 0"),
+                ("standard_fields", "INTEGER DEFAULT 0"),
+                ("score_no_code", "INTEGER DEFAULT 0"),
+                ("score_low_code", "INTEGER DEFAULT 0"),
+                ("score_pro_code", "INTEGER DEFAULT 0"),
+                ("adopt_adapt_score_no_code", "INTEGER DEFAULT 0"),
+                ("adopt_adapt_score_low_code", "INTEGER DEFAULT 0"),
+                ("adopt_adapt_score_pro_code", "INTEGER DEFAULT 0"),
+                ("record_types", "INTEGER DEFAULT 0"),
+                ("validation_rules", "INTEGER DEFAULT 0"),
+                ("page_layouts", "INTEGER DEFAULT 0"),
+                ("custom_tabs", "INTEGER DEFAULT 0"),
+                ("custom_apps", "INTEGER DEFAULT 0"),
+                ("total_custom_components", "INTEGER DEFAULT 0"),
+                ("total_standard_components", "INTEGER DEFAULT 0"),
+                ("adopt_ootb_count", "INTEGER DEFAULT 0"),
+                ("adopt_decl_count", "INTEGER DEFAULT 0"),
+                ("adapt_low_count", "INTEGER DEFAULT 0"),
+                ("adapt_high_count", "INTEGER DEFAULT 0"),
             ]
             for col_name, col_type in new_cols:
                 if col_name not in existing_columns:
@@ -136,17 +193,31 @@ class HistoryService:
 
             cursor = conn.execute("""
                 INSERT INTO history (
-                    alias, source_dir, output_dir, score, adopt_adapt_score,
-                    custom_objects, custom_fields, flows, apex_classes_triggers,
+                    alias, source_dir, output_dir, score, 
+                    score_no_code, score_low_code, score_pro_code,
+                    adopt_adapt_score, 
+                    adopt_adapt_score_no_code, adopt_adapt_score_low_code, adopt_adapt_score_pro_code,
+                    custom_objects, standard_objects, custom_fields, standard_fields, 
+                    flows, record_types, validation_rules, page_layouts, custom_tabs, custom_apps,
+                    total_custom_components, total_standard_components,
+                    adopt_ootb_count, adopt_decl_count, adapt_low_count, adapt_high_count,
+                    apex_classes_triggers,
                     omni_components, agents, gen_ai_prompts, einstein_predictions, findings_total, findings_critical,
                     findings_major, findings_minor, findings_info,
                     ai_usage_pct, data_model_custom_pct, data_model_standard_pct,
                     adoption_pct, adaptation_pct, timestamp, generation_number
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
-                entry.adopt_adapt_score, entry.custom_objects, entry.custom_fields,
-                entry.flows, entry.apex_classes_triggers, entry.omni_components,
+                entry.score_no_code, entry.score_low_code, entry.score_pro_code,
+                entry.adopt_adapt_score,
+                entry.adopt_adapt_score_no_code, entry.adopt_adapt_score_low_code, entry.adopt_adapt_score_pro_code,
+                entry.custom_objects, entry.standard_objects,
+                entry.custom_fields, entry.standard_fields,
+                entry.flows, entry.record_types, entry.validation_rules, entry.page_layouts, entry.custom_tabs, entry.custom_apps,
+                entry.total_custom_components, entry.total_standard_components,
+                entry.adopt_ootb_count, entry.adopt_decl_count, entry.adapt_low_count, entry.adapt_high_count,
+                entry.apex_classes_triggers, entry.omni_components,
                 entry.agents, entry.gen_ai_prompts, entry.einstein_predictions,
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
@@ -239,8 +310,15 @@ class HistoryService:
             conn.execute("""
                 UPDATE history SET
                     alias = ?, source_dir = ?, output_dir = ?, score = ?,
-                    adopt_adapt_score = ?, custom_objects = ?, custom_fields = ?,
-                    flows = ?, apex_classes_triggers = ?, omni_components = ?,
+                    score_no_code = ?, score_low_code = ?, score_pro_code = ?,
+                    adopt_adapt_score = ?, 
+                    adopt_adapt_score_no_code = ?, adopt_adapt_score_low_code = ?, adopt_adapt_score_pro_code = ?,
+                    custom_objects = ?, standard_objects = ?,
+                    custom_fields = ?, standard_fields = ?,
+                    flows = ?, record_types = ?, validation_rules = ?, page_layouts = ?, custom_tabs = ?, custom_apps = ?,
+                    total_custom_components = ?, total_standard_components = ?,
+                    adopt_ootb_count = ?, adopt_decl_count = ?, adapt_low_count = ?, adapt_high_count = ?,
+                    apex_classes_triggers = ?, omni_components = ?,
                     agents = ?, gen_ai_prompts = ?, einstein_predictions = ?,
                     findings_total = ?, findings_critical = ?, findings_major = ?,
                     findings_minor = ?, findings_info = ?, ai_usage_pct = ?,
@@ -250,8 +328,15 @@ class HistoryService:
                 WHERE id = ?
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
-                entry.adopt_adapt_score, entry.custom_objects, entry.custom_fields,
-                entry.flows, entry.apex_classes_triggers, entry.omni_components,
+                entry.score_no_code, entry.score_low_code, entry.score_pro_code,
+                entry.adopt_adapt_score,
+                entry.adopt_adapt_score_no_code, entry.adopt_adapt_score_low_code, entry.adopt_adapt_score_pro_code,
+                entry.custom_objects, entry.standard_objects,
+                entry.custom_fields, entry.standard_fields,
+                entry.flows, entry.record_types, entry.validation_rules, entry.page_layouts, entry.custom_tabs, entry.custom_apps,
+                entry.total_custom_components, entry.total_standard_components,
+                entry.adopt_ootb_count, entry.adopt_decl_count, entry.adapt_low_count, entry.adapt_high_count,
+                entry.apex_classes_triggers, entry.omni_components,
                 entry.agents, entry.gen_ai_prompts, entry.einstein_predictions,
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
@@ -276,10 +361,29 @@ class HistoryService:
             source_dir=get_val("source_dir", ""),
             output_dir=get_val("output_dir", ""),
             score=get_val("score"),
+            score_no_code=get_val("score_no_code"),
+            score_low_code=get_val("score_low_code"),
+            score_pro_code=get_val("score_pro_code"),
             adopt_adapt_score=get_val("adopt_adapt_score"),
+            adopt_adapt_score_no_code=get_val("adopt_adapt_score_no_code"),
+            adopt_adapt_score_low_code=get_val("adopt_adapt_score_low_code"),
+            adopt_adapt_score_pro_code=get_val("adopt_adapt_score_pro_code"),
             custom_objects=get_val("custom_objects"),
+            standard_objects=get_val("standard_objects"),
             custom_fields=get_val("custom_fields"),
+            standard_fields=get_val("standard_fields"),
             flows=get_val("flows"),
+            record_types=get_val("record_types"),
+            validation_rules=get_val("validation_rules"),
+            page_layouts=get_val("page_layouts"),
+            custom_tabs=get_val("custom_tabs"),
+            custom_apps=get_val("custom_apps"),
+            total_custom_components=get_val("total_custom_components"),
+            total_standard_components=get_val("total_standard_components"),
+            adopt_ootb_count=get_val("adopt_ootb_count"),
+            adopt_decl_count=get_val("adopt_decl_count"),
+            adapt_low_count=get_val("adapt_low_count"),
+            adapt_high_count=get_val("adapt_high_count"),
             apex_classes_triggers=get_val("apex_classes_triggers"),
             omni_components=get_val("omni_components"),
             agents=get_val("agents"),
