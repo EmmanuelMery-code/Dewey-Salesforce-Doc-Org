@@ -613,7 +613,7 @@ class Application(tk.Tk):
             command=self._show_data_dictionary_screen,
         )
         documentation_menu.add_command(
-            label="Concevoir Dashboard",
+            label=self._t("menu_design_dashboard"),
             command=self._show_dashboard_designer_screen,
         )
         menu_bar.add_cascade(
