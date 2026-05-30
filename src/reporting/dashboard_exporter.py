@@ -313,12 +313,16 @@ class DashboardExporter:
                 ax.text(xy[0], xy[1], widget.get('text', ''), va=va, ha=ha, wrap=True, fontsize=10, transform=ax.transAxes)
             return
 
+        elif w_type == "dashboard":
+            ax.axis('off')
+            linked = widget.get('linked_dashboard', '')
+            ax.text(0.5, 0.5, f"Dashboard lié :\n{linked}", ha='center', va='center', 
+                    bbox=dict(facecolor='lightgrey', alpha=0.5, boxstyle='round'))
+            return
+            
         # Nettoyer les données pour le rendu (enlever la clé technique 'visible')
         plot_data = {k: v for k, v in data.items() if k != 'visible'} if isinstance(data, dict) else data
         
-        # LOGGING pour débogage export
-        print(f"Export widget ({w_type}): data={plot_data}")
-
         if not plot_data and w_type != "image":
             ax.axis('off')
             ax.text(0.5, 0.5, "Aucune donnée", ha='center', va='center')
