@@ -23,13 +23,29 @@ from src.core.customization_metrics import (
 def load_settings(path: Path) -> dict[str, Any]:
     """Read ``path`` and return the parsed settings dictionary.
 
-    Returns an empty dict when the file does not exist or cannot be parsed.
+    If the file does not exist, it is created with default values.
+    Returns an empty dict when the file cannot be parsed.
     Errors are intentionally swallowed: missing/corrupt settings should not
     prevent the application from starting.
     """
 
     if not path.exists():
-        return {}
+        try:
+            # Initialise with basic defaults
+            defaults = {
+                "language": "fr",
+                "ai_provider": "Gateway",
+                "pmd_enabled": False,
+                "generate_excels": True,
+                "generate_org_check_reports": False,
+                "generate_data_dictionary_word": True,
+                "generate_summary_word": True,
+            }
+            save_settings(path, defaults)
+            return defaults
+        except OSError:
+            return {}
+
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
