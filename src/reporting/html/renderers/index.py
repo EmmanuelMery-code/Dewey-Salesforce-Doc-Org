@@ -519,6 +519,11 @@ def render_index(
         if visibility.show_adopt_adapt_posture
         else ""
     )
+    test_coverage_card = (
+        f'  <div class="card"><span>Couverture de tests</span>'
+        f'<span class="value">{(f"{metrics.test_coverage:.1f} %") if metrics.test_coverage is not None else "N/A"}</span>'
+        f'<small style="color: #64748b; font-weight: normal;">Moyenne org (Apex + Flows)</small></div>\n'
+    )
 
     customization_level_card = (
         f'  <div class="card"><span>Niveau de customisation</span>'
@@ -614,10 +619,10 @@ def render_index(
     ])
     if desc_content.strip():
         summary_tabs_sections.append(("Description", f'<div class="cards">{desc_content}</div>'))
-        
+
     # 2. Scoring
     scoring_content = "".join([
-        customization_level_card, score_card, adopt_vs_adapt_card, adopt_adapt_score_card
+        customization_level_card, score_card, adopt_vs_adapt_card, adopt_adapt_score_card, test_coverage_card
     ])
     if scoring_content.strip():
         summary_tabs_sections.append(("Scoring", f'<div class="cards">{scoring_content}</div>'))

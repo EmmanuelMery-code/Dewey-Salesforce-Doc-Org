@@ -45,9 +45,12 @@ def render_flow_page(
     findings: list[Finding] | None = None,
 ) -> str:
     findings = findings or []
+    metrics_list = list(review.metrics)
+    metrics_list.append(("Couverture de tests", (f"{flow.test_coverage:.1f} %") if flow.test_coverage is not None else "N/A"))
+
     metrics = "".join(
         f"<li><strong>{html_value(label)}:</strong> {html_value(value)}</li>"
-        for label, value in review.metrics
+        for label, value in metrics_list
     )
     elements_rows = "".join(
         f"<tr><td>{html_value(element.element_type)}</td><td>{html_value(element.name)}</td>"

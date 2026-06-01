@@ -184,6 +184,26 @@ class SalesforceCliService:
         self._emit_log(f"Org check termine: {output_path}")
         return output_path
 
+    def run_query(self, query: str, target_org: str, use_tooling_api: bool = False) -> list[dict]:
+        command = [
+            self.sf_executable,
+            "data",
+            "query",
+            "--query",
+            query,
+            "--target-org",
+            target_org,
+            "--json",
+        ]
+        if use_tooling_api:
+            command.append("--use-tooling-api")
+
+        self._emit_log(f"Execution de la requete SOQL sur `{target_org}` (tooling={use_tooling_api}).")
+        payload = self._run_json(command)
+        records = payload.get("records", [])
+        self._emit_log(f"{len(records)} enregistrement(s) recupere(s).")
+        return records
+
     def _ensure_project(self) -> None:
         self.project_dir.mkdir(parents=True, exist_ok=True)
         package_dir = self.project_dir / "force-app"

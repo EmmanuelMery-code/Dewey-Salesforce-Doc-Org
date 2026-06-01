@@ -109,6 +109,7 @@ class SalesforceDocumentationGenerator:
         analyzer_rules_path: str | Path | None = None,
         ai_usage_tags: list[str] | tuple[str, ...] | None = None,
         posture_config: list[PostureCapabilityConfig] | None = None,
+        test_coverage_data: dict[str, float] | None = None,
         index_card_visibility: IndexCardVisibility | None = None,
         language: str = "fr",
         log_callback: LogCallback | None = None,
@@ -139,6 +140,7 @@ class SalesforceDocumentationGenerator:
             if isinstance(tag, str) and tag.strip()
         ]
         self.posture_config: list[PostureCapabilityConfig] = list(posture_config or [])
+        self.test_coverage_data = test_coverage_data or {}
         self.index_card_visibility: IndexCardVisibility = (
             index_card_visibility
             if index_card_visibility is not None
@@ -242,7 +244,8 @@ class SalesforceDocumentationGenerator:
                 data_model_custom_pct=dm_stats.percent_custom_global if dm_stats else 0.0,
                 data_model_standard_pct=dm_stats.percent_standard_global if dm_stats else 0.0,
                 adoption_pct=adoption_stats.percent_adoption if adoption_stats else 0.0,
-                adaptation_pct=adoption_stats.percent_adaptation if adoption_stats else 0.0
+                adaptation_pct=adoption_stats.percent_adaptation if adoption_stats else 0.0,
+                test_coverage=metrics.test_coverage
             )
             
             service.add_entry(entry)
@@ -473,6 +476,27 @@ class SalesforceDocumentationGenerator:
             snapshot.metrics.scoring_thresholds = tuple(self.scoring_thresholds)
         if self.adopt_adapt_thresholds:
             snapshot.metrics.adopt_adapt_thresholds = tuple(self.adopt_adapt_thresholds)
+
+        # Apply test coverage data
+        if self.test_coverage_data:
+            total_covered = 0.0
+            count = 0
+            for artifact in snapshot.apex_artifacts:
+                if artifact.name in self.test_coverage_data:
+                    artifact.test_coverage = self.test_coverage_data[artifact.name]
+                    if not artifact.is_test:
+                        total_covered += artifact.test_coverage
+                        count += 1
+            for flow in snapshot.flows:
+                if flow.name in self.test_coverage_data:
+                    flow.test_coverage = self.test_coverage_data[flow.name]
+                    total_covered += flow.test_coverage
+                    count += 1
+            
+            if count > 0:
+                snapshot.metrics.test_coverage = total_covered / count
+                self.log(f"Couverture de tests org calculee : {snapshot.metrics.test_coverage:.1f} % ({count} composants).")
+
         self.log("Lecture des metadata terminee.")
 
         result = GenerationResult(snapshot=snapshot)
