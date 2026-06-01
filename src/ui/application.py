@@ -191,7 +191,7 @@ class Application(tk.Tk):
         self.login_target_key = self.settings.get("login_target", "production")
         self.login_target_var = tk.StringVar()
         self.instance_url_var = tk.StringVar(value=self.settings.get("instance_url", self.LOGIN_TARGETS["production"]))
-        self.selected_org_var = tk.StringVar()
+        self.selected_org_var = tk.StringVar(value=self.settings.get("last_selected_org", ""))
         org_check_default = self.settings.get("org_check_type", self.ORG_CHECK_CHOICES[0])
         if org_check_default not in self.ORG_CHECK_CHOICES:
             org_check_default = self.ORG_CHECK_CHOICES[0]
@@ -868,6 +868,7 @@ class Application(tk.Tk):
             "language": self.language,
             "login_target": self.login_target_key,
             "instance_url": self.instance_url_var.get().strip(),
+            "last_selected_org": self.selected_org_var.get().strip(),
             "alias": self.alias_var.get().strip(),
             "source_folder": self._to_rel_path(self.source_var.get().strip()),
             "output_folder": self._to_rel_path(self.output_var.get().strip()),
@@ -1170,10 +1171,11 @@ class Application(tk.Tk):
 
         if current in self.orgs_by_label:
             self.selected_org_var.set(current)
-        elif labels:
-            self.selected_org_var.set(labels[0])
+            self._on_org_selected()
         else:
             self.selected_org_var.set("")
+            self._on_org_selected()
+            
         self._append_log(self._t("orgs_loaded", count=len(orgs)))
 
     def _selected_org(self) -> OrgSummary | None:
@@ -1201,6 +1203,11 @@ class Application(tk.Tk):
             
             self._save_settings()
             self._append_log(self._t("org_selected_log", alias=org.alias))
+        else:
+            self.alias_var.set("")
+            self.login_target_var.set("")
+            self.instance_url_var.set("")
+            self._save_settings()
 
     def _validate_source_for_cli(self) -> Path | None:
         source_value = self.source_var.get().strip()
@@ -1316,6 +1323,10 @@ class Application(tk.Tk):
         def task() -> GenerationResult:
             manifest_path = self.cli_service.generate_manifest(selected_org.org_ref, source)
             retrieved_path = self.cli_service.retrieve_from_org(selected_org.org_ref, source, manifest_path)
+            
+            self.task_manager.queue_log("Recuperation de la couverture de tests...")
+            test_coverage = self._fetch_test_coverage(selected_org.org_ref)
+            
             self._run_org_check_pre_step(
                 output, generate_org_check, org_check_choice, org_ref
             )
@@ -1336,6 +1347,7 @@ class Application(tk.Tk):
                 adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
+                test_coverage_data=test_coverage,
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
@@ -1455,6 +1467,11 @@ class Application(tk.Tk):
         org_ref = selected_org.org_ref if selected_org else self.alias_var.get().strip()
 
         def task() -> GenerationResult:
+            test_coverage = None
+            if selected_org:
+                self.task_manager.queue_log("Recuperation de la couverture de tests...")
+                test_coverage = self._fetch_test_coverage(selected_org.org_ref)
+
             self._run_org_check_pre_step(
                 output, generate_org_check, org_check_choice, org_ref
             )
@@ -1474,6 +1491,7 @@ class Application(tk.Tk):
                 adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
+                test_coverage_data=test_coverage,
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
@@ -1565,3 +1583,42 @@ class Application(tk.Tk):
         self.log_widget.configure(state="normal")
         self.log_widget.delete("1.0", "end")
         self.log_widget.configure(state="disabled")
+
+    def _fetch_test_coverage(self, target_org: str) -> dict[str, float]:
+        """Fetch test coverage for Apex classes and Flows using Tooling API."""
+        coverage_data: dict[str, float] = {}
+        try:
+            # 1. Apex Code Coverage
+            apex_query = "SELECT ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate"
+            apex_records = self.cli_service.run_query(apex_query, target_org, use_tooling_api=True)
+            self.task_manager.queue_log(f"Recupere {len(apex_records)} enregistrement(s) de couverture Apex.")
+            for record in apex_records:
+                name = record.get("ApexClassOrTrigger", {}).get("Name")
+                covered = record.get("NumLinesCovered", 0)
+                uncovered = record.get("NumLinesUncovered", 0)
+                total = covered + uncovered
+                if name and total > 0:
+                    coverage_data[name] = (covered / total) * 100
+
+            # 2. Flow Test Coverage
+            flow_query = "SELECT FlowVersion.Definition.DeveloperName, NumElementsCovered, NumElementsNotCovered FROM FlowTestCoverage"
+            flow_records = self.cli_service.run_query(flow_query, target_org, use_tooling_api=True)
+            self.task_manager.queue_log(f"Recupere {len(flow_records)} enregistrement(s) de couverture Flow.")
+            for record in flow_records:
+                flow_version = record.get("FlowVersion") or {}
+                definition = flow_version.get("Definition") or {}
+                name = definition.get("DeveloperName")
+                
+                # Fallback if the relationship structure is different
+                if not name:
+                    name = flow_version.get("DeveloperName") or flow_version.get("FullName")
+                
+                covered = record.get("NumElementsCovered", 0)
+                uncovered = record.get("NumElementsNotCovered", 0)
+                total = (covered or 0) + (uncovered or 0)
+                if name and total > 0:
+                    coverage_data[name] = (covered / total) * 100
+        except Exception as exc:
+            self.task_manager.queue_log(f"Avertissement : impossible de recuperer la couverture de tests : {exc}")
+        
+        return coverage_data

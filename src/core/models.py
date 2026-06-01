@@ -144,6 +144,7 @@ class ApexArtifact:
     is_test: bool = False
     query_in_loop: bool = False
     dml_in_loop: bool = False
+    test_coverage: float | None = None  # Percentage 0-100
 
 
 @dataclass(slots=True)
@@ -178,6 +179,7 @@ class FlowInfo:
     max_height: int = 0
     max_depth: int = 0
     elements: list[FlowElementInfo] = field(default_factory=list)
+    test_coverage: float | None = None  # Percentage 0-100
 
     @property
     def complexity_score(self) -> int:
@@ -301,6 +303,7 @@ class CustomizationMetrics:
     einstein_predictions: int = 0
     lwc_count: int = 0
     flexipage_count: int = 0
+    test_coverage: float | None = None  # Global org test coverage
     weights: dict[str, int] | None = None
     adopt_adapt_weights: dict[str, int] | None = None
     scoring_thresholds: tuple[int, int, int] | None = None
@@ -342,6 +345,7 @@ class CustomizationMetrics:
             + self.layouts * self._weight("layouts")
             + self.custom_tabs * self._weight("custom_tabs")
             + self.custom_apps * self._weight("custom_apps")
+            + self.einstein_predictions * self._weight("einstein_predictions")
         )
 
     @property
@@ -354,6 +358,7 @@ class CustomizationMetrics:
             + self.omni_data_transforms * self._weight("omni_data_transforms")
             + self.bre_decision_matrices * self._weight("bre_decision_matrices")
             + self.bre_expression_sets * self._weight("bre_expression_sets")
+            + self.gen_ai_prompts * self._weight("gen_ai_prompts")
         )
 
     @property

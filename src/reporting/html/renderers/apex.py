@@ -50,9 +50,12 @@ def render_apex_page(
     findings: list[Finding] | None = None,
 ) -> str:
     findings = findings or []
+    metrics_list = list(review.metrics)
+    metrics_list.append(("Couverture de tests", (f"{artifact.test_coverage:.1f} %") if artifact.test_coverage is not None else "N/A"))
+        
     metrics = "".join(
         f"<li><strong>{html_value(label)}:</strong> {html_value(value)}</li>"
-        for label, value in review.metrics
+        for label, value in metrics_list
     )
     improvements_for_heuristics = list(review.improvements) + findings_to_review_improvements(findings)
     positives = list_or_empty(review.positives, "Aucun point fort automatique detecte.")

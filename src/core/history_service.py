@@ -55,6 +55,7 @@ class HistoryEntry:
     data_model_standard_pct: float = 0.0
     adoption_pct: float = 0.0
     adaptation_pct: float = 0.0
+    test_coverage: float | None = None
     timestamp: str = ""
     generation_number: int = 0
 
@@ -130,6 +131,7 @@ class HistoryService:
                     data_model_standard_pct REAL,
                     adoption_pct REAL,
                     adaptation_pct REAL,
+                    test_coverage REAL,
                     timestamp TEXT,
                     generation_number INTEGER
                 )
@@ -162,6 +164,7 @@ class HistoryService:
                 ("adopt_decl_count", "INTEGER DEFAULT 0"),
                 ("adapt_low_count", "INTEGER DEFAULT 0"),
                 ("adapt_high_count", "INTEGER DEFAULT 0"),
+                ("test_coverage", "REAL"),
             ]
             for col_name, col_type in new_cols:
                 if col_name not in existing_columns:
@@ -205,8 +208,8 @@ class HistoryService:
                     omni_components, agents, gen_ai_prompts, einstein_predictions, findings_total, findings_critical,
                     findings_major, findings_minor, findings_info,
                     ai_usage_pct, data_model_custom_pct, data_model_standard_pct,
-                    adoption_pct, adaptation_pct, timestamp, generation_number
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    adoption_pct, adaptation_pct, test_coverage, timestamp, generation_number
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
                 entry.score_no_code, entry.score_low_code, entry.score_pro_code,
@@ -222,7 +225,7 @@ class HistoryService:
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
-                entry.adoption_pct, entry.adaptation_pct, entry.timestamp,
+                entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.timestamp,
                 entry.generation_number
             ))
             conn.commit()
@@ -323,7 +326,7 @@ class HistoryService:
                     findings_total = ?, findings_critical = ?, findings_major = ?,
                     findings_minor = ?, findings_info = ?, ai_usage_pct = ?,
                     data_model_custom_pct = ?, data_model_standard_pct = ?,
-                    adoption_pct = ?, adaptation_pct = ?, timestamp = ?,
+                    adoption_pct = ?, adaptation_pct = ?, test_coverage = ?, timestamp = ?,
                     generation_number = ?
                 WHERE id = ?
             """, (
@@ -341,7 +344,7 @@ class HistoryService:
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
-                entry.adoption_pct, entry.adaptation_pct, entry.timestamp,
+                entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.timestamp,
                 entry.generation_number, entry.id
             ))
             conn.commit()
@@ -399,6 +402,7 @@ class HistoryService:
             data_model_standard_pct=get_val("data_model_standard_pct", 0.0),
             adoption_pct=get_val("adoption_pct", 0.0),
             adaptation_pct=get_val("adaptation_pct", 0.0),
+            test_coverage=get_val("test_coverage", None),
             timestamp=get_val("timestamp", ""),
             generation_number=get_val("generation_number", 0)
         )
