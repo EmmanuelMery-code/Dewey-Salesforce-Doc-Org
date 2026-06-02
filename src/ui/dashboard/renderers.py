@@ -11,7 +11,7 @@ from pathlib import Path
 
 class WidgetRenderer:
     """Classe de base pour le rendu d'un widget."""
-    def render(self, ax: Any, widget: Dict[str, Any], plot_data: Any, selected: bool = False):
+    def render(self, ax: Any, widget: Dict[str, Any], plot_data: Any, selected: bool = False, t_func: Any = None):
         pass
 
     def _setup_background(self, ax, color):
@@ -36,7 +36,7 @@ class WidgetRenderer:
             ax.add_line(line)
 
 class TextRenderer(WidgetRenderer):
-    def render(self, ax, widget, plot_data, selected=False):
+    def render(self, ax, widget, plot_data, selected=False, t_func=None):
         ax.axis('off')
         color = widget.get('color', '#ffffff')
         if color != "none":
@@ -98,7 +98,8 @@ class ChartRenderer(WidgetRenderer):
             return float(v)
         except: return 0.0
 
-    def render(self, ax, widget, plot_data, selected=False):
+    def render(self, ax, widget, plot_data, selected=False, t_func=None):
+        super().render(ax, widget, plot_data, selected, t_func=t_func)
         self._setup_background(ax, 'none')
         ax.set_title(widget.get('title', ''), fontsize=10, fontweight='bold')
         ax.set_box_aspect(None)
@@ -106,7 +107,7 @@ class ChartRenderer(WidgetRenderer):
 
 class PieRenderer(ChartRenderer):
     def render(self, ax, widget, plot_data, selected=False, t_func=None):
-        super().render(ax, widget, plot_data, selected)
+        super().render(ax, widget, plot_data, selected, t_func=t_func)
         ax.axis('off')
         valid_data = {str(k): float(v) for k, v in plot_data.items() 
                      if isinstance(v, (int, float, str)) and str(v).replace('.','',1).isdigit() and float(v) > 0}
@@ -121,7 +122,7 @@ class PieRenderer(ChartRenderer):
 
 class BarRenderer(ChartRenderer):
     def render(self, ax, widget, plot_data, selected=False, t_func=None):
-        super().render(ax, widget, plot_data, selected)
+        super().render(ax, widget, plot_data, selected, t_func=t_func)
         labels = [str(k) for k in plot_data.keys()]
         values = [self._safe_float(v) for v in plot_data.values()]
         if not values or all(v == 0 for v in values):
@@ -137,7 +138,7 @@ class BarRenderer(ChartRenderer):
 
 class StackedBarRenderer(ChartRenderer):
     def render(self, ax, widget, plot_data, selected=False, t_func=None):
-        super().render(ax, widget, plot_data, selected)
+        super().render(ax, widget, plot_data, selected, t_func=t_func)
         labels = plot_data.get('labels', [])
         series = plot_data.get('series', {})
         if not labels or not series:
@@ -161,7 +162,7 @@ class StackedBarRenderer(ChartRenderer):
 
 class LineRenderer(ChartRenderer):
     def render(self, ax, widget, plot_data, selected=False, t_func=None):
-        super().render(ax, widget, plot_data, selected)
+        super().render(ax, widget, plot_data, selected, t_func=t_func)
         labels = [str(k) for k in plot_data.keys()]
         values = [self._safe_float(v) for v in plot_data.values()]
         if not labels:

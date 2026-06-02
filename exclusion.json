@@ -1,0 +1,1280 @@
+{
+  "metadata_exclusions": [
+    {
+      "type": "apex",
+      "element": "*PEG*",
+      "commentaire": ""
+    },
+    {
+      "type": "flow",
+      "element": "*PEG*",
+      "commentaire": ""
+    },
+    {
+      "type": "lwc",
+      "element": "*PEG*",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncAnalyticsTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncCleanupTask",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_CleanupControl",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_CleanupControlTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_DeletePendingControl",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_DeletePendingControlTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_DeletePendingFlow",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_DeletePendingFlowTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_Diagnostic",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_DiagnosticTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_ForceStart",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFramework_StatisticsControl",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncFrameworkConfigTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncLearningBatch",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncMaintenanceTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncSchedulerSetup",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncSchedulerSetupTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncTaskScheduleInfo",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncTaskScheduleInfoTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncWakeUpTrigger",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncWatchdogQueueable",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncWorkerQueueableTest",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "AsyncWorkerQueueable",
+      "commentaire": ""
+    },
+    {
+      "type": "apex",
+      "element": "IAsyncTask",
+      "commentaire": ""
+    },
+    {
+      "type": "flow",
+      "element": "Async_Framework_Control",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Approval Submission",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationMatrix",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationMatrixActionLog",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationMatrixColumn",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationMatrixRow",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationMatrixVersion",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationProcedure",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationProcedureStep",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationProcedureVariable",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalculationProcedureVersion",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DevopsActivityLog",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DevopsEnvironment",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DevopsRequestInfo",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Async_Framework_Configuration__mdt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Async_Runtime_Config__c",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Async_WakeUp__e",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActivationTarget",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActivationTargetPlatform",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActvTgtPlatformFieldValue",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "AiEvalCopilotTestCaseRslt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "AlternativePaymentMethod",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Async_Framework_Configuration__mdt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "AttributeCategory",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Award",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "BatchJob",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CardPaymentMethod",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataGraph",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DigitalWallet",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniProcess",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActionPlanItemDependency",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActionPlnTmplItmDependency",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActivationTarget",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActivationTargetPlatform",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ActvTgtPlatformFieldValue",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "AiEvalCopilotTestCaseRslt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Async_Framework_Configuration__mdt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "AuthFormRequestRecord",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "BatchJob",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataGraph",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "FlowOrchestrationInstance",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniProcess",
+      "commentaire": ""
+    },
+    {
+      "type": "Flow",
+      "element": "DEMO_CREATION_DECOUVERTE",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "BusinessLicense",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "BusinessMilestone",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "BusinessProfile",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CalcMatrixColumnRange",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CaseGatewayRequest",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ContentLink",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ContentSource",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ContractGroupPlan",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ContractGroupPlanGroupClass",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ConvEntryRelatedRecordCopy",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ConversationApiLogObjSum",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ConversationEntryCopy",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "CustomerProperty",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataAction",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataActionJobSummary",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataActionTarget",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataCommCapActvTarget",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataGuidance",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataGuidanceStep",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataGuidanceStepGroup",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataKnowledgeRsrch",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataKnowledgeRsrchRel",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataKnowledgeSpace",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataKnowledgeSpcJobRun",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataKnowledgeSrcFileRef",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataLakeObjectInstance",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataLineageDefSyncLog",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataLineageNodeDefSyncLog",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataModelRelationConstraint",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataPackageKit",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataQueryWorkspace",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataQueryWorkspaceTab",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataQuickAttribute",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataSourceBundle",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DataStream",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DecisionTblFileImportData",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DistributorAuthorization",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocGenerationQueryResult",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocTemplateSectionCondition",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentChecklistItem",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentDecisionRequirement",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentEnvelope",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentGenerationProcess",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentTemplate",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentTemplateContentDoc",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentTemplateSection",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "DocumentTemplateToken",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "EngagementAggregation__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "EngagementAttendee",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "EngagementInteraction",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "EngagementInterface",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "EngagementTopic",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ExchangeUserMapping",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ExpressionSet",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ExpressionSetVersion",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ExtDataShareTarget",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GeneratedDocument",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GeneratedDocumentSection",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GenOpPlan",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GenOpPlanParam",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GenOpPlanStepSource",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GisPrvdCnctrJobObjRun",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GoalAssignment",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GoalAssignmentRecommendation",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GoalDefinition",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GroupCensus",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GroupCensusMember",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GroupCensusMemberPlan",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GroupClass",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GroupClassContribution",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "GrpCensusGrpClassSummary",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IdentityDocument",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IdentityResolution",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IndividualGDPRState__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IndividualGDPRState__dlm",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "InfoAuthorizationRequest",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "InfoAuthRequestForm",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IntegrationProviderAttr",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IntegrationProviderDcsnRqmt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IntegrationProviderDef",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "IntegrationProviderExecution",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "LoanApplicationAsset",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "LoanApplicationFinancial",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "LoanApplicationLiability",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "LoanApplicationProperty",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "LoanApplicationTitleHolder",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MacroAction",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MarketSegment",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MarketSegmentActivation",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MarketSegmentField",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MktCalculatedInsight",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MktDataTransform",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MktMLModel",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MktMLModelPartitionRun",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MktMLPredictionJob",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "MultipartyInfoAuthRequest",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniComponentErrorLog",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniDataPack",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniDataTransform",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniDataTransformItem",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniESignatureTemplate",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniGlobalAutoNumber",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniScriptSavedSession",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "OmniUiCard",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "PartyExpense",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "PartyIncome",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "PersonalOrgSetupStep",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ProdtAttrMappedScope",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ProdtAttrScope",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Producer",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ProvisionedFeature__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ReceivedDocument",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "RecordActnSelItemExtrc",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "RecordAlert",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "RecordAlertActionableTarget",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "RecordMergeHistory",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "RecurrenceSchedule",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Referral",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "RelationshipGraphView",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ReportAnomalyEventStore",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ResidentialLoanApplication",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "SecuritiesHolding",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "SecurityHealthCheckAlertRecipient",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "SecurityHealthCheckResult",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ServiceAppointmentAttendee",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "SetupDataSynchronization",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "sfpegMassAction__mdt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ShiftEngagementChannel",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "ShiftWorkTopic",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "StaticCurrencyRates_Home__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "StaticCurrencyRates_Home__dlm",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "StreamActivityAccess",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "SvcProcProdCatgProdExtrc",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "SYS_PicklistLabel__mdt",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TableauHostMapping",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantBillingUsageEvent__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantDailyEntitlementConsumption__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantEnrichedUsageEvent__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantEntitlementTransaction__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantHourlyEntitlementConsumption__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantPvsnProdtLicMap",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "TenantUsageAttrDetail__dll",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UnstructuredStorageSpace",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UnstructuredStorageSpaceLayer",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UserCapabilityPreference",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UserDevopsPreference",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UserEsignVendorIdentifier",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UserExternalCredential",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "UserLocalWebServerIdentity",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "VoiceMailGreeting2",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "VoiceMailGreeting2Rep",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "Waitlist",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "WaitlistParticipant",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "WaitlistServiceResource",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "WorkerCompCoverageClass",
+      "commentaire": ""
+    },
+    {
+      "type": "Object",
+      "element": "WorkflowSLAAction",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Admin",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Analytics Cloud Integration User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Analytics Cloud Security User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Chatter External User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Chatter Free User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Chatter Moderator User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "ContractManager",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "CPQ Integration User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Customer Community Plus Login User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Einstein Agent User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "End User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Executive Sponsor",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "External Apps Login User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Guest License User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Identity User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "MarketingProfile",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Minimum Access - Salesforce",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Partner Community Login User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Read Only",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Sales Insights Integration User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Salesforce API Only System Integrations",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "SalesforceIQ Integration User",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "SolutionManager",
+      "commentaire": ""
+    },
+    {
+      "type": "profile",
+      "element": "Standard",
+      "commentaire": ""
+    },
+    {
+      "type": "object",
+      "element": "AiEvalPrmptRagTestCsRslt",
+      "commentaire": ""
+    },
+    {
+      "type": "object",
+      "element": "AiEvalPromptTestCaseRslt",
+      "commentaire": ""
+    },
+    {
+      "type": "object",
+      "element": "AiEvalTestCaseCritRslt",
+      "commentaire": ""
+    },
+    {
+      "type": "object",
+      "element": "AiEvalTestCaseResult",
+      "commentaire": ""
+    },
+    {
+      "type": "object",
+      "element": "AiEvaluation",
+      "commentaire": ""
+    }
+  ],
+  "rule_exclusions": []
+}

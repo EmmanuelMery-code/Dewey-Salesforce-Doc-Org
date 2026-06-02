@@ -367,8 +367,6 @@ class CustomizationMetrics:
             self.apex_classes * self._weight("apex_classes")
             + self.apex_triggers * self._weight("apex_triggers")
             + self.agents * self._weight("agents")
-            + self.gen_ai_prompts * self._weight("gen_ai_prompts")
-            + self.einstein_predictions * self._weight("einstein_predictions")
         )
 
     @property

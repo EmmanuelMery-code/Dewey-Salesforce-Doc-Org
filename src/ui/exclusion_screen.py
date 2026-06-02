@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import tkinter as tk
+import json
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import TYPE_CHECKING
-
-import openpyxl
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -164,6 +163,9 @@ class ExclusionScreen:
         
         self.metadata_tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        
+        # Double-click to edit
+        self.metadata_tree.bind("<Double-1>", lambda e: self._edit_metadata_row())
 
     def _build_rules_tab(self) -> None:
         # Filter row
@@ -196,11 +198,14 @@ class ExclusionScreen:
         
         self.rules_tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        
+        # Double-click to edit
+        self.rules_tree.bind("<Double-1>", lambda e: self._edit_rules_row())
 
     def _browse_file(self) -> None:
         path = filedialog.askopenfilename(
             title=self.app._t("choose_exclusion_file"),
-            filetypes=[("Excel", "*.xlsx"), ("All files", "*.*")],
+            filetypes=[("JSON", "*.json"), ("All files", "*.*")],
         )
         if path:
             self.current_file.set(path)
@@ -215,44 +220,42 @@ class ExclusionScreen:
             self.metadata_tree.delete(*self.metadata_tree.get_children())
             self.rules_tree.delete(*self.rules_tree.get_children())
             
-            wb = openpyxl.load_workbook(path, data_only=True)
+            data = {}
+            # Try different encodings to be robust
+            for encoding in ("utf-8", "utf-16", "latin-1"):
+                try:
+                    with open(path, "r", encoding=encoding) as f:
+                        data = json.load(f)
+                    break # Success
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    continue
             
+            if not data and path.stat().st_size > 0:
+                raise ValueError("Impossible de lire le fichier JSON (encodage non supporté ou format invalide).")
+
             # Load metadata exclusions
             self.metadata_data.clear()
-            sheet_metadata = None
-            for name in wb.sheetnames:
-                if name.strip().lower() == "hors analyse":
-                    sheet_metadata = wb[name]
-                    break
-            
-            if sheet_metadata:
-                for row in sheet_metadata.iter_rows(min_row=1, values_only=True):
-                    if not any(row): continue
-                    if str(row[0]).startswith("#"): continue
-                    # Ensure row has at least 3 elements (Type, Pattern, Comment)
-                    full_row = list(row)
-                    while len(full_row) < 3:
-                        full_row.append("")
-                    self.metadata_data.append(tuple(full_row))
+            exclusions = data.get("metadata_exclusions", [])
+            for entry in exclusions:
+                if isinstance(entry, dict):
+                    self.metadata_data.append((
+                        str(entry.get("type", "")),
+                        str(entry.get("element", "")),
+                        str(entry.get("commentaire", ""))
+                    ))
 
             # Load rule exclusions
             self.rules_data.clear()
-            sheet_rules = None
-            for name in wb.sheetnames:
-                if name.strip().lower() in ("exclusions regles", "exclusions règles"):
-                    sheet_rules = wb[name]
-                    break
+            rule_exclusions = data.get("rule_exclusions", [])
+            for entry in rule_exclusions:
+                if isinstance(entry, dict):
+                    self.rules_data.append((
+                        str(entry.get("type", "")),
+                        str(entry.get("metadata_name", "")),
+                        str(entry.get("rule_id", "")),
+                        str(entry.get("commentaire", ""))
+                    ))
             
-            if sheet_rules:
-                for row in sheet_rules.iter_rows(min_row=2, values_only=True):
-                    if not any(row): continue
-                    # Ensure row has at least 4 elements (Type, Metadata, Rule, Comment)
-                    full_row = list(row)
-                    while len(full_row) < 4:
-                        full_row.append("")
-                    self.rules_data.append(tuple(full_row))
-            
-            wb.close()
             self._refresh_trees()
         except Exception as e:
             messagebox.showerror(self.app._t("error_title"), f"{self.app._t('exclusions_load_error')}\n{e}")
@@ -330,9 +333,11 @@ class ExclusionScreen:
         
         def on_save(new_values):
             # Find and replace in memory data
+            new_values_tuple = tuple(str(v) for v in new_values)
             for i, row in enumerate(self.metadata_data):
-                if list(row) == list(old_values):
-                    self.metadata_data[i] = new_values
+                # Compare as strings to be safe
+                if tuple(str(v) for v in row) == tuple(str(v) for v in old_values):
+                    self.metadata_data[i] = new_values_tuple
                     break
             self._apply_filter()
             
@@ -352,9 +357,11 @@ class ExclusionScreen:
         
         def on_save(new_values):
             # Find and replace in memory data
+            new_values_tuple = tuple(str(v) for v in new_values)
             for i, row in enumerate(self.rules_data):
-                if list(row) == list(old_values):
-                    self.rules_data[i] = new_values
+                # Compare as strings to be safe
+                if tuple(str(v) for v in row) == tuple(str(v) for v in old_values):
+                    self.rules_data[i] = new_values_tuple
                     break
             self._apply_rules_filter()
             
@@ -366,8 +373,11 @@ class ExclusionScreen:
         if messagebox.askyesno(self.app._t("info_title"), self.app._t("exclusions_confirm_delete")):
             for item in selected:
                 values = self.metadata_tree.item(item)["values"]
-                # Remove from memory data
-                self.metadata_data = [r for row in self.metadata_data if list(row) != list(values)]
+                # Remove from memory data using string comparison for robustness
+                self.metadata_data = [
+                    row for row in self.metadata_data 
+                    if tuple(str(v) for v in row) != tuple(str(v) for v in values)
+                ]
                 self.metadata_tree.delete(item)
 
     def _delete_rules_row(self) -> None:
@@ -376,8 +386,11 @@ class ExclusionScreen:
         if messagebox.askyesno(self.app._t("info_title"), self.app._t("exclusions_confirm_delete")):
             for item in selected:
                 values = self.rules_tree.item(item)["values"]
-                # Remove from memory data
-                self.rules_data = [r for row in self.rules_data if list(row) != list(values)]
+                # Remove from memory data using string comparison for robustness
+                self.rules_data = [
+                    row for row in self.rules_data 
+                    if tuple(str(v) for v in row) != tuple(str(v) for v in values)
+                ]
                 self.rules_tree.delete(item)
 
     def _edit_row_dialog(self, tree: ttk.Treeview, fields: list[str], initial_values: list = None, item_id: str = None, on_save_callback: callable = None) -> None:
@@ -404,7 +417,7 @@ class ExclusionScreen:
                 ttk.Entry(dialog, textvariable=var).grid(row=i, column=1, padx=10, pady=10, sticky="ew")
                 vars[field] = var
         
-        def save():
+        def save(event=None):
             values = [vars[f].get() for f in fields]
             if on_save_callback:
                 on_save_callback(values)
@@ -416,6 +429,7 @@ class ExclusionScreen:
             dialog.destroy()
             
         ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=20)
+        dialog.bind("<Return>", save)
         dialog.columnconfigure(1, weight=1)
 
     def _save_data(self) -> None:
@@ -424,21 +438,20 @@ class ExclusionScreen:
             return
 
         try:
-            wb = openpyxl.Workbook()
-            # Metadata sheet
-            ws_meta = wb.active
-            ws_meta.title = "Hors analyse"
-            for row in self.metadata_data:
-                ws_meta.append(row)
+            data = {
+                "metadata_exclusions": [
+                    {"type": r[0], "element": r[1], "commentaire": r[2]}
+                    for r in self.metadata_data
+                ],
+                "rule_exclusions": [
+                    {"type": r[0], "metadata_name": r[1], "rule_id": r[2], "commentaire": r[3]}
+                    for r in self.rules_data
+                ]
+            }
 
-            # Rules sheet
-            ws_rules = wb.create_sheet("Exclusions regles")
-            ws_rules.append(["Type", "Nom Metadata", "ID Regle", "Commentaire"]) # Header
-            for row in self.rules_data:
-                ws_rules.append(row)
-
-            wb.save(path)
-            wb.close()
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                
             messagebox.showinfo(self.app._t("info_title"), self.app._t("exclusions_saved"))
         except Exception as e:
             messagebox.showerror(self.app._t("error_title"), f"{self.app._t('exclusions_save_error')}\n{e}")

@@ -1033,7 +1033,7 @@ class Application(tk.Tk):
     def _choose_exclusion_file(self) -> None:
         selected_path = filedialog.askopenfilename(
             title=self._t("choose_exclusion_file"),
-            filetypes=[("Excel", "*.xlsx"), ("All files", "*.*")],
+            filetypes=[("JSON", "*.json"), ("All files", "*.*")],
         )
         if selected_path:
             self.exclusion_file_var.set(selected_path)
