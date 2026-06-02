@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 
 from src.analyzer.apex_analyzer import (
@@ -36,10 +37,10 @@ class AnalyzerEngine:
         if exclusion_path:
             self.exclusion_path = Path(exclusion_path)
         else:
-            # On cherche exclusion_PV.xlsx ou exclusion.xlsx
+            # On cherche exclusion_PV.json ou exclusion.json
             app_root = Path(__file__).resolve().parent.parent.parent
-            candidate_pv = app_root / "exclusion_PV.xlsx"
-            candidate_std = app_root / "exclusion.xlsx"
+            candidate_pv = app_root / "exclusion_PV.json"
+            candidate_std = app_root / "exclusion.json"
             if candidate_pv.exists():
                 self.exclusion_path = candidate_pv
             elif candidate_std.exists():
@@ -51,45 +52,57 @@ class AnalyzerEngine:
             self._load_rule_exclusions()
 
     def _load_rule_exclusions(self) -> None:
-        """Charge les exclusions de règles spécifiques par métadonnée depuis l'Excel.
+        """Charge les exclusions de règles spécifiques par métadonnée depuis le JSON.
         
-        Format attendu dans l'onglet 'exclusions regles' :
-        Colonne A : Type Metadata (optionnel, pour lisibilité)
-        Colonne B : Nom Metadata
-        Colonne C : ID Règle (ou 'all')
+        Structure JSON attendue :
+        {
+          "rule_exclusions": [
+            {"type": "...", "metadata_name": "...", "rule_id": "...", "commentaire": "..."},
+            ...
+          ]
+        }
         """
         if not self.exclusion_path or not self.exclusion_path.exists():
             return
 
         try:
-            from openpyxl import load_workbook
-            workbook = load_workbook(self.exclusion_path, data_only=True, read_only=True)
+            data = {}
+            # Try different encodings to be robust
+            for encoding in ("utf-8", "utf-16", "latin-1"):
+                try:
+                    with open(self.exclusion_path, "r", encoding=encoding) as f:
+                        data = json.load(f)
+                    break # Success
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    continue
             
-            sheet = None
-            for name in workbook.sheetnames:
-                if name.strip().lower() in ("exclusions regles", "exclusions règles"):
-                    sheet = workbook[name]
-                    break
-            
-            if sheet:
-                for row in sheet.iter_rows(min_row=2, values_only=True):
-                    if not row or len(row) < 3:
-                        continue
+            if not data:
+                return
+
+            exclusions = data.get("rule_exclusions", [])
+            # Fallback for old format or different naming
+            if not exclusions and "Exclusions regles" in data:
+                raw_list = data["Exclusions regles"]
+                for item in raw_list:
+                    if isinstance(item, list) and len(item) >= 3:
+                        metadata_name = str(item[1]).strip()
+                        rule_id = str(item[2]).strip()
+                        if metadata_name and rule_id:
+                            self.rule_exclusions.setdefault(rule_id, set()).add(metadata_name.lower())
+                return
+
+            for entry in exclusions:
+                if not isinstance(entry, dict):
+                    continue
+                
+                metadata_name = str(entry.get("metadata_name", "")).strip()
+                rule_id = str(entry.get("rule_id", "")).strip()
+                
+                if metadata_name and rule_id:
+                    self.rule_exclusions.setdefault(rule_id, set()).add(metadata_name.lower())
                     
-                    metadata_name = str(row[1] or "").strip()
-                    rule_id = str(row[2] or "").strip()
-                    
-                    if metadata_name and rule_id:
-                        if rule_id.lower() == "all":
-                            # On pourrait gérer 'all' ici si besoin, mais le parser global le fait déjà.
-                            # Ici on se concentre sur les exclusions de règles spécifiques.
-                            pass
-                        
-                        self.rule_exclusions.setdefault(rule_id, set()).add(metadata_name.lower())
-            
-            workbook.close()
         except Exception:
-            # On ignore silencieusement les erreurs de lecture Excel pour ne pas bloquer l'analyse
+            # On ignore silencieusement les erreurs de lecture JSON pour ne pas bloquer l'analyse
             pass
 
     def _is_rule_applicable(self, rule: Rule, metadata_name: str, api_version: str | None = None) -> bool:

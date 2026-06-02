@@ -7,8 +7,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Callable
 
-from openpyxl import load_workbook
-
 LogCallback = Callable[[str], None]
 
 from src.core.models import (
@@ -115,9 +113,9 @@ class SalesforceMetadataParser:
         if exclusion_config_path:
             self.exclusion_config_path = Path(exclusion_config_path).resolve()
         else:
-            # Default to exclusion.xlsx in the app directory if it exists
+            # Default to exclusion.json in the app directory if it exists
             app_root = Path(__file__).resolve().parent.parent.parent
-            candidate = app_root / "exclusion.xlsx"
+            candidate = app_root / "exclusion.json"
             self.exclusion_config_path = candidate.resolve() if candidate.exists() else None
 
         self.log: LogCallback = log_callback or (lambda message: None)
@@ -315,42 +313,60 @@ class SalesforceMetadataParser:
             self.log(f"Fichier de configuration hors analyse introuvable: {config_path}")
             return rules
 
-        workbook = load_workbook(config_path, data_only=True, read_only=True)
-        sheet = None
-        for candidate in workbook.sheetnames:
-            if candidate.strip().lower() == "hors analyse":
-                sheet = workbook[candidate]
-                break
-        if sheet is None:
-            workbook.close()
-            self.log("Onglet `hors analyse` introuvable dans le fichier de configuration.")
-            return rules
-
-        for row in sheet.iter_rows(values_only=True):
-            values = [str(value).strip() for value in row if value is not None and str(value).strip()]
-            if not values:
-                continue
-            if values[0].startswith("#"):
-                continue
-
-            category = self.CATEGORY_ALIASES.get(values[0].lower(), "")
-            patterns: list[str] = []
-            if category:
-                raw = values[1] if len(values) > 1 else ""
-                patterns = [part.strip() for part in re.split(r"[;,]", raw) if part.strip()]
-                if not patterns and len(values) > 2:
-                    patterns = [part.strip() for part in re.split(r"[;,]", values[2]) if part.strip()]
-                if not patterns:
+        try:
+            data = {}
+            # Try different encodings to be robust
+            for encoding in ("utf-8", "utf-16", "latin-1"):
+                try:
+                    with open(config_path, "r", encoding=encoding) as f:
+                        data = json.load(f)
+                    break # Success
+                except (UnicodeDecodeError, json.JSONDecodeError):
                     continue
-            else:
-                category = "all"
-                patterns = [part.strip() for part in re.split(r"[;,]", values[0]) if part.strip()]
+            
+            if not data:
+                self.log(f"Le fichier d'exclusions {config_path} est vide ou invalide.")
+                return rules
+            
+            # The JSON structure expected is:
+            # {
+            #   "metadata_exclusions": [
+            #     {"type": "...", "element": "...", "commentaire": "..."},
+            #     ...
+            #   ]
+            # }
+            
+            exclusions = data.get("metadata_exclusions", [])
+            # Fallback for old format or different naming
+            if not exclusions and "Hors analyse" in data:
+                # Handle the list of lists format if necessary, but we prefer the new object format
+                raw_list = data["Hors analyse"]
+                for item in raw_list:
+                    if isinstance(item, list) and len(item) >= 2:
+                        category = self.CATEGORY_ALIASES.get(str(item[0]).lower(), "all")
+                        pattern = str(item[1]).strip()
+                        if pattern and pattern not in rules[category]:
+                            rules[category].append(pattern)
+                return rules
 
-            for pattern in patterns:
+            for entry in exclusions:
+                if not isinstance(entry, dict):
+                    continue
+                
+                category_raw = str(entry.get("type", "")).lower()
+                category = self.CATEGORY_ALIASES.get(category_raw, "all")
+                
+                # 'element' is the primary field for the pattern
+                pattern = str(entry.get("element", "")).strip()
+                if not pattern:
+                    continue
+                
                 if pattern not in rules[category]:
                     rules[category].append(pattern)
 
-        workbook.close()
+        except Exception as e:
+            self.log(f"Erreur lors du chargement des exclusions JSON: {e}")
+
         total = sum(len(items) for items in rules.values())
         if total:
             self.log(f"{total} regle(s) hors analyse chargee(s) depuis {config_path}.")

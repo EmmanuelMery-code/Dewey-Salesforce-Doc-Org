@@ -478,6 +478,9 @@ class SalesforceDocumentationGenerator:
             snapshot.metrics.adopt_adapt_thresholds = tuple(self.adopt_adapt_thresholds)
 
         # Apply test coverage data
+        has_test_classes = any(a.is_test for a in snapshot.apex_artifacts)
+        has_components = (len(snapshot.flows) > 0 or any(not a.is_test for a in snapshot.apex_artifacts))
+        
         if self.test_coverage_data:
             total_covered = 0.0
             count = 0
@@ -496,6 +499,18 @@ class SalesforceDocumentationGenerator:
             if count > 0:
                 snapshot.metrics.test_coverage = total_covered / count
                 self.log(f"Couverture de tests org calculee : {snapshot.metrics.test_coverage:.1f} % ({count} composants).")
+            else:
+                # No coverage data found for existing components
+                snapshot.metrics.test_coverage = 0.0
+        else:
+            # No coverage data provided at all
+            if not has_test_classes and not has_components:
+                snapshot.metrics.test_coverage = 100.0
+            else:
+                snapshot.metrics.test_coverage = 0.0
+
+        if snapshot.metrics.test_coverage is not None:
+            self.log(f"Couverture de tests finale : {snapshot.metrics.test_coverage:.1f} %.")
 
         self.log("Lecture des metadata terminee.")
 

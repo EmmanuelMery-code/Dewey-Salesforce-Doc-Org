@@ -40,6 +40,10 @@ def render_dashboard(
     # Max finding for bar scaling
     max_f = max(f_crit, f_maj, f_min, f_inf, 1)
 
+    # Test Coverage
+    test_coverage = selected.test_coverage
+    test_coverage_pct = test_coverage if test_coverage is not None else 0.0
+
     # Evolution data: sort history by generation number ascending
     sorted_history = sorted(history, key=lambda e: e.generation_number)
     
@@ -172,6 +176,20 @@ def render_dashboard(
         {"Critique": "#e53e3e", "Majeur": "#ed8936", "Mineur": "#ecc94b", "Info": "#48bb78"}
     )
 
+    # Test Coverage Evolution
+    coverage_data = []
+    for e in sorted_history:
+        coverage_data.append({
+            "label": f"R{e.generation_number}",
+            "couverture": e.test_coverage if e.test_coverage is not None else 0.0
+        })
+    
+    coverage_evolution_bars = _render_evolution_chart(
+        "Couverture de tests", 
+        [dict(d) for d in coverage_data], 
+        {"couverture": "#3b82f6"}
+    )
+
     findings_table = ""
     if show_evolution_tables:
         rows = ""
@@ -300,6 +318,7 @@ def render_dashboard(
         .color-majeur {{ background-color: #ed8936; }}
         .color-mineur {{ background-color: #ecc94b; }}
         .color-info {{ background-color: #48bb78; }}
+        .color-coverage {{ background-color: #3b82f6; }}
         
         @media print {{
             .no-print {{ display: none !important; }}
@@ -402,6 +421,20 @@ def render_dashboard(
                     </tbody>
                 </table>
             </div>
+
+            <!-- Test Coverage -->
+            <div class="dashboard-card">
+                <h3>Couverture de tests</h3>
+                <div class="chart-container">
+                    <div class="pie-chart" style="{_get_pie_css(test_coverage_pct, '#3b82f6', '#e5e7eb')}"></div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><div class="legend-dot color-coverage"></div> Couvert {test_coverage_pct:.1f}%</div>
+                </div>
+                <table class="dashboard-table">
+                    <tr><th>Couverture</th><td>{test_coverage_pct:.1f}%</td></tr>
+                </table>
+            </div>
         </div>
 
         <div class="page-break"></div>
@@ -471,6 +504,19 @@ def render_dashboard(
                     <div class="legend-item"><div class="legend-dot color-info"></div> Info</div>
                 </div>
                 {findings_table}
+            </div>
+
+            <!-- Evolution Coverage -->
+            <div class="dashboard-card">
+                <h3>Couverture de tests</h3>
+                <div class="chart-container">
+                    <div class="bar-chart">
+                        {coverage_evolution_bars}
+                    </div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><div class="legend-dot color-coverage"></div> couverture</div>
+                </div>
             </div>
         </div>
     </div>
@@ -625,6 +671,31 @@ def render_comparison(
             </thead>
             <tbody>
                 {type_summary_rows if type_summary_rows else '<tr><td colspan="5" class="empty">Aucun changement.</td></tr>'}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Indicateurs Clés</h2>
+        <table>
+            <thead>
+                <tr><th>Indicateur</th><th>#{old.generation_number}</th><th>#{new.generation_number}</th><th>Différence</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Score Global</td>
+                    <td>{old.score}</td>
+                    <td>{new.score}</td>
+                    <td>{new.score - old.score:+d}</td>
+                </tr>
+                <tr>
+                    <td>Couverture de tests</td>
+                    <td>{f"{old.test_coverage:.1f}%" if old.test_coverage is not None else "N/A"}</td>
+                    <td>{f"{new.test_coverage:.1f}%" if new.test_coverage is not None else "N/A"}</td>
+                    <td>
+                        {f"{new.test_coverage - old.test_coverage:+.1f}%" if new.test_coverage is not None and old.test_coverage is not None else "N/A"}
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
