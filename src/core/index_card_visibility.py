@@ -36,6 +36,9 @@ class IndexCardVisibility:
     show_agents: bool = True
     show_gen_ai_prompts: bool = True
     show_einstein_predictions: bool = True
+    show_test_coverage: bool = True
+    show_debt: bool = True
+    show_innovation: bool = True
 
     def to_settings(self) -> dict[str, bool]:
         """Return the JSON-friendly mapping persisted in ``app_settings.json``."""
@@ -57,6 +60,9 @@ class IndexCardVisibility:
             "show_card_agents": self.show_agents,
             "show_card_gen_ai_prompts": self.show_gen_ai_prompts,
             "show_card_einstein_predictions": self.show_einstein_predictions,
+            "show_card_test_coverage": self.show_test_coverage,
+            "show_card_debt": self.show_debt,
+            "show_card_innovation": self.show_innovation,
         }
 
 
@@ -77,6 +83,9 @@ _SETTING_KEYS: dict[str, str] = {
     "show_agents": "show_card_agents",
     "show_gen_ai_prompts": "show_card_gen_ai_prompts",
     "show_einstein_predictions": "show_card_einstein_predictions",
+    "show_test_coverage": "show_card_test_coverage",
+    "show_debt": "show_card_debt",
+    "show_innovation": "show_card_innovation",
 }
 
 

@@ -32,7 +32,7 @@ from src.core.customization_metrics import (
 )
 from src.core.history_service import HistoryEntry, HistoryService
 from src.core.index_card_visibility import IndexCardVisibility
-from src.core.models import MetadataSnapshot, PmdViolation, TechnicalDebtItem, DeviationItem
+from src.core.models import MetadataSnapshot, PmdViolation, TechnicalDebtItem, DeviationItem, InnovationItem
 from src.core.pmd_service import PmdService
 from src.parsers.salesforce_parser import SalesforceMetadataParser
 from src.reporting.excel_writer import ExcelReportWriter
@@ -70,6 +70,7 @@ class GenerationResult:
     customisation_page: Path | None = None
     adoption_page: Path | None = None
     debt_page: Path | None = None
+    innovation_page: Path | None = None
     methodology_page: Path | None = None
     findings_report_page: Path | None = None
     object_pages: dict = field(default_factory=dict)
@@ -113,6 +114,7 @@ class SalesforceDocumentationGenerator:
         posture_config: list[PostureCapabilityConfig] | None = None,
         test_coverage_data: dict[str, float] | None = None,
         technical_debt_path: str | Path | None = None,
+        innovation_path: str | Path | None = None,
         index_card_visibility: IndexCardVisibility | None = None,
         language: str = "fr",
         log_callback: LogCallback | None = None,
@@ -146,6 +148,9 @@ class SalesforceDocumentationGenerator:
         self.test_coverage_data = test_coverage_data or {}
         self.technical_debt_path = (
             Path(technical_debt_path).resolve() if technical_debt_path else None
+        )
+        self.innovation_path = (
+            Path(innovation_path).resolve() if innovation_path else None
         )
         self.index_card_visibility: IndexCardVisibility = (
             index_card_visibility
@@ -428,6 +433,7 @@ class SalesforceDocumentationGenerator:
             snapshot, result.adoption_stats
         )
         result.debt_page = html_writer.write_debt_page(snapshot)
+        result.innovation_page = html_writer.write_innovation_page(snapshot)
         result.methodology_page = html_writer.write_methodology_page(
             posture_config=self.posture_config
         )
@@ -457,6 +463,7 @@ class SalesforceDocumentationGenerator:
             customisation_page=result.customisation_page,
             adoption_page=result.adoption_page,
             debt_page=result.debt_page,
+            innovation_page=result.innovation_page,
             findings_report_page=result.findings_report_page,
             card_visibility=self.index_card_visibility,
             alias=self.alias,
@@ -521,35 +528,115 @@ class SalesforceDocumentationGenerator:
             self.log(f"Couverture de tests finale : {snapshot.metrics.test_coverage:.1f} %.")
 
         # Load technical debt and deviations
-        if self.technical_debt_path and self.technical_debt_path.exists():
-            try:
-                with open(self.technical_debt_path, "r", encoding="utf-8") as f:
-                    debt_data = json.load(f)
-                
-                alias = self.alias or ""
-                alias_data = debt_data.get(alias, {})
-                
-                technical_items = alias_data.get("technical_debt", [])
-                for item in technical_items:
-                    snapshot.technical_debt.append(TechnicalDebtItem(
-                        label=item.get("label", ""),
-                        date_creation=item.get("date_creation", ""),
-                        date_resolution=item.get("date_resolution", ""),
-                        accepted_solution=item.get("accepted_solution", ""),
-                        target_solution=item.get("target_solution", "")
-                    ))
-                
-                deviation_items = alias_data.get("deviations", [])
-                for item in deviation_items:
-                    snapshot.deviations.append(DeviationItem(
-                        label=item.get("label", ""),
-                        date_creation=item.get("date_creation", ""),
-                        explanation=item.get("explanation", "")
-                    ))
-                
-                self.log(f"Charge {len(snapshot.technical_debt)} element(s) de dette technique et {len(snapshot.deviations)} entorse(s) pour l'alias '{alias}'.")
-            except Exception as e:
-                self.log(f"Avertissement : impossible de charger la dette technique : {e}")
+        if self.technical_debt_path:
+            if self.technical_debt_path.exists():
+                try:
+                    with open(self.technical_debt_path, "r", encoding="utf-8") as f:
+                        debt_data = json.load(f)
+                    
+                    alias = (self.alias or "").strip()
+                    self.log(f"Recherche de la dette technique pour l'alias '{alias}' dans {self.technical_debt_path}...")
+                    
+                    # 1. Try exact match
+                    alias_data = debt_data.get(alias)
+                    
+                    # 2. Try flexible match if not found
+                    if alias_data is None and alias:
+                        for key in debt_data.keys():
+                            if key.strip().lower() == alias.lower():
+                                alias_data = debt_data[key]
+                                self.log(f"Alias '{alias}' trouve via correspondance flexible avec '{key}' pour la dette.")
+                                break
+                    
+                    # 3. If still not found, partial match
+                    if alias_data is None and alias:
+                        for key in debt_data.keys():
+                            if key.lower() in alias.lower() or alias.lower() in key.lower():
+                                alias_data = debt_data[key]
+                                self.log(f"Alias '{alias}' trouve via correspondance partielle avec '{key}' pour la dette.")
+                                break
+
+                    if alias_data and isinstance(alias_data, dict):
+                        technical_items = alias_data.get("technical_debt", [])
+                        for item in technical_items:
+                            snapshot.technical_debt.append(TechnicalDebtItem(
+                                label=item.get("label", ""),
+                                date_creation=item.get("date_creation", ""),
+                                date_resolution=item.get("date_resolution", ""),
+                                accepted_solution=item.get("accepted_solution", ""),
+                                target_solution=item.get("target_solution", "")
+                            ))
+                        
+                        deviation_items = alias_data.get("deviations", [])
+                        for item in deviation_items:
+                            snapshot.deviations.append(DeviationItem(
+                                label=item.get("label", ""),
+                                date_creation=item.get("date_creation", ""),
+                                explanation=item.get("explanation", "")
+                            ))
+                        
+                        self.log(f"Charge {len(snapshot.technical_debt)} element(s) de dette technique et {len(snapshot.deviations)} entorse(s) pour l'alias '{alias}'.")
+                    else:
+                        self.log(f"Aucune donnee de dette trouvee pour l'alias '{alias}' dans le fichier JSON.")
+                        if debt_data:
+                            self.log(f"Alias disponibles dans le fichier de dette : {', '.join(debt_data.keys())}")
+                except Exception as e:
+                    self.log(f"Avertissement : impossible de charger la dette technique : {e}")
+            else:
+                self.log(f"Avertissement : le fichier de dette technique {self.technical_debt_path} n'existe pas.")
+
+        # Load innovations
+        if self.innovation_path:
+            if self.innovation_path.exists():
+                try:
+                    with open(self.innovation_path, "r", encoding="utf-8") as f:
+                        innovation_data = json.load(f)
+                    
+                    alias = (self.alias or "").strip()
+                    self.log(f"Recherche des innovations pour l'alias '{alias}' (longueur {len(alias)}) dans {self.innovation_path}...")
+                    
+                    # 1. Try exact match
+                    innovation_items = innovation_data.get(alias)
+                    
+                    # 2. Try flexible match if not found
+                    if innovation_items is None and alias:
+                        for key in innovation_data.keys():
+                            if key.strip().lower() == alias.lower():
+                                innovation_items = innovation_data[key]
+                                self.log(f"Alias '{alias}' trouve via correspondance flexible avec '{key}'.")
+                                break
+                    
+                    # 3. If still not found, maybe the key is a substring or vice versa
+                    if innovation_items is None and alias:
+                        for key in innovation_data.keys():
+                            if key.lower() in alias.lower() or alias.lower() in key.lower():
+                                innovation_items = innovation_data[key]
+                                self.log(f"Alias '{alias}' trouve via correspondance partielle avec '{key}'.")
+                                break
+
+                    if innovation_items:
+                        if isinstance(innovation_items, list):
+                            for item in innovation_items:
+                                snapshot.innovations.append(InnovationItem(
+                                    label=item.get("label", ""),
+                                    theme=item.get("theme", ""),
+                                    date_start=item.get("date_start", ""),
+                                    date_end=item.get("date_end", ""),
+                                    date_presentation=item.get("date_presentation", ""),
+                                    description=item.get("description", ""),
+                                    conclusion=item.get("conclusion", "")
+                                ))
+                            self.log(f"Charge {len(snapshot.innovations)} element(s) d'innovation pour l'alias '{alias}'.")
+                        else:
+                            self.log(f"Avertissement : les innovations pour '{alias}' ne sont pas au format liste.")
+                    else:
+                        self.log(f"Aucune innovation trouvee pour l'alias '{alias}' dans le fichier JSON.")
+                        if innovation_data:
+                            self.log(f"Alias disponibles dans le fichier : {', '.join(innovation_data.keys())}")
+                except Exception as e:
+                    self.log(f"Avertissement : impossible de charger les innovations : {e}")
+            else:
+                self.log(f"Avertissement : le fichier d'innovations {self.innovation_path} n'existe pas.")
 
         self.log("Lecture des metadata terminee.")
 

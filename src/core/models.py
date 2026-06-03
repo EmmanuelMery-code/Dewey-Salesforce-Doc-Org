@@ -468,6 +468,17 @@ class DeviationItem:
 
 
 @dataclass(slots=True)
+class InnovationItem:
+    label: str
+    theme: str
+    date_start: str
+    date_end: str
+    date_presentation: str
+    description: str
+    conclusion: str
+
+
+@dataclass(slots=True)
 class MetadataSnapshot:
     source_dir: Path
     package_roots: list[Path]
@@ -480,5 +491,6 @@ class MetadataSnapshot:
     gen_ai_prompts: list[GenAiPromptInfo] = field(default_factory=list)
     technical_debt: list[TechnicalDebtItem] = field(default_factory=list)
     deviations: list[DeviationItem] = field(default_factory=list)
+    innovations: list[InnovationItem] = field(default_factory=list)
     metrics: CustomizationMetrics = field(default_factory=CustomizationMetrics)
     inventory: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
