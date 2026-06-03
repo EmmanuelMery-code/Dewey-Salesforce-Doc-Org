@@ -20,7 +20,7 @@ def render_innovation_page(
 ) -> str:
     """Render the POC and innovations HTML page."""
     
-    back_link = index_back_link(current_path, output_dir)
+    back_link = index_back_link(current_path, output_dir, "metriques", "summary-tabs")
     
     rows = []
     for item in snapshot.innovations:

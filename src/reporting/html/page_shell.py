@@ -25,12 +25,13 @@ def index_href(
     from_path: Path,
     output_dir: Path,
     tab_slug: str | None = None,
+    group_id: str = "index",
 ) -> str:
     """Return the URL of the documentation index, optionally with an anchor."""
 
     href = href_relative(from_path, output_dir / "index.html")
     if tab_slug:
-        return f"{href}#index-panel-{tab_slug}"
+        return f"{href}#{group_id}-panel-{tab_slug}"
     return href
 
 
@@ -38,10 +39,11 @@ def index_back_link(
     from_path: Path,
     output_dir: Path,
     tab_slug: str | None = None,
+    group_id: str = "index",
 ) -> str:
     """Render the standard "back to index" navigation link."""
 
-    href = index_href(from_path, output_dir, tab_slug)
+    href = index_href(from_path, output_dir, tab_slug, group_id)
     return f"<div class=\"topnav\"><a href=\"{href}\">Retour a l'index</a></div>"
 
 

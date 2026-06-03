@@ -322,9 +322,19 @@ class DebtScreen:
                 combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
                 entries[field] = var
             elif field in ("accepted_solution", "target_solution", "explanation"):
-                txt = tk.Text(dialog, height=6, width=50)
+                container = ttk.Frame(dialog)
+                container.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                
+                txt = tk.Text(container, height=6, width=50)
                 txt.insert("1.0", val)
-                txt.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                txt.pack(fill="both", expand=True)
+                
+                def expand(t=txt):
+                    self.app.ai_expand_text(t.get("1.0", "end-1c").strip(), lambda new_val: [t.delete("1.0", "end"), t.insert("1.0", new_val)])
+
+                btn = ttk.Button(container, text=self.app._t("ai_expand_button"), command=expand)
+                btn.pack(side="right", pady=(2, 0))
+                
                 entries[field] = txt
             else:
                 var = tk.StringVar(value=val)

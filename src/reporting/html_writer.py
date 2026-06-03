@@ -190,6 +190,9 @@ class HtmlReportWriter:
         object_pages: dict[str, Path],
         apex_pages: dict[str, Path],
         flow_pages: dict[str, Path],
+        agent_pages: dict[str, Path] | None = None,
+        prompt_pages: dict[str, Path] | None = None,
+        omni_pages: dict[str, list[dict[str, object]]] | None = None,
     ) -> Path:
         return findings_report_renderer.write_findings_report_page(
             analyzer_report,
@@ -199,6 +202,9 @@ class HtmlReportWriter:
             object_pages,
             apex_pages,
             flow_pages,
+            agent_pages=agent_pages,
+            prompt_pages=prompt_pages,
+            omni_pages=omni_pages,
         )
 
     def write_excel_preview_pages(self) -> dict[Path, Path]:

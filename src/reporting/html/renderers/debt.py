@@ -7,7 +7,7 @@ from typing import Callable
 
 from src.core.models import MetadataSnapshot
 from src.core.utils import html_value, write_text
-from src.reporting.html.page_shell import render_page, tabbed_sections
+from src.reporting.html.page_shell import index_back_link, render_page, tabbed_sections
 
 LogCallback = Callable[[str], None]
 
@@ -15,9 +15,12 @@ LogCallback = Callable[[str], None]
 def render_debt_page(
     snapshot: MetadataSnapshot,
     current_path: Path,
+    output_dir: Path,
     assets_dir: Path,
 ) -> str:
     """Render the technical debt and deviations HTML page."""
+    
+    back_link = index_back_link(current_path, output_dir, "metriques", "summary-tabs")
     
     # Technical Debt Table
     tech_rows = []
@@ -59,6 +62,7 @@ def render_debt_page(
     ])
 
     body = f"""
+{back_link}
 <h1>Dette technique & Entorses et PR</h1>
 {tabs}
 """
@@ -73,7 +77,7 @@ def write_debt_page(
 ) -> Path:
     """Write the debt.html page to disk."""
     path = output_dir / "debt.html"
-    content = render_debt_page(snapshot, path, assets_dir)
+    content = render_debt_page(snapshot, path, output_dir, assets_dir)
     write_text(path, content)
     log(f"Page dette technique generee: {path}")
     return path
