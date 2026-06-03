@@ -32,6 +32,7 @@ from src.reporting.html.renderers import (
     ai_usage as ai_usage_renderer,
     apex as apex_renderer,
     customisation as customisation_renderer,
+    debt as debt_renderer,
     excel_preview as excel_preview_renderer,
     findings_report as findings_report_renderer,
     flows as flows_renderer,
@@ -259,6 +260,17 @@ class HtmlReportWriter:
             posture_config=posture_config,
         )
 
+    def write_debt_page(
+        self,
+        snapshot: MetadataSnapshot,
+    ) -> Path:
+        return debt_renderer.write_debt_page(
+            snapshot,
+            self.output_dir,
+            self.assets_dir,
+            self.log,
+        )
+
     def write_index(
         self,
         snapshot: MetadataSnapshot,
@@ -280,6 +292,7 @@ class HtmlReportWriter:
         adoption_stats: AdoptionStats | None = None,
         customisation_page: Path | None = None,
         adoption_page: Path | None = None,
+        debt_page: Path | None = None,
         findings_report_page: Path | None = None,
         card_visibility: IndexCardVisibility | None = None,
         alias: str = "",
@@ -306,6 +319,7 @@ class HtmlReportWriter:
             adoption_stats=adoption_stats,
             customisation_page=customisation_page,
             adoption_page=adoption_page,
+            debt_page=debt_page,
             findings_report_page=findings_report_page,
             card_visibility=card_visibility,
             root_output_dir=self.root_output_dir,

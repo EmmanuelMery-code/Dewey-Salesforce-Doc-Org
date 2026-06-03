@@ -452,6 +452,22 @@ class GenAiPromptInfo:
 
 
 @dataclass(slots=True)
+class TechnicalDebtItem:
+    label: str
+    date_creation: str
+    date_resolution: str
+    accepted_solution: str
+    target_solution: str
+
+
+@dataclass(slots=True)
+class DeviationItem:
+    label: str
+    date_creation: str
+    explanation: str
+
+
+@dataclass(slots=True)
 class MetadataSnapshot:
     source_dir: Path
     package_roots: list[Path]
@@ -462,5 +478,7 @@ class MetadataSnapshot:
     flows: list[FlowInfo] = field(default_factory=list)
     agents: list[AgentInfo] = field(default_factory=list)
     gen_ai_prompts: list[GenAiPromptInfo] = field(default_factory=list)
+    technical_debt: list[TechnicalDebtItem] = field(default_factory=list)
+    deviations: list[DeviationItem] = field(default_factory=list)
     metrics: CustomizationMetrics = field(default_factory=CustomizationMetrics)
     inventory: dict[str, list[dict[str, Any]]] = field(default_factory=dict)

@@ -19,6 +19,7 @@ ENV/
 # Local app settings
 app_settings.json
 history.db
+technical_debt.json
 config/
 
 # Local Salesforce CLI / SFDX state

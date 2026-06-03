@@ -313,6 +313,7 @@ def render_index(
     adoption_stats: AdoptionStats | None = None,
     customisation_page: Path | None = None,
     adoption_page: Path | None = None,
+    debt_page: Path | None = None,
     findings_report_page: Path | None = None,
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
@@ -519,6 +520,7 @@ def render_index(
         if visibility.show_adopt_adapt_posture
         else ""
     )
+    debt_card = _render_debt_card(snapshot, debt_page, current_path)
     test_coverage_card = (
         f'  <div class="card"><span>Couverture de tests</span>'
         f'<span class="value">{(f"{metrics.test_coverage:.1f} %") if metrics.test_coverage is not None else "N/A"}</span>'
@@ -629,7 +631,7 @@ def render_index(
         
     # 3. Métriques
     metrics_content = "".join([
-        findings_card, ai_usage_card, data_model_card, adoption_card
+        findings_card, ai_usage_card, data_model_card, adoption_card, debt_card
     ])
     if metrics_content.strip():
         summary_tabs_sections.append(("Metriques", f'<div class="cards">{metrics_content}</div>'))
@@ -830,6 +832,43 @@ def _render_ai_usage_card(
     )
 
 
+def _render_debt_card(
+    snapshot: MetadataSnapshot,
+    page_path: Path | None,
+    current_path: Path,
+) -> str:
+    """Render the "Dette technique & Entorse et PR" card on the index page."""
+    
+    debt_count = len(snapshot.technical_debt)
+    deviation_count = len(snapshot.deviations)
+
+    if page_path is not None:
+        href = html_value(href_relative(current_path, page_path))
+        title_html = f'<a href="{href}">Dette technique & Entorse et PR</a>'
+        debt_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{debt_count}</a>'
+        deviation_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{deviation_count}</a>'
+    else:
+        title_html = 'Dette technique & Entorse et PR'
+        debt_link = str(debt_count)
+        deviation_link = str(deviation_count)
+
+    return (
+        '  <div class="card adopt-card">\n'
+        f'    <span>{title_html}</span>\n'
+        '    <div class="adopt-grid">\n'
+        '      <div class="adopt-stat adopt-stat--adapt">\n'
+        '        <span class="adopt-label">Dette technique</span>\n'
+        f'        <span class="value">{debt_link}</span>\n'
+        '      </div>\n'
+        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
+        '        <span class="adopt-label">Entorses et PR</span>\n'
+        f'        <span class="value">{deviation_link}</span>\n'
+        '      </div>\n'
+        '    </div>\n'
+        '  </div>\n'
+    )
+
+
 def write_index(
     snapshot: MetadataSnapshot,
     object_pages: dict[str, Path],
@@ -853,6 +892,7 @@ def write_index(
     adoption_stats: AdoptionStats | None = None,
     customisation_page: Path | None = None,
     adoption_page: Path | None = None,
+    debt_page: Path | None = None,
     findings_report_page: Path | None = None,
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
@@ -884,6 +924,7 @@ def write_index(
             customisation_page=customisation_page,
             adoption_page=adoption_page,
             findings_report_page=findings_report_page,
+            debt_page=debt_page,
             card_visibility=card_visibility,
             root_output_dir=root_output_dir,
             alias=alias,

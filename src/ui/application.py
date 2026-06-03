@@ -183,6 +183,7 @@ class Application(tk.Tk):
         self.source_var = tk.StringVar(value=self._to_abs_path(self.settings.get("source_folder", "")))
         self.output_var = tk.StringVar(value=self._to_abs_path(self.settings.get("output_folder", "")))
         self.exclusion_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("exclusion_file", "")))
+        self.technical_debt_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("technical_debt_file", "technical_debt.json")))
         self.pmd_enabled_var = tk.BooleanVar(value=bool(self.settings.get("pmd_enabled", False)))
         self.pmd_ruleset_var = tk.StringVar(value=self._to_abs_path(self.settings.get("pmd_ruleset_file", "")))
         self.analyzer_rules_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("analyzer_rules_file", str(DEFAULT_RULES_PATH))))
@@ -649,6 +650,10 @@ class Application(tk.Tk):
             command=self._show_exclusion_screen,
         )
         configuration_menu.add_command(
+            label=self._t("manage_debt_menu_item"),
+            command=self._show_debt_screen,
+        )
+        configuration_menu.add_command(
             label=self._t("view_scoring_menu_item"),
             command=self._show_scoring_screen,
         )
@@ -696,6 +701,10 @@ class Application(tk.Tk):
 
     def _show_exclusion_screen(self) -> None:
         show_exclusion_screen(self)
+
+    def _show_debt_screen(self) -> None:
+        from src.ui.debt_screen import show_debt_screen
+        show_debt_screen(self)
 
     def _show_data_dictionary_screen(self) -> None:
         show_data_dictionary_screen(self)
@@ -873,6 +882,7 @@ class Application(tk.Tk):
             "source_folder": self._to_rel_path(self.source_var.get().strip()),
             "output_folder": self._to_rel_path(self.output_var.get().strip()),
             "exclusion_file": self._to_rel_path(self.exclusion_file_var.get().strip()),
+            "technical_debt_file": self._to_rel_path(self.technical_debt_file_var.get().strip()),
             "pmd_enabled": bool(self.pmd_enabled_var.get()),
             "pmd_ruleset_file": self._to_rel_path(self.pmd_ruleset_var.get().strip()),
             "analyzer_rules_file": self._to_rel_path(self.analyzer_rules_file_var.get().strip()),
@@ -1348,6 +1358,7 @@ class Application(tk.Tk):
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
                 test_coverage_data=test_coverage,
+                technical_debt_path=self.technical_debt_file_var.get().strip(),
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
@@ -1492,6 +1503,7 @@ class Application(tk.Tk):
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
                 test_coverage_data=test_coverage,
+                technical_debt_path=self.technical_debt_file_var.get().strip(),
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
