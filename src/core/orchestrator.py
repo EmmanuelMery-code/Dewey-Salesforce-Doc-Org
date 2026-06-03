@@ -10,6 +10,7 @@ without poking at a stringly-typed dictionary.
 from __future__ import annotations
 
 import os
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
@@ -31,7 +32,7 @@ from src.core.customization_metrics import (
 )
 from src.core.history_service import HistoryEntry, HistoryService
 from src.core.index_card_visibility import IndexCardVisibility
-from src.core.models import MetadataSnapshot, PmdViolation
+from src.core.models import MetadataSnapshot, PmdViolation, TechnicalDebtItem, DeviationItem
 from src.core.pmd_service import PmdService
 from src.parsers.salesforce_parser import SalesforceMetadataParser
 from src.reporting.excel_writer import ExcelReportWriter
@@ -68,6 +69,7 @@ class GenerationResult:
     adoption_stats: AdoptionStats | None = None
     customisation_page: Path | None = None
     adoption_page: Path | None = None
+    debt_page: Path | None = None
     methodology_page: Path | None = None
     findings_report_page: Path | None = None
     object_pages: dict = field(default_factory=dict)
@@ -110,6 +112,7 @@ class SalesforceDocumentationGenerator:
         ai_usage_tags: list[str] | tuple[str, ...] | None = None,
         posture_config: list[PostureCapabilityConfig] | None = None,
         test_coverage_data: dict[str, float] | None = None,
+        technical_debt_path: str | Path | None = None,
         index_card_visibility: IndexCardVisibility | None = None,
         language: str = "fr",
         log_callback: LogCallback | None = None,
@@ -141,6 +144,9 @@ class SalesforceDocumentationGenerator:
         ]
         self.posture_config: list[PostureCapabilityConfig] = list(posture_config or [])
         self.test_coverage_data = test_coverage_data or {}
+        self.technical_debt_path = (
+            Path(technical_debt_path).resolve() if technical_debt_path else None
+        )
         self.index_card_visibility: IndexCardVisibility = (
             index_card_visibility
             if index_card_visibility is not None
@@ -421,6 +427,7 @@ class SalesforceDocumentationGenerator:
         result.adoption_page = html_writer.write_adoption_page(
             snapshot, result.adoption_stats
         )
+        result.debt_page = html_writer.write_debt_page(snapshot)
         result.methodology_page = html_writer.write_methodology_page(
             posture_config=self.posture_config
         )
@@ -449,6 +456,7 @@ class SalesforceDocumentationGenerator:
             adoption_stats=result.adoption_stats,
             customisation_page=result.customisation_page,
             adoption_page=result.adoption_page,
+            debt_page=result.debt_page,
             findings_report_page=result.findings_report_page,
             card_visibility=self.index_card_visibility,
             alias=self.alias,
@@ -511,6 +519,37 @@ class SalesforceDocumentationGenerator:
 
         if snapshot.metrics.test_coverage is not None:
             self.log(f"Couverture de tests finale : {snapshot.metrics.test_coverage:.1f} %.")
+
+        # Load technical debt and deviations
+        if self.technical_debt_path and self.technical_debt_path.exists():
+            try:
+                with open(self.technical_debt_path, "r", encoding="utf-8") as f:
+                    debt_data = json.load(f)
+                
+                alias = self.alias or ""
+                alias_data = debt_data.get(alias, {})
+                
+                technical_items = alias_data.get("technical_debt", [])
+                for item in technical_items:
+                    snapshot.technical_debt.append(TechnicalDebtItem(
+                        label=item.get("label", ""),
+                        date_creation=item.get("date_creation", ""),
+                        date_resolution=item.get("date_resolution", ""),
+                        accepted_solution=item.get("accepted_solution", ""),
+                        target_solution=item.get("target_solution", "")
+                    ))
+                
+                deviation_items = alias_data.get("deviations", [])
+                for item in deviation_items:
+                    snapshot.deviations.append(DeviationItem(
+                        label=item.get("label", ""),
+                        date_creation=item.get("date_creation", ""),
+                        explanation=item.get("explanation", "")
+                    ))
+                
+                self.log(f"Charge {len(snapshot.technical_debt)} element(s) de dette technique et {len(snapshot.deviations)} entorse(s) pour l'alias '{alias}'.")
+            except Exception as e:
+                self.log(f"Avertissement : impossible de charger la dette technique : {e}")
 
         self.log("Lecture des metadata terminee.")
 

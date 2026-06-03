@@ -92,6 +92,7 @@ def show_configuration_screen(app: Application) -> None:
         "source": tk.StringVar(value=app.source_var.get()),
         "output": tk.StringVar(value=app.output_var.get()),
         "exclusion_file": tk.StringVar(value=app.exclusion_file_var.get()),
+        "technical_debt_file": tk.StringVar(value=app.technical_debt_file_var.get()),
         "pmd_enabled": tk.BooleanVar(value=bool(app.pmd_enabled_var.get())),
         "pmd_ruleset": tk.StringVar(value=app.pmd_ruleset_var.get()),
         "analyzer_rules_file": tk.StringVar(value=app.analyzer_rules_file_var.get()),
@@ -211,6 +212,7 @@ def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dic
     _config_entry_row(paths, app._t("source_folder"), edit_vars["source"])
     _config_entry_row(paths, app._t("output_folder"), edit_vars["output"])
     _config_entry_row(paths, app._t("exclusion_file"), edit_vars["exclusion_file"])
+    _config_entry_row(paths, app._t("technical_debt_file"), edit_vars["technical_debt_file"])
 
     analysis = ttk.LabelFrame(parent, text=app._t("configuration_section_analysis"), padding=10)
     analysis.pack(fill="x", pady=(0, 8))
@@ -557,6 +559,7 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     app.source_var.set(edit_vars["source"].get().strip())
     app.output_var.set(edit_vars["output"].get().strip())
     app.exclusion_file_var.set(edit_vars["exclusion_file"].get().strip())
+    app.technical_debt_file_var.set(edit_vars["technical_debt_file"].get().strip())
     app.pmd_enabled_var.set(bool(edit_vars["pmd_enabled"].get()))
     app.pmd_ruleset_var.set(edit_vars["pmd_ruleset"].get().strip())
     app.analyzer_rules_file_var.set(edit_vars["analyzer_rules_file"].get().strip())
