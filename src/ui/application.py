@@ -184,6 +184,7 @@ class Application(tk.Tk):
         self.output_var = tk.StringVar(value=self._to_abs_path(self.settings.get("output_folder", "")))
         self.exclusion_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("exclusion_file", "")))
         self.technical_debt_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("technical_debt_file", "technical_debt.json")))
+        self.innovation_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("innovation_file", "innovations.json")))
         self.pmd_enabled_var = tk.BooleanVar(value=bool(self.settings.get("pmd_enabled", False)))
         self.pmd_ruleset_var = tk.StringVar(value=self._to_abs_path(self.settings.get("pmd_ruleset_file", "")))
         self.analyzer_rules_file_var = tk.StringVar(value=self._to_abs_path(self.settings.get("analyzer_rules_file", str(DEFAULT_RULES_PATH))))
@@ -302,6 +303,15 @@ class Application(tk.Tk):
         )
         self.show_card_einstein_predictions_var = tk.BooleanVar(
             value=index_card_visibility.show_einstein_predictions
+        )
+        self.show_card_test_coverage_var = tk.BooleanVar(
+            value=index_card_visibility.show_test_coverage
+        )
+        self.show_card_debt_var = tk.BooleanVar(
+            value=index_card_visibility.show_debt
+        )
+        self.show_card_innovation_var = tk.BooleanVar(
+            value=index_card_visibility.show_innovation
         )
 
         self.hero_image: tk.PhotoImage | None = None
@@ -654,6 +664,10 @@ class Application(tk.Tk):
             command=self._show_debt_screen,
         )
         configuration_menu.add_command(
+            label=self._t("manage_innovation_menu_item"),
+            command=self._show_innovation_screen,
+        )
+        configuration_menu.add_command(
             label=self._t("view_scoring_menu_item"),
             command=self._show_scoring_screen,
         )
@@ -705,6 +719,10 @@ class Application(tk.Tk):
     def _show_debt_screen(self) -> None:
         from src.ui.debt_screen import show_debt_screen
         show_debt_screen(self)
+
+    def _show_innovation_screen(self) -> None:
+        from src.ui.innovation_screen import show_innovation_screen
+        show_innovation_screen(self)
 
     def _show_data_dictionary_screen(self) -> None:
         show_data_dictionary_screen(self)
@@ -845,6 +863,9 @@ class Application(tk.Tk):
             show_agents=bool(self.show_card_agents_var.get()),
             show_gen_ai_prompts=bool(self.show_card_gen_ai_prompts_var.get()),
             show_einstein_predictions=bool(self.show_card_einstein_predictions_var.get()),
+            show_test_coverage=bool(self.show_card_test_coverage_var.get()),
+            show_debt=bool(self.show_card_debt_var.get()),
+            show_innovation=bool(self.show_card_innovation_var.get()),
         )
 
     def _to_rel_path(self, path_str: str) -> str:
@@ -883,6 +904,7 @@ class Application(tk.Tk):
             "output_folder": self._to_rel_path(self.output_var.get().strip()),
             "exclusion_file": self._to_rel_path(self.exclusion_file_var.get().strip()),
             "technical_debt_file": self._to_rel_path(self.technical_debt_file_var.get().strip()),
+            "innovation_file": self._to_rel_path(self.innovation_file_var.get().strip()),
             "pmd_enabled": bool(self.pmd_enabled_var.get()),
             "pmd_ruleset_file": self._to_rel_path(self.pmd_ruleset_var.get().strip()),
             "analyzer_rules_file": self._to_rel_path(self.analyzer_rules_file_var.get().strip()),
@@ -1359,6 +1381,7 @@ class Application(tk.Tk):
                 posture_config=list(self.posture_config),
                 test_coverage_data=test_coverage,
                 technical_debt_path=self.technical_debt_file_var.get().strip(),
+                innovation_path=self.innovation_file_var.get().strip(),
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
@@ -1504,6 +1527,7 @@ class Application(tk.Tk):
                 posture_config=list(self.posture_config),
                 test_coverage_data=test_coverage,
                 technical_debt_path=self.technical_debt_file_var.get().strip(),
+                innovation_path=self.innovation_file_var.get().strip(),
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,

@@ -314,6 +314,7 @@ def render_index(
     customisation_page: Path | None = None,
     adoption_page: Path | None = None,
     debt_page: Path | None = None,
+    innovation_page: Path | None = None,
     findings_report_page: Path | None = None,
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
@@ -520,11 +521,22 @@ def render_index(
         if visibility.show_adopt_adapt_posture
         else ""
     )
-    debt_card = _render_debt_card(snapshot, debt_page, current_path)
+    debt_card = (
+        _render_debt_card(snapshot, debt_page, current_path)
+        if visibility.show_debt
+        else ""
+    )
+    innovation_card = (
+        _render_innovation_card(snapshot, innovation_page, current_path)
+        if visibility.show_innovation
+        else ""
+    )
     test_coverage_card = (
         f'  <div class="card"><span>Couverture de tests</span>'
         f'<span class="value">{(f"{metrics.test_coverage:.1f} %") if metrics.test_coverage is not None else "N/A"}</span>'
         f'<small style="color: #64748b; font-weight: normal;">Moyenne org (Apex + Flows)</small></div>\n'
+        if visibility.show_test_coverage
+        else ""
     )
 
     customization_level_card = (
@@ -631,7 +643,7 @@ def render_index(
         
     # 3. Métriques
     metrics_content = "".join([
-        findings_card, ai_usage_card, data_model_card, adoption_card, debt_card
+        findings_card, ai_usage_card, data_model_card, adoption_card, debt_card, innovation_card
     ])
     if metrics_content.strip():
         summary_tabs_sections.append(("Metriques", f'<div class="cards">{metrics_content}</div>'))
@@ -869,6 +881,36 @@ def _render_debt_card(
     )
 
 
+def _render_innovation_card(
+    snapshot: MetadataSnapshot,
+    page_path: Path | None,
+    current_path: Path,
+) -> str:
+    """Render the "POC et Innovation" card on the index page."""
+    
+    innovation_count = len(snapshot.innovations)
+
+    if page_path is not None:
+        href = html_value(href_relative(current_path, page_path))
+        title_html = f'<a href="{href}">POC et Innovation</a>'
+        innovation_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{innovation_count}</a>'
+    else:
+        title_html = 'POC et Innovation'
+        innovation_link = str(innovation_count)
+
+    return (
+        '  <div class="card adopt-card">\n'
+        f'    <span>{title_html}</span>\n'
+        '    <div class="adopt-grid">\n'
+        '      <div class="adopt-stat adopt-stat--adapt">\n'
+        '        <span class="adopt-label">Total</span>\n'
+        f'        <span class="value">{innovation_link}</span>\n'
+        '      </div>\n'
+        '    </div>\n'
+        '  </div>\n'
+    )
+
+
 def write_index(
     snapshot: MetadataSnapshot,
     object_pages: dict[str, Path],
@@ -893,6 +935,7 @@ def write_index(
     customisation_page: Path | None = None,
     adoption_page: Path | None = None,
     debt_page: Path | None = None,
+    innovation_page: Path | None = None,
     findings_report_page: Path | None = None,
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
@@ -925,6 +968,7 @@ def write_index(
             adoption_page=adoption_page,
             findings_report_page=findings_report_page,
             debt_page=debt_page,
+            innovation_page=innovation_page,
             card_visibility=card_visibility,
             root_output_dir=root_output_dir,
             alias=alias,

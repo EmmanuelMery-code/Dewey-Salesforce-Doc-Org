@@ -160,6 +160,18 @@ def show_configuration_screen(app: Application) -> None:
         "show_card_gen_ai_prompts": tk.BooleanVar(
             value=bool(app.show_card_gen_ai_prompts_var.get())
         ),
+        "show_card_einstein_predictions": tk.BooleanVar(
+            value=bool(app.show_card_einstein_predictions_var.get())
+        ),
+        "show_card_test_coverage": tk.BooleanVar(
+            value=bool(app.show_card_test_coverage_var.get())
+        ),
+        "show_card_debt": tk.BooleanVar(
+            value=bool(app.show_card_debt_var.get())
+        ),
+        "show_card_innovation": tk.BooleanVar(
+            value=bool(app.show_card_innovation_var.get())
+        ),
     }
 
     _build_documentation_tab(app, doc_tab, edit_vars)
@@ -480,36 +492,49 @@ def _build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[
 
     groups: list[tuple[str, list[tuple[str, str]]]] = [
         (
-            "configuration_index_cards_section_synthesis",
-            [
-                ("show_card_customization_level", "configuration_card_customization_level"),
-                ("show_card_score", "configuration_card_score"),
-                ("show_card_adopt_vs_adapt", "configuration_card_adopt_vs_adapt"),
-                ("show_card_adopt_adapt_score", "configuration_card_adopt_adapt_score"),
-            ],
-        ),
-        (
-            "configuration_index_cards_section_volume",
+            "configuration_index_cards_section_description",
             [
                 ("show_card_custom_objects", "configuration_card_custom_objects"),
                 ("show_card_custom_fields", "configuration_card_custom_fields"),
                 ("show_card_flows", "configuration_card_flows"),
                 ("show_card_apex_classes_triggers", "configuration_card_apex_classes_triggers"),
                 ("show_card_omni_components", "configuration_card_omni_components"),
+                ("show_card_einstein_predictions", "configuration_card_einstein_predictions"),
+                ("show_card_agents", "configuration_card_agents"),
+                ("show_card_gen_ai_prompts", "configuration_card_gen_ai_prompts"),
             ],
         ),
         (
-            "configuration_index_cards_section_quality",
-                [
-                    ("show_card_findings", "configuration_card_findings"),
-                    ("show_card_ai_usage", "configuration_card_ai_usage"),
-                    ("show_card_agents", "configuration_card_agents"),
-                    ("show_card_gen_ai_prompts", "configuration_card_gen_ai_prompts"),
-                    ("show_card_data_model_footprint", "configuration_card_data_model_footprint"),
-                    ("show_card_adopt_adapt_posture", "configuration_card_adopt_adapt_posture"),
-                ],
-            ),
-        ]
+            "configuration_index_cards_section_scoring",
+            [
+                ("show_card_customization_level", "configuration_card_customization_level"),
+                ("show_card_score", "configuration_card_score"),
+                ("show_card_adopt_vs_adapt", "configuration_card_adopt_vs_adapt"),
+                ("show_card_adopt_adapt_score", "configuration_card_adopt_adapt_score"),
+                ("show_card_test_coverage", "configuration_card_test_coverage"),
+            ],
+        ),
+        (
+            "configuration_index_cards_section_metrics",
+            [
+                ("show_card_findings", "configuration_card_findings"),
+                ("show_card_ai_usage", "configuration_card_ai_usage"),
+                ("show_card_data_model_footprint", "configuration_card_data_model_footprint"),
+                ("show_card_adopt_adapt_posture", "configuration_card_adopt_adapt_posture"),
+                ("show_card_debt", "configuration_card_debt"),
+                ("show_card_innovation", "configuration_card_innovation"),
+            ],
+        ),
+        (
+            "configuration_index_cards_section_ia",
+            [
+                ("show_card_einstein_predictions", "configuration_card_einstein_predictions"),
+                ("show_card_agents", "configuration_card_agents"),
+                ("show_card_gen_ai_prompts", "configuration_card_gen_ai_prompts"),
+                ("show_card_ai_usage", "configuration_card_ai_usage"),
+            ],
+        ),
+    ]
 
     for section_key, toggles in groups:
         container = ttk.LabelFrame(
@@ -641,6 +666,18 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     )
     app.show_card_gen_ai_prompts_var.set(
         bool(edit_vars["show_card_gen_ai_prompts"].get())
+    )
+    app.show_card_einstein_predictions_var.set(
+        bool(edit_vars["show_card_einstein_predictions"].get())
+    )
+    app.show_card_test_coverage_var.set(
+        bool(edit_vars["show_card_test_coverage"].get())
+    )
+    app.show_card_debt_var.set(
+        bool(edit_vars["show_card_debt"].get())
+    )
+    app.show_card_innovation_var.set(
+        bool(edit_vars["show_card_innovation"].get())
     )
 
     if app._config_system_prompt_widget is not None:
