@@ -27,11 +27,24 @@ def render_findings_report_page(
     object_pages: dict[str, Path],
     apex_pages: dict[str, Path],
     flow_pages: dict[str, Path],
+    agent_pages: dict[str, Path] | None = None,
+    prompt_pages: dict[str, Path] | None = None,
+    omni_pages: dict[str, list[dict[str, object]]] | None = None,
 ) -> str:
     """Render the global findings report page."""
 
     back_link = index_back_link(current_path, output_dir)
     all_findings = analyzer_report.all_findings()
+
+    # Flatten omni_pages for easier lookup: name -> Path
+    omni_lookup: dict[str, Path] = {}
+    if omni_pages:
+        for category in omni_pages.values():
+            for item in category:
+                name = str(item.get("name", ""))
+                page = item.get("page")
+                if name and isinstance(page, Path):
+                    omni_lookup[name] = page
 
     # Sort findings: Severity first, then target kind, then target name
     all_findings.sort(key=lambda f: (
@@ -49,20 +62,43 @@ def render_findings_report_page(
         # Link to the impacted item if possible
         target_href = ""
         kind_lower = finding.target_kind.lower()
+        target_name = finding.target_name
+        
         if "apex" in kind_lower:
-            page = apex_pages.get(finding.target_name)
+            page = apex_pages.get(target_name)
             if page:
                 target_href = href_relative(current_path, page)
         elif "flow" in kind_lower:
-            page = flow_pages.get(finding.target_name)
+            page = flow_pages.get(target_name)
             if page:
                 target_href = href_relative(current_path, page)
-        elif "object" in kind_lower:
-            page = object_pages.get(finding.target_name)
+        elif "object" in kind_lower or "objet" in kind_lower:
+            page = object_pages.get(target_name)
+            if page:
+                target_href = href_relative(current_path, page)
+        elif "validation" in kind_lower:
+            # Validation rules are usually named "ObjectName.RuleName"
+            if "." in target_name:
+                obj_name = target_name.split(".")[0]
+                page = object_pages.get(obj_name)
+                if page:
+                    target_href = href_relative(current_path, page)
+        elif "agent" in kind_lower:
+            if agent_pages:
+                page = agent_pages.get(target_name)
+                if page:
+                    target_href = href_relative(current_path, page)
+        elif "prompt" in kind_lower:
+            if prompt_pages:
+                page = prompt_pages.get(target_name)
+                if page:
+                    target_href = href_relative(current_path, page)
+        elif "transform" in kind_lower or "omni" in kind_lower:
+            page = omni_lookup.get(target_name)
             if page:
                 target_href = href_relative(current_path, page)
         
-        target_display = html_value(finding.target_name)
+        target_display = html_value(target_name)
         if target_href:
             target_display = f"<a href='{target_href}'>{target_display}</a>"
 
@@ -122,11 +158,18 @@ def write_findings_report_page(
     object_pages: dict[str, Path],
     apex_pages: dict[str, Path],
     flow_pages: dict[str, Path],
+    agent_pages: dict[str, Path] | None = None,
+    prompt_pages: dict[str, Path] | None = None,
+    omni_pages: dict[str, list[dict[str, object]]] | None = None,
 ) -> Path:
     """Write findings_report.html and return its path."""
     path = output_dir / "findings_report.html"
     write_text(path, render_findings_report_page(
-        analyzer_report, path, output_dir, assets_dir, object_pages, apex_pages, flow_pages
+        analyzer_report, path, output_dir, assets_dir, 
+        object_pages, apex_pages, flow_pages,
+        agent_pages=agent_pages,
+        prompt_pages=prompt_pages,
+        omni_pages=omni_pages
     ))
     log(f"Rapport global des findings généré : {path}")
     return path

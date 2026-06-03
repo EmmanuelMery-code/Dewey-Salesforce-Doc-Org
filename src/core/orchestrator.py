@@ -442,6 +442,9 @@ class SalesforceDocumentationGenerator:
             result.object_pages,
             result.apex_pages,
             result.flow_pages,
+            agent_pages=result.agent_pages,
+            prompt_pages=result.prompt_pages,
+            omni_pages=result.omni_pages,
         )
         result.index = html_writer.write_index(
             snapshot,
