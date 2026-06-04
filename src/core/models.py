@@ -476,6 +476,7 @@ class InnovationItem:
     date_presentation: str
     description: str
     conclusion: str
+    not_started: bool = False
 
 
 @dataclass(slots=True)

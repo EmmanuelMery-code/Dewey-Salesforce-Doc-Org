@@ -76,7 +76,7 @@ class InnovationScreen:
         tree_frame = ttk.Frame(main_frame)
         tree_frame.pack(fill="both", expand=True)
 
-        columns = ("alias", "label", "theme", "date_start", "date_end", "date_presentation", "description", "conclusion")
+        columns = ("alias", "label", "theme", "not_started", "date_start", "date_end", "date_presentation", "description", "conclusion")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
         
         self.tree.heading("alias", text="Alias")
@@ -86,6 +86,7 @@ class InnovationScreen:
         self.tree.column("alias", width=100, anchor="w")
         self.tree.column("label", width=150, anchor="w")
         self.tree.column("theme", width=100, anchor="w")
+        self.tree.column("not_started", width=100, anchor="center")
         self.tree.column("date_start", width=80, anchor="center")
         self.tree.column("date_end", width=80, anchor="center")
         self.tree.column("date_presentation", width=100, anchor="center")
@@ -178,10 +179,12 @@ class InnovationScreen:
         self.tree.delete(*self.tree.get_children())
         for alias, item in self.items:
             if filter_alias == all_aliases or alias == filter_alias:
+                not_started_val = "X" if item.get("not_started") else ""
                 self.tree.insert("", "end", values=(
                     alias,
                     item.get("label", ""),
                     item.get("theme", ""),
+                    not_started_val,
                     item.get("date_start", ""),
                     item.get("date_end", ""),
                     item.get("date_presentation", ""),
@@ -194,7 +197,7 @@ class InnovationScreen:
         all_aliases = self.app._t("innovation_all_aliases")
         default_alias = filter_alias if filter_alias != all_aliases else None
         
-        fields = ["alias", "label", "theme", "date_start", "date_end", "date_presentation", "description", "conclusion"]
+        fields = ["alias", "label", "theme", "not_started", "date_start", "date_end", "date_presentation", "description", "conclusion"]
         initial = {"alias": default_alias} if default_alias else None
         self._edit_dialog(fields, initial, self._add_item)
 
@@ -210,9 +213,10 @@ class InnovationScreen:
         item_id = selected[0]
         old_values = self.tree.item(item_id)["values"]
         
-        fields = ["alias", "label", "theme", "date_start", "date_end", "date_presentation", "description", "conclusion"]
+        fields = ["alias", "label", "theme", "not_started", "date_start", "date_end", "date_presentation", "description", "conclusion"]
         idx = -1
         for i, (al, item) in enumerate(self.items):
+            # We compare alias, label and theme to find the item
             if (str(al) == str(old_values[0]) and 
                 str(item.get("label")) == str(old_values[1]) and 
                 str(item.get("theme")) == str(old_values[2])):
@@ -226,6 +230,12 @@ class InnovationScreen:
             self._refresh_tree()
                 
         initial_values = {fields[i]: old_values[i] for i in range(len(fields))}
+        # Convert "X" back to True for the dialog
+        if initial_values.get("not_started") == "X":
+            initial_values["not_started"] = True
+        else:
+            initial_values["not_started"] = False
+            
         self._edit_dialog(fields, initial_values, on_save)
 
     def _on_delete(self) -> None:
@@ -264,6 +274,11 @@ class InnovationScreen:
                 combo = ttk.Combobox(dialog, textvariable=var, values=aliases, state="readonly", width=37)
                 combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
                 entries[field] = var
+            elif field == "not_started":
+                var = tk.BooleanVar(value=bool(val))
+                chk = ttk.Checkbutton(dialog, variable=var)
+                chk.grid(row=i, column=1, padx=10, pady=10, sticky="w")
+                entries[field] = var
             elif field in ("description", "conclusion"):
                 container = ttk.Frame(dialog)
                 container.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
@@ -272,11 +287,12 @@ class InnovationScreen:
                 txt.insert("1.0", val)
                 txt.pack(fill="both", expand=True)
                 
-                def expand(t=txt):
-                    self.app.ai_expand_text(t.get("1.0", "end-1c").strip(), lambda new_val: [t.delete("1.0", "end"), t.insert("1.0", new_val)])
+                if self.app.ai_provider_var.get() == "Gateway" and self.app.gateway_api_key_var.get().strip():
+                    def expand(t=txt):
+                        self.app.ai_expand_text(t.get("1.0", "end-1c").strip(), lambda new_val: [t.delete("1.0", "end"), t.insert("1.0", new_val)])
 
-                btn = ttk.Button(container, text=self.app._t("ai_expand_button"), command=expand)
-                btn.pack(side="right", pady=(2, 0))
+                    btn = ttk.Button(container, text=self.app._t("ai_expand_button"), command=expand)
+                    btn.pack(side="right", pady=(2, 0))
                 
                 entries[field] = txt
             else:
@@ -292,6 +308,8 @@ class InnovationScreen:
                 if f == "alias": continue
                 if f in ("description", "conclusion"):
                     result[f] = entries[f].get("1.0", "end-1c").strip()
+                elif f == "not_started":
+                    result[f] = entries[f].get()
                 else:
                     result[f] = entries[f].get().strip()
             on_save(alias, result)

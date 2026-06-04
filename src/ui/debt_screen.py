@@ -329,11 +329,12 @@ class DebtScreen:
                 txt.insert("1.0", val)
                 txt.pack(fill="both", expand=True)
                 
-                def expand(t=txt):
-                    self.app.ai_expand_text(t.get("1.0", "end-1c").strip(), lambda new_val: [t.delete("1.0", "end"), t.insert("1.0", new_val)])
+                if self.app.ai_provider_var.get() == "Gateway" and self.app.gateway_api_key_var.get().strip():
+                    def expand(t=txt):
+                        self.app.ai_expand_text(t.get("1.0", "end-1c").strip(), lambda new_val: [t.delete("1.0", "end"), t.insert("1.0", new_val)])
 
-                btn = ttk.Button(container, text=self.app._t("ai_expand_button"), command=expand)
-                btn.pack(side="right", pady=(2, 0))
+                    btn = ttk.Button(container, text=self.app._t("ai_expand_button"), command=expand)
+                    btn.pack(side="right", pady=(2, 0))
                 
                 entries[field] = txt
             else:

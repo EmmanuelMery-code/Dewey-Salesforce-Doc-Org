@@ -888,23 +888,37 @@ def _render_innovation_card(
 ) -> str:
     """Render the "POC et Innovation" card on the index page."""
     
-    innovation_count = len(snapshot.innovations)
+    total_count = len(snapshot.innovations)
+    not_started_count = len([item for item in snapshot.innovations if item.not_started])
+    started_count = total_count - not_started_count
 
     if page_path is not None:
         href = html_value(href_relative(current_path, page_path))
         title_html = f'<a href="{href}">POC et Innovation</a>'
-        innovation_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{innovation_count}</a>'
+        started_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{started_count}</a>'
+        not_started_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{not_started_count}</a>'
+        total_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{total_count}</a>'
     else:
         title_html = 'POC et Innovation'
-        innovation_link = str(innovation_count)
+        started_link = str(started_count)
+        not_started_link = str(not_started_count)
+        total_link = str(total_count)
 
     return (
         '  <div class="card adopt-card">\n'
         f'    <span>{title_html}</span>\n'
         '    <div class="adopt-grid">\n'
         '      <div class="adopt-stat adopt-stat--adapt">\n'
+        '        <span class="adopt-label">En cours ou Terminés</span>\n'
+        f'        <span class="value">{started_link}</span>\n'
+        '      </div>\n'
+        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
+        '        <span class="adopt-label">Non Commencé</span>\n'
+        f'        <span class="value">{not_started_link}</span>\n'
+        '      </div>\n'
+        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
         '        <span class="adopt-label">Total</span>\n'
-        f'        <span class="value">{innovation_link}</span>\n'
+        f'        <span class="value">{total_link}</span>\n'
         '      </div>\n'
         '    </div>\n'
         '  </div>\n'

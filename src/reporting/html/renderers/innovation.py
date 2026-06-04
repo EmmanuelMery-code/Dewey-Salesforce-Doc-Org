@@ -22,39 +22,52 @@ def render_innovation_page(
     
     back_link = index_back_link(current_path, output_dir, "metriques", "summary-tabs")
     
-    rows = []
-    for item in snapshot.innovations:
-        rows.append(
-            f"<tr>"
-            f"<td>{html_value(item.label)}</td>"
-            f"<td>{html_value(item.theme)}</td>"
-            f"<td>{html_value(item.date_start)}</td>"
-            f"<td>{html_value(item.date_end)}</td>"
-            f"<td>{html_value(item.date_presentation)}</td>"
-            f"<td style='white-space: pre-wrap;'>{html_value(item.description)}</td>"
-            f"<td style='white-space: pre-wrap;'>{html_value(item.conclusion)}</td>"
-            f"</tr>"
+    started_items = [item for item in snapshot.innovations if not item.not_started]
+    not_started_items = [item for item in snapshot.innovations if item.not_started]
+
+    def _render_table(items: list[InnovationItem], empty_msg: str) -> str:
+        rows = []
+        for item in items:
+            rows.append(
+                f"<tr>"
+                f"<td>{html_value(item.label)}</td>"
+                f"<td>{html_value(item.theme)}</td>"
+                f"<td>{html_value(item.date_start)}</td>"
+                f"<td>{html_value(item.date_end)}</td>"
+                f"<td>{html_value(item.date_presentation)}</td>"
+                f"<td style='white-space: pre-wrap;'>{html_value(item.description)}</td>"
+                f"<td style='white-space: pre-wrap;'>{html_value(item.conclusion)}</td>"
+                f"</tr>"
+            )
+        
+        return (
+            "<table><thead><tr>"
+            "<th>Libelle</th>"
+            "<th>Theme</th>"
+            "<th>Date debut</th>"
+            "<th>Date fin</th>"
+            "<th>Date presentation</th>"
+            "<th>Description</th>"
+            "<th>Conclusion</th>"
+            "</tr></thead>"
+            f"<tbody>{''.join(rows) or f'<tr><td colspan=\"7\" class=\"empty\">{empty_msg}</td></tr>'}</tbody></table>"
         )
-    
-    table = (
-        "<table><thead><tr>"
-        "<th>Libelle</th>"
-        "<th>Theme</th>"
-        "<th>Date debut</th>"
-        "<th>Date fin</th>"
-        "<th>Date presentation</th>"
-        "<th>Description</th>"
-        "<th>Conclusion</th>"
-        "</tr></thead>"
-        f"<tbody>{''.join(rows) or '<tr><td colspan=\"7\" class=\"empty\">Aucun POC ou innovation repertorie.</td></tr>'}</tbody></table>"
-    )
+
+    table_started = _render_table(started_items, "Aucun POC ou innovation en cours ou termine.")
+    table_not_started = _render_table(not_started_items, "Aucun POC ou innovation non commence.")
 
     body = f"""
 {back_link}
 <h1>POC et Innovations ({len(snapshot.innovations)})</h1>
 
 <div class="section">
-    {table}
+    <h2>En cours ou Terminés ({len(started_items)})</h2>
+    {table_started}
+</div>
+
+<div class="section">
+    <h2>Non Commencés ({len(not_started_items)})</h2>
+    {table_not_started}
 </div>
 """
     return render_page("POC et Innovations", body, current_path, assets_dir)
