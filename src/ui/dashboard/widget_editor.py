@@ -6,6 +6,9 @@ from src.ui.dashboard.sql_builder import open_query_builder
 
 def build_widget_editor(container, widgets, saved_configs, service, app, window, update_preview_callback, refresh_callback):
     """Construit l'éditeur de propriétés des widgets sur la gauche."""
+    for child in container.winfo_children():
+        child.destroy()
+        
     widget_ui_elements = []
     
     for i, w in enumerate(widgets):
@@ -39,7 +42,14 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
                 ttk.Button(bf, text=app._t("designer_color_transparent"), command=lambda: [var.set("none"), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=5)
 
         ttk.Button(row1, text="🎨", width=3, command=pick_color).pack(side="left", padx=2)
-        ttk.Button(row1, text="X", width=2, command=lambda idx=i: [widgets.pop(idx), refresh_callback(), update_preview_callback()]).pack(side="right")
+        
+        def remove_widget(idx=i):
+            if 0 <= idx < len(widgets):
+                widgets.pop(idx)
+                refresh_callback()
+                update_preview_callback()
+        
+        ttk.Button(row1, text="X", width=2, command=remove_widget).pack(side="right")
         
         row2 = ttk.Frame(f); row2.pack(fill="x", pady=5)
         xv, yv, wv, hv, zv = (tk.StringVar(value=str(w.x)), tk.StringVar(value=str(w.y)), 
