@@ -627,7 +627,8 @@ class SalesforceDocumentationGenerator:
                                     date_end=item.get("date_end", ""),
                                     date_presentation=item.get("date_presentation", ""),
                                     description=item.get("description", ""),
-                                    conclusion=item.get("conclusion", "")
+                                    conclusion=item.get("conclusion", ""),
+                                    not_started=item.get("not_started", False)
                                 ))
                             self.log(f"Charge {len(snapshot.innovations)} element(s) d'innovation pour l'alias '{alias}'.")
                         else:
