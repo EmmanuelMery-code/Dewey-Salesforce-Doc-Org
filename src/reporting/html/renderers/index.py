@@ -350,17 +350,19 @@ def render_index(
 
     apex_rows = "".join(
         f"<tr><td><a href='{href_relative(current_path, apex_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.kind)}</td><td>{item.line_count}</td><td>{item.method_count}</td></tr>"
+        f"<td>{html_value(item.kind)}</td><td>{item.line_count}</td><td>{item.method_count}</td>"
+        f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_lines_covered}/{item.test_coverage_lines_covered + item.test_coverage_lines_uncovered} lignes)') if item.test_coverage is not None else 'N/A'}</td></tr>"
         for item in snapshot.apex_artifacts
         if item.name in apex_pages
-    ) or "<tr><td colspan='4' class='empty'>Aucun artefact Apex analyse.</td></tr>"
+    ) or "<tr><td colspan='5' class='empty'>Aucun artefact Apex analyse.</td></tr>"
 
     flow_rows = "".join(
         f"<tr><td><a href='{href_relative(current_path, flow_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.process_type)}</td><td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td><td>{item.described_elements}</td></tr>"
+        f"<td>{html_value(item.process_type)}</td><td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td><td>{item.described_elements}</td>"
+        f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_elements_covered}/{item.test_coverage_elements_covered + item.test_coverage_elements_uncovered} blocs)') if item.test_coverage is not None else 'N/A'}</td></tr>"
         for item in snapshot.flows
         if item.name in flow_pages
-    ) or "<tr><td colspan='6' class='empty'>Aucun flow analyse.</td></tr>"
+    ) or "<tr><td colspan='7' class='empty'>Aucun flow analyse.</td></tr>"
 
     improvements_rows = render_index_improvements(
         snapshot,
@@ -434,11 +436,11 @@ def render_index(
             ),
             (
                 "Apex / Trigger",
-                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Lignes</th><th>Methodes</th></tr></thead><tbody>{apex_rows}</tbody></table>",
+                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Lignes</th><th>Methodes</th><th>% Couverture</th></tr></thead><tbody>{apex_rows}</tbody></table>",
             ),
             (
                 "Flows",
-                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>Documentes</th></tr></thead><tbody>{flow_rows}</tbody></table>",
+                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>Documentes</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>",
             ),
             (
                 "Analyseur",
@@ -531,9 +533,39 @@ def render_index(
         if visibility.show_innovation
         else ""
     )
+    
+    # Calculate Apex and Flow coverage averages
+    apex_coverage_avg = 0.0
+    apex_count = 0
+    for artifact in snapshot.apex_artifacts:
+        if not artifact.is_test and artifact.test_coverage is not None:
+            apex_coverage_avg += artifact.test_coverage
+            apex_count += 1
+    if apex_count > 0:
+        apex_coverage_avg = apex_coverage_avg / apex_count
+    else:
+        apex_coverage_avg = None
+    
+    flow_coverage_avg = 0.0
+    flow_count = 0
+    for flow in snapshot.flows:
+        if flow.test_coverage is not None:
+            flow_coverage_avg += flow.test_coverage
+            flow_count += 1
+    if flow_count > 0:
+        flow_coverage_avg = flow_coverage_avg / flow_count
+    else:
+        flow_coverage_avg = None
+    
+    # Build coverage detail string
+    coverage_details = ""
+    apex_str = f"Apex: {apex_coverage_avg:.1f}%" if apex_coverage_avg is not None else "Apex: N/A"
+    flow_str = f"Flow: {flow_coverage_avg:.1f}%" if flow_coverage_avg is not None else "Flow: N/A"
+    coverage_details = f" ({apex_str} | {flow_str})"
+    
     test_coverage_card = (
         f'  <div class="card"><span>Couverture de tests</span>'
-        f'<span class="value">{(f"{metrics.test_coverage:.1f} %") if metrics.test_coverage is not None else "N/A"}</span>'
+        f'<span class="value">{(f"{metrics.test_coverage:.1f} %{coverage_details}") if metrics.test_coverage is not None else "N/A"}</span>'
         f'<small style="color: #64748b; font-weight: normal;">Moyenne org (Apex + Flows)</small></div>\n'
         if visibility.show_test_coverage
         else ""

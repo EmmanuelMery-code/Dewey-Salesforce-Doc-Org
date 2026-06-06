@@ -145,6 +145,8 @@ class ApexArtifact:
     query_in_loop: bool = False
     dml_in_loop: bool = False
     test_coverage: float | None = None  # Percentage 0-100
+    test_coverage_lines_covered: int = 0  # Nombre de lignes couvertes
+    test_coverage_lines_uncovered: int = 0  # Nombre de lignes non couvertes
 
 
 @dataclass(slots=True)
@@ -180,6 +182,8 @@ class FlowInfo:
     max_depth: int = 0
     elements: list[FlowElementInfo] = field(default_factory=list)
     test_coverage: float | None = None  # Percentage 0-100
+    test_coverage_elements_covered: int = 0  # Nombre d'éléments couverts
+    test_coverage_elements_uncovered: int = 0  # Nombre d'éléments non couverts
 
     @property
     def complexity_score(self) -> int:
