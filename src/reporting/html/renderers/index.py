@@ -557,16 +557,15 @@ def render_index(
     else:
         flow_coverage_avg = None
     
-    # Build coverage detail string
-    coverage_details = ""
+    # Build coverage detail string - show only Apex and Flows, no org average
     apex_str = f"Apex: {apex_coverage_avg:.1f}%" if apex_coverage_avg is not None else "Apex: N/A"
     flow_str = f"Flow: {flow_coverage_avg:.1f}%" if flow_coverage_avg is not None else "Flow: N/A"
-    coverage_details = f" ({apex_str} | {flow_str})"
+    coverage_details = f"{apex_str} | {flow_str}"
     
     test_coverage_card = (
         f'  <div class="card"><span>Couverture de tests</span>'
-        f'<span class="value">{(f"{metrics.test_coverage:.1f} %{coverage_details}") if metrics.test_coverage is not None else "N/A"}</span>'
-        f'<small style="color: #64748b; font-weight: normal;">Moyenne org (Apex + Flows)</small></div>\n'
+        f'<span class="value">{coverage_details}</span>'
+        f'<small style="color: #64748b; font-weight: normal;">Par type (Apex + Flows)</small></div>\n'
         if visibility.show_test_coverage
         else ""
     )
