@@ -1621,40 +1621,78 @@ class Application(tk.Tk):
         self.log_widget.delete("1.0", "end")
         self.log_widget.configure(state="disabled")
 
-    def _fetch_test_coverage(self, target_org: str) -> dict[str, float]:
+    def _fetch_test_coverage(self, target_org: str) -> dict[str, dict]:
         """Fetch test coverage for Apex classes and Flows using Tooling API."""
-        coverage_data: dict[str, float] = {}
+        coverage_data: dict[str, dict] = {}
         try:
             # 1. Apex Code Coverage
             apex_query = "SELECT ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered FROM ApexCodeCoverageAggregate"
+            self.task_manager.queue_log(f"[APEX] Requete SOQL: {apex_query}")
             apex_records = self.cli_service.run_query(apex_query, target_org, use_tooling_api=True)
-            self.task_manager.queue_log(f"Recupere {len(apex_records)} enregistrement(s) de couverture Apex.")
-            for record in apex_records:
-                name = record.get("ApexClassOrTrigger", {}).get("Name")
-                covered = record.get("NumLinesCovered", 0)
-                uncovered = record.get("NumLinesUncovered", 0)
-                total = covered + uncovered
-                if name and total > 0:
-                    coverage_data[name] = (covered / total) * 100
+            self.task_manager.queue_log(f"[APEX] Recupere {len(apex_records)} enregistrement(s) de couverture Apex.")
+            
+            if apex_records:
+                self.task_manager.queue_log("[APEX] Résultats détaillés:")
+                for idx, record in enumerate(apex_records, 1):
+                    name = record.get("ApexClassOrTrigger", {}).get("Name")
+                    covered = record.get("NumLinesCovered", 0)
+                    uncovered = record.get("NumLinesUncovered", 0)
+                    total = covered + uncovered
+                    pct = (covered / total) * 100 if total > 0 else 0.0
+                    
+                    # Affiche chaque résultat
+                    self.task_manager.queue_log(f"  {idx}. {name}: {covered}/{total} lignes couvertes ({pct:.1f}%)")
+                    
+                    # Store detailed coverage data
+                    if name:
+                        coverage_data[name] = {
+                            "percentage": pct,
+                            "lines_covered": covered,
+                            "lines_uncovered": uncovered,
+                            "lines_total": total
+                        }
+            else:
+                self.task_manager.queue_log("[APEX] AUCUN enregistrement de couverture Apex trouvé!")
 
             # 2. Flow Test Coverage
             flow_query = "SELECT FlowVersion.Definition.DeveloperName, NumElementsCovered, NumElementsNotCovered FROM FlowTestCoverage"
+            self.task_manager.queue_log(f"[FLOW] Requete SOQL: {flow_query}")
             flow_records = self.cli_service.run_query(flow_query, target_org, use_tooling_api=True)
-            self.task_manager.queue_log(f"Recupere {len(flow_records)} enregistrement(s) de couverture Flow.")
-            for record in flow_records:
-                flow_version = record.get("FlowVersion") or {}
-                definition = flow_version.get("Definition") or {}
-                name = definition.get("DeveloperName")
-                
-                # Fallback if the relationship structure is different
-                if not name:
-                    name = flow_version.get("DeveloperName") or flow_version.get("FullName")
-                
-                covered = record.get("NumElementsCovered", 0)
-                uncovered = record.get("NumElementsNotCovered", 0)
-                total = (covered or 0) + (uncovered or 0)
-                if name and total > 0:
-                    coverage_data[name] = (covered / total) * 100
+            self.task_manager.queue_log(f"[FLOW] Recupere {len(flow_records)} enregistrement(s) de couverture Flow.")
+            
+            if flow_records:
+                self.task_manager.queue_log("[FLOW] Résultats détaillés:")
+                for idx, record in enumerate(flow_records, 1):
+                    flow_version = record.get("FlowVersion") or {}
+                    definition = flow_version.get("Definition") or {}
+                    name = definition.get("DeveloperName")
+                    
+                    # Fallback if the relationship structure is different
+                    if not name:
+                        name = flow_version.get("DeveloperName") or flow_version.get("FullName")
+                    
+                    covered = record.get("NumElementsCovered", 0)
+                    uncovered = record.get("NumElementsNotCovered", 0)
+                    total = (covered or 0) + (uncovered or 0)
+                    pct = (covered / total) * 100 if total > 0 else 0.0
+                    
+                    # Affiche chaque résultat
+                    self.task_manager.queue_log(f"  {idx}. {name}: {covered}/{total} elements couverts ({pct:.1f}%)")
+                    
+                    # Store detailed coverage data
+                    if name:
+                        coverage_data[name] = {
+                            "percentage": pct,
+                            "elements_covered": covered,
+                            "elements_uncovered": uncovered,
+                            "elements_total": total
+                        }
+            else:
+                self.task_manager.queue_log("[FLOW] AUCUN enregistrement de couverture Flow trouvé!")
+            
+            # Résumé final
+            self.task_manager.queue_log(f"[RESUME] Total elements analyzes pour couverture: {len(coverage_data)}")
+            
         except Exception as exc:
             self.task_manager.queue_log(f"Avertissement : impossible de recuperer la couverture de tests : {exc}")
         

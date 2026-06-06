@@ -56,6 +56,8 @@ class HistoryEntry:
     adoption_pct: float = 0.0
     adaptation_pct: float = 0.0
     test_coverage: float | None = None
+    test_coverage_apex: float | None = None
+    test_coverage_flows: float | None = None
     timestamp: str = ""
     generation_number: int = 0
 
@@ -165,6 +167,8 @@ class HistoryService:
                 ("adapt_low_count", "INTEGER DEFAULT 0"),
                 ("adapt_high_count", "INTEGER DEFAULT 0"),
                 ("test_coverage", "REAL"),
+                ("test_coverage_apex", "REAL"),
+                ("test_coverage_flows", "REAL"),
             ]
             for col_name, col_type in new_cols:
                 if col_name not in existing_columns:
@@ -208,8 +212,8 @@ class HistoryService:
                     omni_components, agents, gen_ai_prompts, einstein_predictions, findings_total, findings_critical,
                     findings_major, findings_minor, findings_info,
                     ai_usage_pct, data_model_custom_pct, data_model_standard_pct,
-                    adoption_pct, adaptation_pct, test_coverage, timestamp, generation_number
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    adoption_pct, adaptation_pct, test_coverage, test_coverage_apex, test_coverage_flows, timestamp, generation_number
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
                 entry.score_no_code, entry.score_low_code, entry.score_pro_code,
@@ -225,7 +229,7 @@ class HistoryService:
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
-                entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.timestamp,
+                entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.test_coverage_apex, entry.test_coverage_flows, entry.timestamp,
                 entry.generation_number
             ))
             conn.commit()
@@ -326,7 +330,7 @@ class HistoryService:
                     findings_total = ?, findings_critical = ?, findings_major = ?,
                     findings_minor = ?, findings_info = ?, ai_usage_pct = ?,
                     data_model_custom_pct = ?, data_model_standard_pct = ?,
-                    adoption_pct = ?, adaptation_pct = ?, test_coverage = ?, timestamp = ?,
+                    adoption_pct = ?, adaptation_pct = ?, test_coverage = ?, test_coverage_apex = ?, test_coverage_flows = ?, timestamp = ?,
                     generation_number = ?
                 WHERE id = ?
             """, (
@@ -344,7 +348,7 @@ class HistoryService:
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
-                entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.timestamp,
+                entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.test_coverage_apex, entry.test_coverage_flows, entry.timestamp,
                 entry.generation_number, entry.id
             ))
             conn.commit()
@@ -403,6 +407,8 @@ class HistoryService:
             adoption_pct=get_val("adoption_pct", 0.0),
             adaptation_pct=get_val("adaptation_pct", 0.0),
             test_coverage=get_val("test_coverage", None),
+            test_coverage_apex=get_val("test_coverage_apex", None),
+            test_coverage_flows=get_val("test_coverage_flows", None),
             timestamp=get_val("timestamp", ""),
             generation_number=get_val("generation_number", 0)
         )

@@ -168,6 +168,30 @@ class SalesforceDocumentationGenerator:
     # History persistence
     # ------------------------------------------------------------------
 
+    def _calculate_apex_coverage_avg(self, snapshot: MetadataSnapshot) -> float | None:
+        """Calculate average test coverage for Apex classes/triggers (excluding tests)."""
+        apex_coverage_avg = 0.0
+        apex_count = 0
+        for artifact in snapshot.apex_artifacts:
+            if not artifact.is_test and artifact.test_coverage is not None:
+                apex_coverage_avg += artifact.test_coverage
+                apex_count += 1
+        if apex_count > 0:
+            return apex_coverage_avg / apex_count
+        return None
+
+    def _calculate_flows_coverage_avg(self, snapshot: MetadataSnapshot) -> float | None:
+        """Calculate average test coverage for Flows."""
+        flow_coverage_avg = 0.0
+        flow_count = 0
+        for flow in snapshot.flows:
+            if flow.test_coverage is not None:
+                flow_coverage_avg += flow.test_coverage
+                flow_count += 1
+        if flow_count > 0:
+            return flow_coverage_avg / flow_count
+        return None
+
     def _save_to_history(
         self,
         snapshot: MetadataSnapshot,
@@ -256,7 +280,9 @@ class SalesforceDocumentationGenerator:
                 data_model_standard_pct=dm_stats.percent_standard_global if dm_stats else 0.0,
                 adoption_pct=adoption_stats.percent_adoption if adoption_stats else 0.0,
                 adaptation_pct=adoption_stats.percent_adaptation if adoption_stats else 0.0,
-                test_coverage=metrics.test_coverage
+                test_coverage=metrics.test_coverage,
+                test_coverage_apex=self._calculate_apex_coverage_avg(snapshot),
+                test_coverage_flows=self._calculate_flows_coverage_avg(snapshot),
             )
             
             service.add_entry(entry)
@@ -499,33 +525,55 @@ class SalesforceDocumentationGenerator:
         has_test_classes = any(a.is_test for a in snapshot.apex_artifacts)
         has_components = (len(snapshot.flows) > 0 or any(not a.is_test for a in snapshot.apex_artifacts))
         
-        if self.test_coverage_data:
-            total_covered = 0.0
-            count = 0
-            for artifact in snapshot.apex_artifacts:
-                if artifact.name in self.test_coverage_data:
-                    artifact.test_coverage = self.test_coverage_data[artifact.name]
-                    if not artifact.is_test:
-                        total_covered += artifact.test_coverage
-                        count += 1
-            for flow in snapshot.flows:
-                if flow.name in self.test_coverage_data:
-                    flow.test_coverage = self.test_coverage_data[flow.name]
+        total_covered = 0.0
+        count = 0
+        
+        # Collect coverage data for non-test artifacts
+        for artifact in snapshot.apex_artifacts:
+            if artifact.name in self.test_coverage_data:
+                coverage_info = self.test_coverage_data[artifact.name]
+                if isinstance(coverage_info, dict):
+                    # New format with detailed coverage info
+                    artifact.test_coverage = coverage_info.get("percentage")
+                    artifact.test_coverage_lines_covered = coverage_info.get("lines_covered", 0)
+                    artifact.test_coverage_lines_uncovered = coverage_info.get("lines_uncovered", 0)
+                else:
+                    # Old format (just percentage) - fallback for compatibility
+                    artifact.test_coverage = coverage_info
+                    artifact.test_coverage_lines_covered = 0
+                    artifact.test_coverage_lines_uncovered = 0
+                
+                if not artifact.is_test and artifact.test_coverage is not None:
+                    total_covered += artifact.test_coverage
+                    count += 1
+        
+        for flow in snapshot.flows:
+            if flow.name in self.test_coverage_data:
+                coverage_info = self.test_coverage_data[flow.name]
+                if isinstance(coverage_info, dict):
+                    # New format with detailed coverage info
+                    flow.test_coverage = coverage_info.get("percentage")
+                    flow.test_coverage_elements_covered = coverage_info.get("elements_covered", 0)
+                    flow.test_coverage_elements_uncovered = coverage_info.get("elements_uncovered", 0)
+                else:
+                    # Old format (just percentage) - fallback for compatibility
+                    flow.test_coverage = coverage_info
+                    flow.test_coverage_elements_covered = 0
+                    flow.test_coverage_elements_uncovered = 0
+                
+                if flow.test_coverage is not None:
                     total_covered += flow.test_coverage
                     count += 1
-            
-            if count > 0:
-                snapshot.metrics.test_coverage = total_covered / count
-                self.log(f"Couverture de tests org calculee : {snapshot.metrics.test_coverage:.1f} % ({count} composants).")
-            else:
-                # No coverage data found for existing components
-                snapshot.metrics.test_coverage = 0.0
+        
+        # Calculate org-level test coverage
+        if count > 0:
+            # Coverage data found for some components
+            snapshot.metrics.test_coverage = total_covered / count
+            self.log(f"Couverture de tests org calculee : {snapshot.metrics.test_coverage:.1f} % ({count} composants).")
         else:
-            # No coverage data provided at all
-            if not has_test_classes and not has_components:
-                snapshot.metrics.test_coverage = 100.0
-            else:
-                snapshot.metrics.test_coverage = 0.0
+            # No coverage data found - default to 0
+            snapshot.metrics.test_coverage = 0.0
+            self.log("Aucune donnee de couverture de tests trouvee.")
 
         if snapshot.metrics.test_coverage is not None:
             self.log(f"Couverture de tests finale : {snapshot.metrics.test_coverage:.1f} %.")
