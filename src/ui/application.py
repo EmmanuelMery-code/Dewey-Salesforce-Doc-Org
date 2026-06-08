@@ -1585,61 +1585,74 @@ class Application(tk.Tk):
             self.task_manager.queue_log(self._t("select_org_first"))
             return
         
-        def task() -> str:
-            """Fetch and format coverage data."""
-            coverage_data = self._fetch_test_coverage(selected_org.org_ref)
+        org_ref = selected_org.org_ref
+        
+        def task() -> None:
+            """Fetch test coverage and display in formatted table."""
+            self.task_manager.queue_log("")
+            self.task_manager.queue_log("=" * 120)
+            self.task_manager.queue_log("CALCUL DE LA COUVERTURE DE TESTS")
+            self.task_manager.queue_log("=" * 120)
+            self.task_manager.queue_log("")
             
-            # Get snapshot to access apex_artifacts and flows
-            manifest_path = self.cli_service.generate_manifest(selected_org.org_ref, Path(tempfile.gettempdir()))
-            retrieved_path = self.cli_service.retrieve_from_org(selected_org.org_ref, Path(tempfile.gettempdir()), manifest_path)
+            # Fetch coverage data (this will also log the raw results)
+            coverage_data = self._fetch_test_coverage(org_ref)
             
-            parser = SalesforceParser(retrieved_path)
-            snapshot = parser.parse()
+            # Parse Apex artifacts
+            self.task_manager.queue_log("")
+            self.task_manager.queue_log("-" * 120)
+            self.task_manager.queue_log("APEX CLASSES / TRIGGERS - TABLEAU RECAPITULATIF")
+            self.task_manager.queue_log("-" * 120)
+            self.task_manager.queue_log("")
             
-            # Build Apex table
-            apex_lines = ["APEX CLASSES / TRIGGERS", "=" * 100, ""]
-            apex_lines.append(f"{'Nom':<50} {'Testes':<15} {'Total':<15} {'Couverture':<20}")
-            apex_lines.append("-" * 100)
+            apex_header = f"{'Nom de la classe/trigger':<60} {'Lignes testées':<20} {'Total lignes':<20} {'Couverture':<20}"
+            self.task_manager.queue_log(apex_header)
+            self.task_manager.queue_log("-" * 120)
             
-            for artifact in snapshot.apex_artifacts:
-                if not artifact.is_test:
-                    if artifact.name in coverage_data:
-                        info = coverage_data[artifact.name]
-                        covered = info.get("lines_covered", 0)
-                        total = info.get("lines_total", 0)
-                        pct = info.get("percentage", 0)
-                        apex_lines.append(f"{artifact.name:<50} {covered:<15} {total:<15} {pct:.1f}%")
-                    else:
-                        apex_lines.append(f"{artifact.name:<50} {'N/A':<15} {'N/A':<15} {'N/A':<20}")
+            for name in sorted(coverage_data.keys()):
+                info = coverage_data[name]
+                # Check if this is Apex (has lines_total) or Flow (has elements_total)
+                if "lines_total" in info:
+                    covered = info.get("lines_covered", 0)
+                    total = info.get("lines_total", 0)
+                    pct = info.get("percentage", 0)
+                    coverage_str = f"{pct:.1f}%" if total > 0 else "N/A"
+                    line_str = f"{'N/A':<20}" if total == 0 else f"{covered}/{total}"
+                    self.task_manager.queue_log(
+                        f"{name:<60} {line_str:<20} {total:<20} {coverage_str:<20}"
+                    )
             
-            # Build Flows table
-            flows_lines = ["", "", "FLOWS", "=" * 100, ""]
-            flows_lines.append(f"{'Nom':<50} {'Blocs testes':<15} {'Total':<15} {'Couverture':<20}")
-            flows_lines.append("-" * 100)
+            # Parse Flows
+            self.task_manager.queue_log("")
+            self.task_manager.queue_log("-" * 120)
+            self.task_manager.queue_log("FLOWS - TABLEAU RECAPITULATIF")
+            self.task_manager.queue_log("-" * 120)
+            self.task_manager.queue_log("")
             
-            for flow in snapshot.flows:
-                if flow.name in coverage_data:
-                    info = coverage_data[flow.name]
+            flow_header = f"{'Nom du flow':<60} {'Blocs testes':<20} {'Total blocs':<20} {'Couverture':<20}"
+            self.task_manager.queue_log(flow_header)
+            self.task_manager.queue_log("-" * 120)
+            
+            for name in sorted(coverage_data.keys()):
+                info = coverage_data[name]
+                # Check if this is Flow (has elements_total)
+                if "elements_total" in info:
                     covered = info.get("elements_covered", 0)
                     total = info.get("elements_total", 0)
                     pct = info.get("percentage", 0)
-                    flows_lines.append(f"{flow.name:<50} {covered:<15} {total:<15} {pct:.1f}%")
-                else:
-                    flows_lines.append(f"{flow.name:<50} {'N/A':<15} {'N/A':<15} {'N/A':<20}")
+                    coverage_str = f"{pct:.1f}%" if total > 0 else "N/A"
+                    block_str = f"{'N/A':<20}" if total == 0 else f"{covered}/{total}"
+                    self.task_manager.queue_log(
+                        f"{name:<60} {block_str:<20} {total:<20} {coverage_str:<20}"
+                    )
             
-            return "\n".join(apex_lines + flows_lines)
-        
-        import tempfile
-        from src.parsers.salesforce_parser import SalesforceParser
-        
-        def on_success(result: str) -> None:
-            self.task_manager.queue_log(result)
+            self.task_manager.queue_log("")
+            self.task_manager.queue_log("=" * 120)
         
         self.task_manager.start_task(
             status_text="Calcul de la couverture...",
             task=task,
-            success_message="Couverture calculee",
-            on_success=on_success,
+            success_message="Couverture calculée",
         )
 
     def _run_org_check_pre_step(
