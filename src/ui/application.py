@@ -625,6 +625,10 @@ class Application(tk.Tk):
             command=self._show_data_dictionary_screen,
         )
         documentation_menu.add_command(
+            label=self._t("menu_calculate_coverage"),
+            command=self._menu_calculate_coverage,
+        )
+        documentation_menu.add_command(
             label=self._t("menu_design_dashboard"),
             command=self._show_dashboard_designer_screen,
         )
@@ -1571,6 +1575,71 @@ class Application(tk.Tk):
             generate_excels_override=False,
             generate_data_dictionary_word_override=True,
             generate_summary_word_override=True,
+        )
+
+    def _menu_calculate_coverage(self) -> None:
+        """Calculate and display test coverage for Apex and Flows."""
+        self._clear_log()
+        selected_org = self._selected_org()
+        if selected_org is None:
+            self.task_manager.queue_log(self._t("select_org_first"))
+            return
+        
+        def task() -> str:
+            """Fetch and format coverage data."""
+            coverage_data = self._fetch_test_coverage(selected_org.org_ref)
+            
+            # Get snapshot to access apex_artifacts and flows
+            manifest_path = self.cli_service.generate_manifest(selected_org.org_ref, Path(tempfile.gettempdir()))
+            retrieved_path = self.cli_service.retrieve_from_org(selected_org.org_ref, Path(tempfile.gettempdir()), manifest_path)
+            
+            parser = SalesforceParser(retrieved_path)
+            snapshot = parser.parse()
+            
+            # Build Apex table
+            apex_lines = ["APEX CLASSES / TRIGGERS", "=" * 100, ""]
+            apex_lines.append(f"{'Nom':<50} {'Testes':<15} {'Total':<15} {'Couverture':<20}")
+            apex_lines.append("-" * 100)
+            
+            for artifact in snapshot.apex_artifacts:
+                if not artifact.is_test:
+                    if artifact.name in coverage_data:
+                        info = coverage_data[artifact.name]
+                        covered = info.get("lines_covered", 0)
+                        total = info.get("lines_total", 0)
+                        pct = info.get("percentage", 0)
+                        apex_lines.append(f"{artifact.name:<50} {covered:<15} {total:<15} {pct:.1f}%")
+                    else:
+                        apex_lines.append(f"{artifact.name:<50} {'N/A':<15} {'N/A':<15} {'N/A':<20}")
+            
+            # Build Flows table
+            flows_lines = ["", "", "FLOWS", "=" * 100, ""]
+            flows_lines.append(f"{'Nom':<50} {'Blocs testes':<15} {'Total':<15} {'Couverture':<20}")
+            flows_lines.append("-" * 100)
+            
+            for flow in snapshot.flows:
+                if flow.name in coverage_data:
+                    info = coverage_data[flow.name]
+                    covered = info.get("elements_covered", 0)
+                    total = info.get("elements_total", 0)
+                    pct = info.get("percentage", 0)
+                    flows_lines.append(f"{flow.name:<50} {covered:<15} {total:<15} {pct:.1f}%")
+                else:
+                    flows_lines.append(f"{flow.name:<50} {'N/A':<15} {'N/A':<15} {'N/A':<20}")
+            
+            return "\n".join(apex_lines + flows_lines)
+        
+        import tempfile
+        from src.parsers.salesforce_parser import SalesforceParser
+        
+        def on_success(result: str) -> None:
+            self.task_manager.queue_log(result)
+        
+        self.task_manager.start_task(
+            status_text="Calcul de la couverture...",
+            task=task,
+            success_message="Couverture calculee",
+            on_success=on_success,
         )
 
     def _run_org_check_pre_step(
