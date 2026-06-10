@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING, Callable
 
 from src.core.models import (
     DEFAULT_ADOPT_ADAPT_THRESHOLDS,
+    DEFAULT_DATA_MODEL_THRESHOLDS,
+    DEFAULT_PROFILES_THRESHOLDS,
     DEFAULT_SCORING_THRESHOLDS,
     CustomizationMetrics,
 )
@@ -97,12 +99,48 @@ ADOPT_ADAPT_THRESHOLDS_SPEC = ThresholdSpec(
 )
 
 
-SPECS: tuple[ThresholdSpec, ThresholdSpec] = (
-    SCORING_THRESHOLDS_SPEC,
-    ADOPT_ADAPT_THRESHOLDS_SPEC,
+DATA_MODEL_THRESHOLDS_SPEC = ThresholdSpec(
+    title_key="thresholds_data_model_title",
+    description_key="thresholds_data_model_description",
+    section_label_key="thresholds_data_model_section",
+    threshold_attr="data_model_thresholds",
+    metrics_attr="data_model_thresholds",
+    score_label_key="data_model_score_label",
+    level_label_key="data_model_level_label",
+    defaults=DEFAULT_DATA_MODEL_THRESHOLDS,
+    level_low_key="data_model_level_label_bas",
+    level_medium_key="data_model_level_label_moyen",
+    level_high_key="data_model_level_label_haut",
+    level_very_high_key="data_model_level_label_tres_haut",
+    level_resolver=lambda metrics: metrics.data_model_level,
+    score_resolver=lambda metrics: metrics.data_model_score,
 )
 
 
+PROFILES_THRESHOLDS_SPEC = ThresholdSpec(
+    title_key="thresholds_profiles_title",
+    description_key="thresholds_profiles_description",
+    section_label_key="thresholds_profiles_section",
+    threshold_attr="profiles_thresholds",
+    metrics_attr="profiles_thresholds",
+    score_label_key="profiles_score_label",
+    level_label_key="profiles_level_label",
+    defaults=DEFAULT_PROFILES_THRESHOLDS,
+    level_low_key="profiles_level_label_bas",
+    level_medium_key="profiles_level_label_moyen",
+    level_high_key="profiles_level_label_haut",
+    level_very_high_key="profiles_level_label_tres_haut",
+    level_resolver=lambda metrics: metrics.profiles_level,
+    score_resolver=lambda metrics: metrics.profiles_score,
+)
+
+
+SPECS: tuple[ThresholdSpec, ...] = (
+    SCORING_THRESHOLDS_SPEC,
+    ADOPT_ADAPT_THRESHOLDS_SPEC,
+    DATA_MODEL_THRESHOLDS_SPEC,
+    PROFILES_THRESHOLDS_SPEC,
+)
 # ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------

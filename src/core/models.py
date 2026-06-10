@@ -282,6 +282,14 @@ DEFAULT_ADOPT_ADAPT_WEIGHTS: dict[str, int] = {
 # value is the lowest level, and so on. Four levels are produced.
 DEFAULT_SCORING_THRESHOLDS: tuple[int, int, int] = (50, 150, 350)
 DEFAULT_ADOPT_ADAPT_THRESHOLDS: tuple[int, int, int] = (100, 300, 600)
+# Data model personalisation: based on the custom_objects count.
+# 30 / 60 / 90 custom objects is a meaningful low / medium / high threshold
+# for a typical Salesforce org.
+DEFAULT_DATA_MODEL_THRESHOLDS: tuple[int, int, int] = (30, 60, 90)
+# Profiles personalisation: based on the profiles count.
+# 10 / 30 / 60 profiles is a meaningful low / medium / high threshold
+# for a typical Salesforce org.
+DEFAULT_PROFILES_THRESHOLDS: tuple[int, int, int] = (10, 30, 60)
 
 
 @dataclass(slots=True)
@@ -312,6 +320,9 @@ class CustomizationMetrics:
     adopt_adapt_weights: dict[str, int] | None = None
     scoring_thresholds: tuple[int, int, int] | None = None
     adopt_adapt_thresholds: tuple[int, int, int] | None = None
+    data_model_thresholds: tuple[int, int, int] | None = None
+    profiles_count: int = 0
+    profiles_thresholds: tuple[int, int, int] | None = None
 
     def _weight(self, key: str) -> int:
         if self.weights is not None:
@@ -437,6 +448,44 @@ class CustomizationMetrics:
         if score < high:
             return "Adapt (Medium Customization)"
         return "Adapt (High Customization)"
+
+    @property
+    def data_model_score(self) -> int:
+        """Nombre d'objets custom — indicateur de personnalisation du data model."""
+        return self.custom_objects
+
+    @property
+    def data_model_level(self) -> str:
+        low, medium, high = (
+            self.data_model_thresholds or DEFAULT_DATA_MODEL_THRESHOLDS
+        )
+        score = self.data_model_score
+        if score < low:
+            return "Bas"
+        if score < medium:
+            return "Moyen"
+        if score < high:
+            return "Haut"
+        return "Tres haut"
+
+    @property
+    def profiles_score(self) -> int:
+        """Nombre de profils — indicateur de personnalisation de la sécurité."""
+        return self.profiles_count
+
+    @property
+    def profiles_level(self) -> str:
+        low, medium, high = (
+            self.profiles_thresholds or DEFAULT_PROFILES_THRESHOLDS
+        )
+        score = self.profiles_score
+        if score < low:
+            return "Bas"
+        if score < medium:
+            return "Moyen"
+        if score < high:
+            return "Haut"
+        return "Tres haut"
 
 
 @dataclass(slots=True)

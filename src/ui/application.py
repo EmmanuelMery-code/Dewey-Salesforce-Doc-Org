@@ -328,6 +328,8 @@ class Application(tk.Tk):
         self.adopt_adapt_weights = self._load_adopt_adapt_weights(self.settings)
         self.scoring_thresholds = self._load_scoring_thresholds(self.settings)
         self.adopt_adapt_thresholds = self._load_adopt_adapt_thresholds(self.settings)
+        self.data_model_thresholds = self._load_data_model_thresholds(self.settings)
+        self.profiles_thresholds = self._load_profiles_thresholds(self.settings)
         self.ai_usage_tags: list[str] = parse_ai_tags(self.settings)
         self._ai_tags_listbox: tk.Listbox | None = None
         self.posture_config: list[PostureCapabilityConfig] = parse_posture_config(
@@ -836,6 +838,24 @@ class Application(tk.Tk):
             settings, "adopt_adapt_thresholds", DEFAULT_ADOPT_ADAPT_THRESHOLDS
         )
 
+    def _load_data_model_thresholds(
+        self, settings: dict[str, Any]
+    ) -> tuple[int, int, int]:
+        from src.core.models import DEFAULT_DATA_MODEL_THRESHOLDS
+
+        return parse_thresholds(
+            settings, "data_model_thresholds", DEFAULT_DATA_MODEL_THRESHOLDS
+        )
+
+    def _load_profiles_thresholds(
+        self, settings: dict[str, Any]
+    ) -> tuple[int, int, int]:
+        from src.core.models import DEFAULT_PROFILES_THRESHOLDS
+
+        return parse_thresholds(
+            settings, "profiles_thresholds", DEFAULT_PROFILES_THRESHOLDS
+        )
+
     def _current_index_card_visibility(self) -> IndexCardVisibility:
         """Build the visibility object passed to the orchestrator.
 
@@ -936,6 +956,8 @@ class Application(tk.Tk):
             "adopt_adapt_weights": dict(self.adopt_adapt_weights),
             "scoring_thresholds": list(self.scoring_thresholds),
             "adopt_adapt_thresholds": list(self.adopt_adapt_thresholds),
+            "data_model_thresholds": list(self.data_model_thresholds),
+            "profiles_thresholds": list(self.profiles_thresholds),
             "ai_usage_tags": list(self.ai_usage_tags),
             "posture_adopt_adapt": serialize_posture_config(self.posture_config),
             "dd_html": self.settings.get("dd_html", True),
@@ -1382,6 +1404,8 @@ class Application(tk.Tk):
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),
                 adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
+                data_model_thresholds=tuple(self.data_model_thresholds),
+                profiles_thresholds=tuple(self.profiles_thresholds),
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
                 test_coverage_data=test_coverage,
@@ -1528,6 +1552,8 @@ class Application(tk.Tk):
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),
                 adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
+                data_model_thresholds=tuple(self.data_model_thresholds),
+                profiles_thresholds=tuple(self.profiles_thresholds),
                 ai_usage_tags=list(self.ai_usage_tags),
                 posture_config=list(self.posture_config),
                 test_coverage_data=test_coverage,

@@ -39,6 +39,7 @@ from src.reporting.html.renderers import (
     ai_components as ai_components_renderer,
     innovation as innovation_renderer,
     index as index_renderer,
+    listing as listing_renderer,
     methodology as methodology_renderer,
     objects as objects_renderer,
     omni as omni_renderer,
@@ -259,12 +260,18 @@ class HtmlReportWriter:
     def write_methodology_page(
         self,
         posture_config: list[PostureCapabilityConfig] | None = None,
+        data_model_thresholds: tuple[int, int, int] | None = None,
+        profiles_thresholds: tuple[int, int, int] | None = None,
     ) -> Path:
+        from src.core.models import DEFAULT_DATA_MODEL_THRESHOLDS, DEFAULT_PROFILES_THRESHOLDS
+
         return methodology_renderer.write_methodology_page(
             self.output_dir,
             self.assets_dir,
             self.log,
             posture_config=posture_config,
+            data_model_thresholds=data_model_thresholds or DEFAULT_DATA_MODEL_THRESHOLDS,
+            profiles_thresholds=profiles_thresholds or DEFAULT_PROFILES_THRESHOLDS,
         )
 
     def write_debt_page(
@@ -289,6 +296,29 @@ class HtmlReportWriter:
             self.log,
         )
 
+    def write_listing_pages(
+        self,
+        snapshot: MetadataSnapshot,
+        object_pages: dict[str, Path],
+        apex_pages: dict[str, Path],
+        flow_pages: dict[str, Path],
+        omni_pages: dict[str, list[dict[str, object]]],
+        agent_pages: dict[str, Path],
+        prompt_pages: dict[str, Path],
+    ) -> dict[str, Path]:
+        return listing_renderer.write_listing_pages(
+            snapshot,
+            object_pages,
+            apex_pages,
+            flow_pages,
+            omni_pages,
+            agent_pages,
+            prompt_pages,
+            self.output_dir,
+            self.assets_dir,
+            self.log,
+        )
+
     def write_index(
         self,
         snapshot: MetadataSnapshot,
@@ -301,6 +331,7 @@ class HtmlReportWriter:
         omni_pages: dict[str, list[dict[str, object]]] | None = None,
         agent_pages: dict[str, Path] | None = None,
         prompt_pages: dict[str, Path] | None = None,
+        listing_pages: dict[str, Path] | None = None,
         *,
         analyzer_report=None,
         ai_usage_entries: list[AIUsageEntry] | None = None,
@@ -330,6 +361,7 @@ class HtmlReportWriter:
             omni_pages=omni_pages,
             agent_pages=agent_pages,
             prompt_pages=prompt_pages,
+            listing_pages=listing_pages,
             analyzer_report=analyzer_report,
             ai_usage_entries=ai_usage_entries,
             ai_usage_page=ai_usage_page,
