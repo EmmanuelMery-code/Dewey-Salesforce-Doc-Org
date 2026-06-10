@@ -493,6 +493,8 @@ def _format_evidence(label: str, items: list[str]) -> str:
 
 
 def _assess_data_model(snapshot: MetadataSnapshot) -> tuple[CapabilityLevel, list[str]]:
+    from src.core.models import DEFAULT_DATA_MODEL_THRESHOLDS
+
     custom_objects = [obj for obj in snapshot.objects if obj.custom]
     custom_fields_total = sum(
         1 for obj in snapshot.objects for f in obj.fields if f.custom
@@ -507,15 +509,28 @@ def _assess_data_model(snapshot: MetadataSnapshot) -> tuple[CapabilityLevel, lis
         )
     if custom_fields_total:
         evidence.append(f"{custom_fields_total} champ(s) custom au total")
+    if not evidence:
+        evidence = ["Aucun objet ni champ custom detecte"]
 
-    if not custom_objects and custom_fields_total == 0:
-        return CapabilityLevel.ADOPT, ["Aucun objet ni champ custom detecte"]
-    if len(custom_objects) <= 3:
+    thresholds = (
+        getattr(getattr(snapshot, "metrics", None), "data_model_thresholds", None)
+        or DEFAULT_DATA_MODEL_THRESHOLDS
+    )
+    low, medium, high = thresholds
+    count = len(custom_objects)
+
+    if count < low:
+        return CapabilityLevel.ADOPT, evidence
+    if count < medium:
+        return CapabilityLevel.ADOPT_DECLARATIVE, evidence
+    if count < high:
         return CapabilityLevel.ADAPT_LOW, evidence
     return CapabilityLevel.ADAPT_HIGH, evidence
 
 
 def _assess_security(snapshot: MetadataSnapshot) -> tuple[CapabilityLevel, list[str]]:
+    from src.core.models import DEFAULT_PROFILES_THRESHOLDS
+
     custom_profiles = [p for p in snapshot.profiles if _is_custom_profile(p)]
     permission_sets = snapshot.permission_sets
 
@@ -534,12 +549,23 @@ def _assess_security(snapshot: MetadataSnapshot) -> tuple[CapabilityLevel, list[
                 [p.name for p in permission_sets],
             )
         )
+    if not evidence:
+        evidence = ["Profils standards uniquement, pas de permission set"]
 
-    if custom_profiles:
-        return CapabilityLevel.ADAPT_HIGH, evidence
-    if permission_sets:
+    thresholds = (
+        getattr(getattr(snapshot, "metrics", None), "profiles_thresholds", None)
+        or DEFAULT_PROFILES_THRESHOLDS
+    )
+    low, medium, high = thresholds
+    count = len(custom_profiles)
+
+    if count < low:
+        return CapabilityLevel.ADOPT, evidence
+    if count < medium:
+        return CapabilityLevel.ADOPT_DECLARATIVE, evidence
+    if count < high:
         return CapabilityLevel.ADAPT_LOW, evidence
-    return CapabilityLevel.ADOPT, ["Profils standards uniquement, pas de permission set"]
+    return CapabilityLevel.ADAPT_HIGH, evidence
 
 
 def _assess_automation(snapshot: MetadataSnapshot) -> tuple[CapabilityLevel, list[str]]:

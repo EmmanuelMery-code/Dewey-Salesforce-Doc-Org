@@ -295,6 +295,7 @@ class SalesforceMetadataParser:
         metrics.apex_triggers = sum(1 for item in snapshot.apex_artifacts if item.kind == "trigger")
         metrics.agents = len(snapshot.agents)
         metrics.gen_ai_prompts = len(snapshot.gen_ai_prompts)
+        metrics.profiles_count = len(snapshot.profiles)
         snapshot.metrics = metrics
         return snapshot
 

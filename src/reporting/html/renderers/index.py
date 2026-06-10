@@ -305,6 +305,7 @@ def render_index(
     omni_pages: dict[str, list[dict[str, object]]],
     agent_pages: dict[str, Path] = None,
     prompt_pages: dict[str, Path] = None,
+    listing_pages: dict[str, Path] = None,
     analyzer_report=None,
     ai_usage_entries: list[AIUsageEntry] | None = None,
     ai_usage_page: Path | None = None,
@@ -322,6 +323,14 @@ def render_index(
 ) -> str:
     metrics = snapshot.metrics
     visibility = card_visibility or IndexCardVisibility()
+    listing = listing_pages or {}
+
+    def _listing_link(key: str, title: str, count: int) -> str:
+        """Wrap title in a link to the listing page when count > 0 and page exists."""
+        page = listing.get(key)
+        if count > 0 and page:
+            return f"<a href='{href_relative(current_path, page)}' style='color:inherit;text-decoration:none;'>{title}</a>"
+        return title
     
     # Use the provided root_output_dir or fall back to output_dir's parent if it's named 'html'
     root_dir = root_output_dir
@@ -535,27 +544,21 @@ def render_index(
     )
     
     # Calculate Apex and Flow coverage averages
-    apex_coverage_avg = 0.0
-    apex_count = 0
+    apex_covered = 0
+    apex_to_cover = 0
     for artifact in snapshot.apex_artifacts:
         if not artifact.is_test and artifact.test_coverage is not None:
-            apex_coverage_avg += artifact.test_coverage
-            apex_count += 1
-    if apex_count > 0:
-        apex_coverage_avg = apex_coverage_avg / apex_count
-    else:
-        apex_coverage_avg = None
+            apex_covered += artifact.test_coverage_lines_covered
+            apex_to_cover += artifact.test_coverage_lines_covered + artifact.test_coverage_lines_uncovered
+    apex_coverage_avg = (apex_covered / apex_to_cover * 100) if apex_to_cover > 0 else None
     
-    flow_coverage_avg = 0.0
-    flow_count = 0
+    flow_covered = 0
+    flow_to_cover = 0
     for flow in snapshot.flows:
         if flow.test_coverage is not None:
-            flow_coverage_avg += flow.test_coverage
-            flow_count += 1
-    if flow_count > 0:
-        flow_coverage_avg = flow_coverage_avg / flow_count
-    else:
-        flow_coverage_avg = None
+            flow_covered += flow.test_coverage_elements_covered
+            flow_to_cover += flow.test_coverage_elements_covered + flow.test_coverage_elements_uncovered
+    flow_coverage_avg = (flow_covered / flow_to_cover * 100) if flow_to_cover > 0 else None
     
     # Build coverage detail string - show only Apex and Flows, no org average
     apex_str = f"Apex: {apex_coverage_avg:.1f}%" if apex_coverage_avg is not None else "Apex: N/A"
@@ -605,31 +608,31 @@ def render_index(
         else ""
     )
     custom_objects_card = (
-        f'  <div class="card"><span>Objets custom <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("objects", "Objets custom", metrics.custom_objects)} <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
         f'<span class="value">{metrics.custom_objects}</span></div>\n'
         if visibility.show_custom_objects
         else ""
     )
     custom_fields_card = (
-        f'  <div class="card"><span>Champs custom <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("fields", "Champs custom", metrics.custom_fields)} <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
         f'<span class="value">{metrics.custom_fields}</span></div>\n'
         if visibility.show_custom_fields
         else ""
     )
     flows_card = (
-        f'  <div class="card"><span>Flows <small style="color: #64748b; font-weight: normal;">(Low-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("flows", "Flows", metrics.flows)} <small style="color: #64748b; font-weight: normal;">(Low-code)</small></span>'
         f'<span class="value">{metrics.flows}</span></div>\n'
         if visibility.show_flows
         else ""
     )
     apex_classes_triggers_card = (
-        f'  <div class="card"><span>Classes / Triggers <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("apex", "Classes / Triggers", metrics.apex_classes + metrics.apex_triggers)} <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
         f'<span class="value">{metrics.apex_classes + metrics.apex_triggers}</span></div>\n'
         if visibility.show_apex_classes_triggers
         else ""
     )
     omni_components_card = (
-        f'  <div class="card"><span>Composants Omni <small style="color: #64748b; font-weight: normal;">(Low-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("omni", "Composants Omni", omni_total)} <small style="color: #64748b; font-weight: normal;">(Low-code)</small></span>'
         f'<span class="value">{omni_total}</span></div>\n'
         if visibility.show_omni_components
         else ""
@@ -641,13 +644,13 @@ def render_index(
         else ""
     )
     agents_card = (
-        f'  <div class="card"><span>Agents <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("agents", "Agents", metrics.agents)} <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
         f'<span class="value">{metrics.agents}</span></div>\n'
         if visibility.show_agents
         else ""
     )
     prompts_card = (
-        f'  <div class="card"><span>Prompts <small style="color: #64748b; font-weight: normal;">(Low-code)</small></span>'
+        f'  <div class="card"><span>{_listing_link("prompts", "Prompts", metrics.gen_ai_prompts)} <small style="color: #64748b; font-weight: normal;">(Low-code)</small></span>'
         f'<span class="value">{metrics.gen_ai_prompts}</span></div>\n'
         if visibility.show_gen_ai_prompts
         else ""
@@ -970,6 +973,7 @@ def write_index(
     omni_pages: dict[str, list[dict[str, object]]] | None = None,
     agent_pages: dict[str, Path] | None = None,
     prompt_pages: dict[str, Path] | None = None,
+    listing_pages: dict[str, Path] | None = None,
     *,
     analyzer_report=None,
     ai_usage_entries: list[AIUsageEntry] | None = None,
@@ -1003,6 +1007,7 @@ def write_index(
             omni_pages or {},
             agent_pages or {},
             prompt_pages or {},
+            listing_pages or {},
             analyzer_report,
             ai_usage_entries=ai_usage_entries,
             ai_usage_page=ai_usage_page,
