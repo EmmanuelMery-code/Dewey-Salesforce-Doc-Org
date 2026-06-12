@@ -357,6 +357,14 @@ def render_index(
         for item in snapshot.permission_sets
     ) or "<tr><td colspan='3' class='empty'>Aucun permission set analyse.</td></tr>"
 
+    TYPE_LABELS_SR = {"criteria": "Critères", "owner": "Propriétaire", "guest": "Utilisateur invité", "territory": "Territoire"}
+    sharing_rule_rows = "".join(
+        f"<tr><td>{html_value(r.object_name)}</td><td>{html_value(r.full_name)}</td>"
+        f"<td>{html_value(TYPE_LABELS_SR.get(r.rule_type, r.rule_type))}</td>"
+        f"<td>{html_value(r.label)}</td><td>{html_value(r.description)}</td></tr>"
+        for r in snapshot.sharing_rules
+    ) or "<tr><td colspan='5' class='empty'>Aucune sharing rule analysée.</td></tr>"
+
     apex_rows = "".join(
         f"<tr><td><a href='{href_relative(current_path, apex_pages[item.name])}'>{html_value(item.name)}</a></td>"
         f"<td>{html_value(item.kind)}</td><td>{item.line_count}</td><td>{item.method_count}</td>"
@@ -442,6 +450,10 @@ def render_index(
             (
                 "Permission Sets",
                 f"<table><thead><tr><th>Permission Set</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>",
+            ),
+            (
+                "Sharing Rules",
+                f"<table><thead><tr><th>Objet</th><th>Nom</th><th>Type</th><th>Label</th><th>Description</th></tr></thead><tbody>{sharing_rule_rows}</tbody></table>",
             ),
             (
                 "Apex / Trigger",
@@ -655,6 +667,12 @@ def render_index(
         if visibility.show_gen_ai_prompts
         else ""
     )
+    sharing_rules_card = (
+        f'  <div class="card"><span>{_listing_link("sharing_rules", "Sharing Rules", metrics.sharing_rules)} <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
+        f'<span class="value">{metrics.sharing_rules}</span></div>\n'
+        if visibility.show_sharing_rules
+        else ""
+    )
 
     # Build the 4 new tabs
     summary_tabs_sections = []
@@ -663,7 +681,7 @@ def render_index(
     desc_content = "".join([
         custom_objects_card, custom_fields_card, flows_card, 
         apex_classes_triggers_card, omni_components_card, 
-        predictions_card, agents_card, prompts_card
+        predictions_card, agents_card, prompts_card, sharing_rules_card
     ])
     if desc_content.strip():
         summary_tabs_sections.append(("Description", f'<div class="cards">{desc_content}</div>'))

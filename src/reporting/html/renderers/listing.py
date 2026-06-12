@@ -391,6 +391,59 @@ def write_prompts_list_page(
 
 
 # ---------------------------------------------------------------------------
+# Sharing Rules
+# ---------------------------------------------------------------------------
+
+
+def write_sharing_rules_list_page(
+    snapshot: MetadataSnapshot,
+    output_dir: Path,
+    assets_dir: Path,
+    log: LogCallback,
+) -> Path | None:
+    if not snapshot.sharing_rules:
+        return None
+
+    path = output_dir / "sharing_rules_list.html"
+    back = index_back_link(path, output_dir)
+
+    # Group by object
+    by_object: dict[str, list] = {}
+    for rule in snapshot.sharing_rules:
+        by_object.setdefault(rule.object_name, []).append(rule)
+
+    TYPE_LABELS = {
+        "criteria": "Critères",
+        "owner": "Propriétaire",
+        "guest": "Utilisateur invité",
+        "territory": "Territoire",
+    }
+
+    sections: list[str] = []
+    for obj_name in sorted(by_object.keys(), key=str.lower):
+        rules = by_object[obj_name]
+        rows = [
+            f"<tr>"
+            f"<td>{html_value(r.full_name)}</td>"
+            f"<td>{html_value(TYPE_LABELS.get(r.rule_type, r.rule_type))}</td>"
+            f"<td>{html_value(r.label)}</td>"
+            f"<td>{html_value(r.description)}</td>"
+            f"</tr>"
+            for r in rules
+        ]
+        table = _table(["Nom", "Type", "Label", "Description"], rows)
+        sections.append(
+            f"<h2>{html_value(obj_name)} <small style='font-weight:normal;color:#64748b;'>"
+            f"({len(rules)} règle(s))</small></h2>{table}"
+        )
+
+    body = f"{back}<h1>Sharing Rules ({len(snapshot.sharing_rules)})</h1>{''.join(sections)}"
+    _write(path, "Sharing Rules", body, assets_dir)
+    log(f"Page liste Sharing Rules générée : {path}")
+    return path
+
+
+# ---------------------------------------------------------------------------
 # Entry point — write all listing pages at once
 # ---------------------------------------------------------------------------
 
@@ -442,5 +495,9 @@ def write_listing_pages(
     result = write_prompts_list_page(snapshot, prompt_pages, output_dir, assets_dir, log)
     if result:
         pages["prompts"] = result
+
+    result = write_sharing_rules_list_page(snapshot, output_dir, assets_dir, log)
+    if result:
+        pages["sharing_rules"] = result
 
     return pages

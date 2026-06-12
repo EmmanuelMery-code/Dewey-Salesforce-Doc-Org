@@ -26,6 +26,7 @@ from src.core.models import (
     RecordTypeVisibility,
     RelationshipInfo,
     SecurityArtifact,
+    SharingRuleInfo,
     UserPermission,
     ValidationRuleInfo,
     VisibilityItem,
@@ -134,6 +135,7 @@ class SalesforceMetadataParser:
         flows: list[FlowInfo] = []
         agents: list[AgentInfo] = []
         gen_ai_prompts: list[GenAiPromptInfo] = []
+        sharing_rules: list[SharingRuleInfo] = []
         metrics = CustomizationMetrics()
 
         for package_root in package_roots:
@@ -169,6 +171,11 @@ class SalesforceMetadataParser:
             prompts_found = self._parse_gen_ai_prompts(package_root / "genAiPromptTemplates")
             self.log(f"  - {len(prompts_found)} prompt(s) trouve(s)")
             gen_ai_prompts.extend(prompts_found)
+
+            sr_found = self._parse_sharing_rules(package_root / "sharingRules")
+            self.log(f"  - {len(sr_found)} sharing rule(s) trouve(e)s")
+            sharing_rules.extend(sr_found)
+            metrics.sharing_rules += len(sr_found)
 
             metrics.lwc_count += len(
                 [
@@ -248,6 +255,7 @@ class SalesforceMetadataParser:
         snapshot.flows = sorted(flows, key=lambda item: item.name.lower())
         snapshot.agents = sorted(agents, key=lambda item: item.name.lower())
         snapshot.gen_ai_prompts = sorted(gen_ai_prompts, key=lambda item: item.name.lower())
+        snapshot.sharing_rules = sorted(sharing_rules, key=lambda item: (item.object_name.lower(), item.full_name.lower()))
 
         snapshot.profiles = [
             item
@@ -1170,6 +1178,45 @@ class SalesforceMetadataParser:
                 )
             )
         return prompts
+
+    def _parse_sharing_rules(self, folder: Path) -> list[SharingRuleInfo]:
+        """Parse all .sharingRules-meta.xml files, skipping empty ones."""
+        rules: list[SharingRuleInfo] = []
+        if not folder.exists():
+            return rules
+
+        TYPE_MAP = {
+            "sharingCriteriaRules": "criteria",
+            "sharingOwnerRules": "owner",
+            "sharingGuestRules": "guest",
+            "sharingTerritoryRules": "territory",
+        }
+
+        for sr_file in sorted(folder.glob("*.sharingRules-meta.xml")):
+            object_name = sr_file.name.replace(".sharingRules-meta.xml", "")
+            root = parse_xml(sr_file)
+            if root is None:
+                continue
+            # Skip files whose root element has no children (= empty sharing rules)
+            if len(list(root)) == 0:
+                continue
+            for xml_tag, rule_type in TYPE_MAP.items():
+                for rule_el in root.findall(f"sf:{xml_tag}", SF_NS):
+                    full_name = child_text(rule_el, "fullName") or child_text(rule_el, "label") or ""
+                    label = child_text(rule_el, "label") or ""
+                    description = child_text(rule_el, "description") or ""
+                    if not full_name:
+                        continue
+                    rules.append(
+                        SharingRuleInfo(
+                            full_name=full_name,
+                            object_name=object_name,
+                            rule_type=rule_type,
+                            label=label,
+                            description=description,
+                        )
+                    )
+        return rules
 
     def _safe_relative_path(self, path: Path) -> str:
         try:

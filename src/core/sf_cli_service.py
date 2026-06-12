@@ -307,3 +307,21 @@ class SalesforceCliService:
         return_code = process.wait()
         if return_code != 0:
             raise RuntimeError(f"La commande Salesforce CLI a echoue ({return_code}).")
+
+    def run_apex_tests(self, org_ref: str, wait_minutes: int = 60) -> None:
+        """Execute all local Apex tests and stream output to the log.
+
+        Blocks until the test run completes (or ``wait_minutes`` is exceeded).
+        Failures are logged as warnings and do not interrupt the caller.
+        """
+        command = [
+            self.sf_executable, "apex", "run", "test",
+            "--test-level", "RunLocalTests",
+            "--result-format", "human",
+            "--wait", str(wait_minutes),
+            "--target-org", org_ref,
+        ]
+        try:
+            self._run_streaming(command)
+        except Exception as exc:
+            self._emit_log(f"[AVERTISSEMENT] L'execution des tests a echoue ({exc}). L'execution continue.")
