@@ -128,6 +128,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 target_name=artifact.name,
                 message="Une requete SOQL apparait potentiellement dans une boucle.",
                 source_path=artifact.source_path,
+                line=artifact.query_in_loop_line,
             )
         )
 
@@ -141,6 +142,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 target_name=artifact.name,
                 message="Un DML apparait potentiellement dans une boucle.",
                 source_path=artifact.source_path,
+                line=artifact.dml_in_loop_line,
             )
         )
 
@@ -274,10 +276,15 @@ def _analyze_trigger(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Findi
     rule = catalog.get("TRIG-PERF-001")
     if rule and rule.enabled and (artifact.query_in_loop or artifact.dml_in_loop):
         parts = []
+        candidate_lines = []
         if artifact.query_in_loop:
             parts.append("SOQL dans une boucle")
+            if artifact.query_in_loop_line is not None:
+                candidate_lines.append(artifact.query_in_loop_line)
         if artifact.dml_in_loop:
             parts.append("DML dans une boucle")
+            if artifact.dml_in_loop_line is not None:
+                candidate_lines.append(artifact.dml_in_loop_line)
         findings.append(
             Finding(
                 rule=rule,
@@ -285,6 +292,7 @@ def _analyze_trigger(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Findi
                 target_name=artifact.name,
                 message="Operations de donnees potentiellement dans une boucle : " + ", ".join(parts) + ".",
                 source_path=artifact.source_path,
+                line=min(candidate_lines) if candidate_lines else None,
             )
         )
 

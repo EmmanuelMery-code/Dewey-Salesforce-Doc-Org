@@ -702,15 +702,15 @@ class SalesforceMetadataParser:
             )
             artifact.sharing_declaration = sharing_match.group(1) if sharing_match else ""
             artifact.is_test = bool(re.search(r"(?i)@isTest\b|\btestMethod\b", body))
-            artifact.query_in_loop = bool(
-                re.search(r"(?is)for\s*\(.*?\)\s*\{.{0,2000}?\[\s*SELECT\b", body)
+            _m_soql = re.search(r"(?is)for\s*\(.*?\)\s*\{.{0,2000}?\[\s*SELECT\b", body)
+            artifact.query_in_loop = bool(_m_soql)
+            artifact.query_in_loop_line = (body[: _m_soql.end()].count("\n") + 1) if _m_soql else None
+            _m_dml = re.search(
+                r"(?is)for\s*\(.*?\)\s*\{.{0,2000}?\b(?:insert|update|upsert|delete|undelete|merge)\b",
+                body,
             )
-            artifact.dml_in_loop = bool(
-                re.search(
-                    r"(?is)for\s*\(.*?\)\s*\{.{0,2000}?\b(?:insert|update|upsert|delete|undelete|merge)\b",
-                    body,
-                )
-            )
+            artifact.dml_in_loop = bool(_m_dml)
+            artifact.dml_in_loop_line = (body[: _m_dml.end()].count("\n") + 1) if _m_dml else None
             artifacts.append(artifact)
 
         return artifacts
