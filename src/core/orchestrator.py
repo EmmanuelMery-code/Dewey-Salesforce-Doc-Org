@@ -275,6 +275,7 @@ class SalesforceDocumentationGenerator:
                 agents=metrics.agents,
                 gen_ai_prompts=metrics.gen_ai_prompts,
                 einstein_predictions=metrics.einstein_predictions,
+                sharing_rules=metrics.sharing_rules,
                 findings_total=len(analyzer_report.all_findings()),
                 findings_critical=sev_counts.get("Critical", 0),
                 findings_major=sev_counts.get("Major", 0),

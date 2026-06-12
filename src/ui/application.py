@@ -1532,7 +1532,16 @@ class Application(tk.Tk):
         def task() -> GenerationResult:
             test_coverage = None
             if selected_org:
-                self.task_manager.queue_log("Recuperation de la couverture de tests...")
+                self.task_manager.queue_log("")
+                self.task_manager.queue_log("=" * 80)
+                self.task_manager.queue_log("EXECUTION DES TESTS APEX (RunLocalTests)")
+                self.task_manager.queue_log("Vous pouvez suivre l'avancement dans votre org :")
+                self.task_manager.queue_log("  Configuration > Apex > Execution des tests Apex")
+                self.task_manager.queue_log("=" * 80)
+                self.task_manager.queue_log("")
+                self.cli_service.run_apex_tests(selected_org.org_ref)
+                self.task_manager.queue_log("")
+                self.task_manager.queue_log("Tests termines. Recuperation de la couverture de tests...")
                 test_coverage = self._fetch_test_coverage(selected_org.org_ref)
 
             self._run_org_check_pre_step(
@@ -1620,7 +1629,18 @@ class Application(tk.Tk):
             self.task_manager.queue_log("CALCUL DE LA COUVERTURE DE TESTS")
             self.task_manager.queue_log("=" * 120)
             self.task_manager.queue_log("")
-            
+
+            self.task_manager.queue_log("=" * 120)
+            self.task_manager.queue_log("EXECUTION DES TESTS APEX (RunLocalTests)")
+            self.task_manager.queue_log("Vous pouvez suivre l'avancement dans votre org :")
+            self.task_manager.queue_log("  Configuration > Apex > Execution des tests Apex")
+            self.task_manager.queue_log("=" * 120)
+            self.task_manager.queue_log("")
+            self.cli_service.run_apex_tests(org_ref)
+            self.task_manager.queue_log("")
+            self.task_manager.queue_log("Tests termines. Recuperation des resultats de couverture...")
+            self.task_manager.queue_log("")
+
             # Fetch coverage data (this will also log the raw results)
             coverage_data = self._fetch_test_coverage(org_ref)
             

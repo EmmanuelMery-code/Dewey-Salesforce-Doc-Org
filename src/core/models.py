@@ -313,6 +313,7 @@ class CustomizationMetrics:
     agents: int = 0
     gen_ai_prompts: int = 0
     einstein_predictions: int = 0
+    sharing_rules: int = 0
     lwc_count: int = 0
     flexipage_count: int = 0
     test_coverage: float | None = None  # Global org test coverage
@@ -489,6 +490,15 @@ class CustomizationMetrics:
 
 
 @dataclass(slots=True)
+class SharingRuleInfo:
+    full_name: str
+    object_name: str
+    rule_type: str  # "criteria", "owner", "guest"
+    label: str = ""
+    description: str = ""
+
+
+@dataclass(slots=True)
 class AgentInfo:
     name: str
     label: str = ""
@@ -543,6 +553,7 @@ class MetadataSnapshot:
     flows: list[FlowInfo] = field(default_factory=list)
     agents: list[AgentInfo] = field(default_factory=list)
     gen_ai_prompts: list[GenAiPromptInfo] = field(default_factory=list)
+    sharing_rules: list[SharingRuleInfo] = field(default_factory=list)
     technical_debt: list[TechnicalDebtItem] = field(default_factory=list)
     deviations: list[DeviationItem] = field(default_factory=list)
     innovations: list[InnovationItem] = field(default_factory=list)

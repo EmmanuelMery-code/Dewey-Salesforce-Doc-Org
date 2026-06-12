@@ -125,6 +125,7 @@ def show_history_screen(app: Application) -> None:
                     app._t("scoring_component_custom_objects"),
                     app._t("scoring_component_custom_fields"), app._t("scoring_component_flows"),
                     app._t("configuration_card_apex_classes_triggers"), app._t("configuration_card_omni_components"),
+                    "Sharing Rules",
                     app._t("configuration_card_findings"), 
                     app._t("configuration_rules_severity_critical"),
                     app._t("configuration_rules_severity_major"),
@@ -140,7 +141,7 @@ def show_history_screen(app: Application) -> None:
                         f"{e.test_coverage_apex:.1f}%" if e.test_coverage_apex is not None else "N/A",
                         f"{e.test_coverage_flows:.1f}%" if e.test_coverage_flows is not None else "N/A",
                         e.custom_objects, e.custom_fields, e.flows, e.apex_classes_triggers,
-                        e.omni_components, e.findings_total, 
+                        e.omni_components, e.sharing_rules, e.findings_total, 
                         e.findings_critical, e.findings_major, e.findings_minor, e.findings_info,
                         f"{e.ai_usage_pct:.1f}%",
                         f"{e.data_model_custom_pct:.1f}%", f"{e.data_model_standard_pct:.1f}%",
@@ -250,7 +251,7 @@ def show_history_screen(app: Application) -> None:
 
     columns = (
         "num", "timestamp", "score", "adopt_adapt", "coverage_apex", "coverage_flows", "objects", "fields", 
-        "flows", "apex", "omni", "findings", "crit", "maj", "min", "inf", "ai", "dm_custom", "dm_standard",
+        "flows", "apex", "omni", "sharing_rules", "findings", "crit", "maj", "min", "inf", "ai", "dm_custom", "dm_standard",
         "adoption", "adaptation"
     )
     entry_tree = ttk.Treeview(entry_container, columns=columns, show="headings", selectmode="extended")
@@ -268,6 +269,7 @@ def show_history_screen(app: Application) -> None:
         "flows": (app._t("scoring_component_flows"), 60),
         "apex": (app._t("configuration_card_apex_classes_triggers"), 80),
         "omni": (app._t("configuration_card_omni_components"), 80),
+        "sharing_rules": ("Sharing Rules", 80),
         "findings": (app._t("configuration_card_findings"), 70),
         "crit": (app._t("configuration_rules_severity_critical"), 50),
         "maj": (app._t("configuration_rules_severity_major"), 50),
@@ -474,6 +476,7 @@ def show_history_screen(app: Application) -> None:
                 e.flows,
                 e.apex_classes_triggers,
                 e.omni_components,
+                e.sharing_rules,
                 e.findings_total,
                 e.findings_critical,
                 e.findings_major,
