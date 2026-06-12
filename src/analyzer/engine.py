@@ -21,6 +21,7 @@ from src.analyzer.security_analyzer import (
 from src.core.models import (
     AgentInfo,
     ApexArtifact,
+    DEFAULT_PROFILES_PS_RATIO_THRESHOLDS,
     FlowInfo,
     GenAiPromptInfo,
     MetadataSnapshot,
@@ -268,7 +269,6 @@ class AnalyzerEngine:
             f = analyze_permission_set(ps, self.catalog)
             if f:
                 security_findings[ps.name] = _sorted(f)
-        from src.core.models import DEFAULT_PROFILES_PS_RATIO_THRESHOLDS
         _ratio_thresholds = (
             snapshot.metrics.profiles_ps_ratio_thresholds or DEFAULT_PROFILES_PS_RATIO_THRESHOLDS
         )
