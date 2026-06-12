@@ -22,6 +22,7 @@ from src.core.models import (
     DEFAULT_ADOPT_ADAPT_THRESHOLDS,
     DEFAULT_DATA_MODEL_THRESHOLDS,
     DEFAULT_PROFILES_THRESHOLDS,
+    DEFAULT_PROFILES_PS_RATIO_THRESHOLDS,
     DEFAULT_SCORING_THRESHOLDS,
     CustomizationMetrics,
 )
@@ -135,11 +136,30 @@ PROFILES_THRESHOLDS_SPEC = ThresholdSpec(
 )
 
 
+PROFILES_PS_RATIO_THRESHOLDS_SPEC = ThresholdSpec(
+    title_key="thresholds_profiles_ps_ratio_title",
+    description_key="thresholds_profiles_ps_ratio_description",
+    section_label_key="thresholds_profiles_ps_ratio_section",
+    threshold_attr="profiles_ps_ratio_thresholds",
+    metrics_attr="profiles_ps_ratio_thresholds",
+    score_label_key="profiles_ps_ratio_score_label",
+    level_label_key="profiles_ps_ratio_level_label",
+    defaults=DEFAULT_PROFILES_PS_RATIO_THRESHOLDS,
+    level_low_key="profiles_ps_ratio_level_bon",
+    level_medium_key="profiles_ps_ratio_level_attention",
+    level_high_key="profiles_ps_ratio_level_risque",
+    level_very_high_key="profiles_ps_ratio_level_critique",
+    level_resolver=lambda metrics: metrics.profiles_ps_ratio_level,
+    score_resolver=lambda metrics: metrics.profiles_ps_ratio_score,
+)
+
+
 SPECS: tuple[ThresholdSpec, ...] = (
     SCORING_THRESHOLDS_SPEC,
     ADOPT_ADAPT_THRESHOLDS_SPEC,
     DATA_MODEL_THRESHOLDS_SPEC,
     PROFILES_THRESHOLDS_SPEC,
+    PROFILES_PS_RATIO_THRESHOLDS_SPEC,
 )
 # ---------------------------------------------------------------------------
 # Public entry point

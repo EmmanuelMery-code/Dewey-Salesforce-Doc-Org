@@ -43,6 +43,7 @@ from src.reporting.html.renderers import (
     methodology as methodology_renderer,
     objects as objects_renderer,
     omni as omni_renderer,
+    security as security_renderer,
 )
 
 
@@ -319,6 +320,19 @@ class HtmlReportWriter:
             self.log,
         )
 
+    def write_security_pages(
+        self,
+        snapshot: MetadataSnapshot,
+        analyzer_report=None,
+    ) -> dict[str, Path]:
+        return security_renderer.write_security_pages(
+            snapshot,
+            self.output_dir,
+            self.assets_dir,
+            self.log,
+            analyzer_report=analyzer_report,
+        )
+
     def write_index(
         self,
         snapshot: MetadataSnapshot,
@@ -332,6 +346,7 @@ class HtmlReportWriter:
         agent_pages: dict[str, Path] | None = None,
         prompt_pages: dict[str, Path] | None = None,
         listing_pages: dict[str, Path] | None = None,
+        security_pages: dict[str, Path] | None = None,
         *,
         analyzer_report=None,
         ai_usage_entries: list[AIUsageEntry] | None = None,
@@ -362,6 +377,7 @@ class HtmlReportWriter:
             agent_pages=agent_pages,
             prompt_pages=prompt_pages,
             listing_pages=listing_pages,
+            security_pages=security_pages,
             analyzer_report=analyzer_report,
             ai_usage_entries=ai_usage_entries,
             ai_usage_page=ai_usage_page,
