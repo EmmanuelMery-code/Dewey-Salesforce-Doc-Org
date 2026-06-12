@@ -61,6 +61,7 @@ class HistoryEntry:
     test_coverage_flows: float | None = None
     timestamp: str = ""
     generation_number: int = 0
+    comment: str = ""
 
 
 @dataclass(slots=True)
@@ -137,7 +138,8 @@ class HistoryService:
                     adaptation_pct REAL,
                     test_coverage REAL,
                     timestamp TEXT,
-                    generation_number INTEGER
+                    generation_number INTEGER,
+                    comment TEXT DEFAULT ''
                 )
             """)
             
@@ -172,6 +174,7 @@ class HistoryService:
                 ("test_coverage_apex", "REAL"),
                 ("test_coverage_flows", "REAL"),
                 ("sharing_rules", "INTEGER DEFAULT 0"),
+                ("comment", "TEXT DEFAULT ''"),
             ]
             for col_name, col_type in new_cols:
                 if col_name not in existing_columns:
@@ -215,8 +218,8 @@ class HistoryService:
                     omni_components, agents, gen_ai_prompts, einstein_predictions, sharing_rules, findings_total, findings_critical,
                     findings_major, findings_minor, findings_info,
                     ai_usage_pct, data_model_custom_pct, data_model_standard_pct,
-                    adoption_pct, adaptation_pct, test_coverage, test_coverage_apex, test_coverage_flows, timestamp, generation_number
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    adoption_pct, adaptation_pct, test_coverage, test_coverage_apex, test_coverage_flows, timestamp, generation_number, comment
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
                 entry.score_no_code, entry.score_low_code, entry.score_pro_code,
@@ -233,7 +236,7 @@ class HistoryService:
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
                 entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.test_coverage_apex, entry.test_coverage_flows, entry.timestamp,
-                entry.generation_number
+                entry.generation_number, entry.comment
             ))
             conn.commit()
             return cursor.lastrowid
@@ -334,7 +337,7 @@ class HistoryService:
                     findings_minor = ?, findings_info = ?, ai_usage_pct = ?,
                     data_model_custom_pct = ?, data_model_standard_pct = ?,
                     adoption_pct = ?, adaptation_pct = ?, test_coverage = ?, test_coverage_apex = ?, test_coverage_flows = ?, timestamp = ?,
-                    generation_number = ?
+                    generation_number = ?, comment = ?
                 WHERE id = ?
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
@@ -352,8 +355,14 @@ class HistoryService:
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
                 entry.adoption_pct, entry.adaptation_pct, entry.test_coverage, entry.test_coverage_apex, entry.test_coverage_flows, entry.timestamp,
-                entry.generation_number, entry.id
+                entry.generation_number, entry.comment, entry.id
             ))
+            conn.commit()
+
+    def update_comment(self, entry_id: int, comment: str) -> None:
+        """Update only the comment field of a history entry."""
+        with self._get_connection() as conn:
+            conn.execute("UPDATE history SET comment = ? WHERE id = ?", (comment, entry_id))
             conn.commit()
 
     def _row_to_entry(self, row: sqlite3.Row) -> HistoryEntry:
@@ -414,5 +423,6 @@ class HistoryService:
             test_coverage_apex=get_val("test_coverage_apex", None),
             test_coverage_flows=get_val("test_coverage_flows", None),
             timestamp=get_val("timestamp", ""),
-            generation_number=get_val("generation_number", 0)
+            generation_number=get_val("generation_number", 0),
+            comment=get_val("comment", ""),
         )
