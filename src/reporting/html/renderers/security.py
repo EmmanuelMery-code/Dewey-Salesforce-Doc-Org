@@ -126,11 +126,12 @@ def render_security_detail_page(
 
     # ── Tab 4 : Other Access ────────────────────────────────────────────────
     def _access_section(title: str, items: list, attr: str) -> str:
-        enabled = [x for x in items if getattr(x, attr)]
+        enabled = [item for item in items if getattr(item, attr)]
         if not enabled:
             return f"<h4>{title}</h4><p class='empty'>Aucun accès activé.</p>"
         rows = "".join(
-            f"<tr><td>{html_value(x.name)}</td></tr>" for x in sorted(enabled, key=lambda x: x.name)
+            f"<tr><td>{html_value(item.name)}</td></tr>"
+            for item in sorted(enabled, key=lambda e: e.name)
         )
         return (
             f"<h4>{title} ({len(enabled)})</h4>"

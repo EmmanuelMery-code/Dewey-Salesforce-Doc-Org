@@ -306,7 +306,7 @@ def render_index(
     agent_pages: dict[str, Path] = None,
     prompt_pages: dict[str, Path] = None,
     listing_pages: dict[str, Path] = None,
-    security_pages: dict[str, Path] = None,
+    security_pages: dict[str, Path] | None = None,
     analyzer_report=None,
     ai_usage_entries: list[AIUsageEntry] | None = None,
     ai_usage_page: Path | None = None,

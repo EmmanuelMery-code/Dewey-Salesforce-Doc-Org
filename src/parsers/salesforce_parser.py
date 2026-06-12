@@ -33,6 +33,13 @@ from src.core.models import (
 )
 from src.core.utils import SF_NS, child_text, child_texts, parse_xml, to_bool
 
+# Security risk analysis constants — shared with src.analyzer.security_analyzer
+_SEC_DANGEROUS_USER_PERMS: frozenset[str] = frozenset({"ModifyAllData", "ManageUsers"})
+_SEC_SENSITIVE_OBJECTS: frozenset[str] = frozenset({
+    "Account", "Contact", "Opportunity", "Lead", "Order",
+    "Case", "Contract", "User", "Event", "Task",
+})
+
 
 class SalesforceMetadataParser:
     """Parse a Salesforce DX source folder into a :class:`MetadataSnapshot`.
@@ -306,12 +313,6 @@ class SalesforceMetadataParser:
         metrics.profiles_count = len(snapshot.profiles)
 
         # ── Security risk metrics ─────────────────────────────────────────
-        _DANGEROUS_USER_PERMS = {"ModifyAllData", "ManageUsers"}
-        _SENSITIVE_OBJECTS = {
-            "Account", "Contact", "Opportunity", "Lead", "Order", "Case",
-            "Contract", "User", "Event", "Task",
-        }
-
         custom_profiles = [p for p in snapshot.profiles if p.is_custom]
         metrics.custom_profiles_count = len(custom_profiles)
         metrics.permission_sets_count = len(snapshot.permission_sets)
@@ -319,7 +320,7 @@ class SalesforceMetadataParser:
         metrics.dangerous_profiles_count = sum(
             1 for p in custom_profiles
             if any(
-                up.enabled and up.name in _DANGEROUS_USER_PERMS
+                up.enabled and up.name in _SEC_DANGEROUS_USER_PERMS
                 for up in p.user_permissions
             )
         )
@@ -330,7 +331,7 @@ class SalesforceMetadataParser:
         metrics.perm_sets_with_modify_all = sum(
             1 for ps in snapshot.permission_sets
             if any(
-                op.modify_all_records and op.object_name in _SENSITIVE_OBJECTS
+                op.modify_all_records and op.object_name in _SEC_SENSITIVE_OBJECTS
                 for op in ps.object_permissions
             )
         )
