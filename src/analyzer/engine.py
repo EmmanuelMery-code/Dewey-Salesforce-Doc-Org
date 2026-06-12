@@ -268,9 +268,11 @@ class AnalyzerEngine:
             f = analyze_permission_set(ps, self.catalog)
             if f:
                 security_findings[ps.name] = _sorted(f)
-        ratio_threshold = 60
-        if snapshot.metrics.profiles_ps_ratio_thresholds:
-            ratio_threshold = snapshot.metrics.profiles_ps_ratio_thresholds[0]
+        from src.core.models import DEFAULT_PROFILES_PS_RATIO_THRESHOLDS
+        _ratio_thresholds = (
+            snapshot.metrics.profiles_ps_ratio_thresholds or DEFAULT_PROFILES_PS_RATIO_THRESHOLDS
+        )
+        ratio_threshold = _ratio_thresholds[0]
         org_findings = analyze_org_security(
             snapshot.profiles, snapshot.permission_sets, self.catalog, ratio_threshold
         )

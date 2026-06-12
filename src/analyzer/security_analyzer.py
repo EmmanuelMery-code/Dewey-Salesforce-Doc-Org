@@ -6,8 +6,6 @@ accordées et le ratio profils custom / Permission Sets.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from src.analyzer.models import Finding
 from src.analyzer.rule_catalog import RuleCatalog
 from src.core.models import SecurityArtifact
