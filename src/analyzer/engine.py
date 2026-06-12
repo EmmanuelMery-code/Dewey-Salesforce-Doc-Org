@@ -13,6 +13,11 @@ from src.analyzer.models import Finding, Rule, SEVERITY_ORDER
 from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule
 from src.analyzer.omni_analyzer import analyze_data_transform
 from src.analyzer.rule_catalog import RuleCatalog
+from src.analyzer.security_analyzer import (
+    analyze_org_security,
+    analyze_permission_set,
+    analyze_profile,
+)
 from src.core.models import (
     AgentInfo,
     ApexArtifact,
@@ -254,6 +259,24 @@ class AnalyzerEngine:
         for prompt in snapshot.gen_ai_prompts:
             prompt_findings[prompt.name] = self.analyze_prompt(prompt)
 
+        security_findings: dict[str, list[Finding]] = {}
+        for profile in snapshot.profiles:
+            f = analyze_profile(profile, self.catalog)
+            if f:
+                security_findings[profile.name] = _sorted(f)
+        for ps in snapshot.permission_sets:
+            f = analyze_permission_set(ps, self.catalog)
+            if f:
+                security_findings[ps.name] = _sorted(f)
+        ratio_threshold = 60
+        if snapshot.metrics.profiles_ps_ratio_thresholds:
+            ratio_threshold = snapshot.metrics.profiles_ps_ratio_thresholds[0]
+        org_findings = analyze_org_security(
+            snapshot.profiles, snapshot.permission_sets, self.catalog, ratio_threshold
+        )
+        if org_findings:
+            security_findings["_org_"] = _sorted(org_findings)
+
         return AnalyzerReport(
             apex=apex_findings,
             flows=flow_findings,
@@ -262,6 +285,7 @@ class AnalyzerEngine:
             data_transforms=omni_findings,
             agents=agent_findings,
             prompts=prompt_findings,
+            security=security_findings,
             rules_used=self.catalog.enabled,
         )
 
@@ -278,6 +302,7 @@ class AnalyzerReport:
         data_transforms: dict[str, list[Finding]] | None = None,
         agents: dict[str, list[Finding]] | None = None,
         prompts: dict[str, list[Finding]] | None = None,
+        security: dict[str, list[Finding]] | None = None,
         rules_used: list | None = None,
     ) -> None:
         self.apex = apex or {}
@@ -287,6 +312,7 @@ class AnalyzerReport:
         self.data_transforms = data_transforms or {}
         self.agents = agents or {}
         self.prompts = prompts or {}
+        self.security = security or {}
         self.rules_used = rules_used or []
 
     def all_findings(self) -> list[Finding]:
@@ -299,6 +325,7 @@ class AnalyzerReport:
             self.data_transforms,
             self.agents,
             self.prompts,
+            self.security,
         ):
             for findings in group.values():
                 collected.extend(findings)

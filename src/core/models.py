@@ -111,6 +111,7 @@ class SecurityArtifact:
     kind: str
     label: str = ""
     description: str = ""
+    is_custom: bool = False
     source_path: Path | None = None
     object_permissions: list[ObjectPermission] = field(default_factory=list)
     field_permissions: list[FieldPermission] = field(default_factory=list)
@@ -292,6 +293,10 @@ DEFAULT_DATA_MODEL_THRESHOLDS: tuple[int, int, int] = (30, 60, 90)
 # 10 / 30 / 60 profiles is a meaningful low / medium / high threshold
 # for a typical Salesforce org.
 DEFAULT_PROFILES_THRESHOLDS: tuple[int, int, int] = (10, 30, 60)
+# Profiles vs Permission Sets ratio (profiles / PS * 100 as integer %).
+# < 30 = good (PS-first approach), 30-60 = attention, 60-100 = risky,
+# > 100 = critical (more profiles than PS).
+DEFAULT_PROFILES_PS_RATIO_THRESHOLDS: tuple[int, int, int] = (30, 60, 100)
 
 
 @dataclass(slots=True)
@@ -326,6 +331,13 @@ class CustomizationMetrics:
     data_model_thresholds: tuple[int, int, int] | None = None
     profiles_count: int = 0
     profiles_thresholds: tuple[int, int, int] | None = None
+    # Security analysis metrics
+    custom_profiles_count: int = 0
+    dangerous_profiles_count: int = 0
+    profiles_with_modify_all: int = 0
+    perm_sets_with_modify_all: int = 0
+    permission_sets_count: int = 0
+    profiles_ps_ratio_thresholds: tuple[int, int, int] | None = None
 
     def _weight(self, key: str) -> int:
         if self.weights is not None:
@@ -489,6 +501,25 @@ class CustomizationMetrics:
         if score < high:
             return "Haut"
         return "Tres haut"
+
+    @property
+    def profiles_ps_ratio_score(self) -> int:
+        """Ratio profils custom / permission sets exprimé en % (0-200+)."""
+        return min(200, int(self.custom_profiles_count / max(1, self.permission_sets_count) * 100))
+
+    @property
+    def profiles_ps_ratio_level(self) -> str:
+        low, medium, high = (
+            self.profiles_ps_ratio_thresholds or DEFAULT_PROFILES_PS_RATIO_THRESHOLDS
+        )
+        score = self.profiles_ps_ratio_score
+        if score < low:
+            return "Bon"
+        if score < medium:
+            return "Attention"
+        if score < high:
+            return "Risque"
+        return "Critique"
 
 
 @dataclass(slots=True)

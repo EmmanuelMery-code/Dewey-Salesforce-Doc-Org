@@ -304,6 +304,38 @@ class SalesforceMetadataParser:
         metrics.agents = len(snapshot.agents)
         metrics.gen_ai_prompts = len(snapshot.gen_ai_prompts)
         metrics.profiles_count = len(snapshot.profiles)
+
+        # ── Security risk metrics ─────────────────────────────────────────
+        _DANGEROUS_USER_PERMS = {"ModifyAllData", "ManageUsers"}
+        _SENSITIVE_OBJECTS = {
+            "Account", "Contact", "Opportunity", "Lead", "Order", "Case",
+            "Contract", "User", "Event", "Task",
+        }
+
+        custom_profiles = [p for p in snapshot.profiles if p.is_custom]
+        metrics.custom_profiles_count = len(custom_profiles)
+        metrics.permission_sets_count = len(snapshot.permission_sets)
+
+        metrics.dangerous_profiles_count = sum(
+            1 for p in custom_profiles
+            if any(
+                up.enabled and up.name in _DANGEROUS_USER_PERMS
+                for up in p.user_permissions
+            )
+        )
+        metrics.profiles_with_modify_all = sum(
+            1 for p in custom_profiles
+            if any(op.modify_all_records for op in p.object_permissions)
+        )
+        metrics.perm_sets_with_modify_all = sum(
+            1 for ps in snapshot.permission_sets
+            if any(
+                op.modify_all_records and op.object_name in _SENSITIVE_OBJECTS
+                for op in ps.object_permissions
+            )
+        )
+        # ── end security metrics ──────────────────────────────────────────
+
         snapshot.metrics = metrics
         return snapshot
 
@@ -556,6 +588,7 @@ class SalesforceMetadataParser:
                 name=meta_file.name.split(".")[0],
                 label=child_text(root, "label") or child_text(root, "fullName"),
                 kind=kind,
+                is_custom=to_bool(child_text(root, "custom") or "false"),
                 description=child_text(root, "description"),
                 source_path=meta_file,
             )

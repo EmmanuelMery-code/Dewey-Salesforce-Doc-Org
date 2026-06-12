@@ -80,6 +80,7 @@ class GenerationResult:
     agent_pages: dict = field(default_factory=dict)
     prompt_pages: dict = field(default_factory=dict)
     listing_pages: dict = field(default_factory=dict)
+    security_pages: dict = field(default_factory=dict)
     excel_preview_pages: dict = field(default_factory=dict)
 
     # The UI historically consumed this object via ``result["index"]``-style
@@ -112,6 +113,7 @@ class SalesforceDocumentationGenerator:
         adopt_adapt_thresholds: tuple[int, int, int] | None = None,
         data_model_thresholds: tuple[int, int, int] | None = None,
         profiles_thresholds: tuple[int, int, int] | None = None,
+        profiles_ps_ratio_thresholds: tuple[int, int, int] | None = None,
         analyzer_rules_path: str | Path | None = None,
         ai_usage_tags: list[str] | tuple[str, ...] | None = None,
         posture_config: list[PostureCapabilityConfig] | None = None,
@@ -141,6 +143,7 @@ class SalesforceDocumentationGenerator:
         self.adopt_adapt_thresholds = adopt_adapt_thresholds
         self.data_model_thresholds = data_model_thresholds
         self.profiles_thresholds = profiles_thresholds
+        self.profiles_ps_ratio_thresholds = profiles_ps_ratio_thresholds
         self.analyzer_rules_path = (
             Path(analyzer_rules_path).resolve() if analyzer_rules_path else None
         )
@@ -489,6 +492,10 @@ class SalesforceDocumentationGenerator:
             result.agent_pages,
             result.prompt_pages,
         )
+        result.security_pages = html_writer.write_security_pages(
+            snapshot,
+            analyzer_report=analyzer_report,
+        )
         result.index = html_writer.write_index(
             snapshot,
             result.object_pages,
@@ -501,6 +508,7 @@ class SalesforceDocumentationGenerator:
             agent_pages=result.agent_pages,
             prompt_pages=result.prompt_pages,
             listing_pages=result.listing_pages,
+            security_pages=result.security_pages,
             analyzer_report=analyzer_report,
             ai_usage_entries=result.ai_usage_entries,
             ai_usage_page=result.ai_usage_page,
@@ -542,6 +550,8 @@ class SalesforceDocumentationGenerator:
             snapshot.metrics.data_model_thresholds = tuple(self.data_model_thresholds)
         if self.profiles_thresholds:
             snapshot.metrics.profiles_thresholds = tuple(self.profiles_thresholds)
+        if self.profiles_ps_ratio_thresholds:
+            snapshot.metrics.profiles_ps_ratio_thresholds = tuple(self.profiles_ps_ratio_thresholds)
 
         # Apply test coverage data
         has_test_classes = any(a.is_test for a in snapshot.apex_artifacts)

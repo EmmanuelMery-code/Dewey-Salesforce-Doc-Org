@@ -306,6 +306,7 @@ def render_index(
     agent_pages: dict[str, Path] = None,
     prompt_pages: dict[str, Path] = None,
     listing_pages: dict[str, Path] = None,
+    security_pages: dict[str, Path] = None,
     analyzer_report=None,
     ai_usage_entries: list[AIUsageEntry] | None = None,
     ai_usage_page: Path | None = None,
@@ -347,15 +348,118 @@ def render_index(
         if item.api_name in object_pages
     ) or "<tr><td colspan='4' class='empty'>Aucun objet analyse.</td></tr>"
 
+    _DANGER_PERMS = {"ModifyAllData", "ManageUsers"}
+    _PERM_COLORS = {"ModifyAllData": "#ff4444", "ManageUsers": "#ff8c00"}
+
+    def _profile_risk(item):
+        if any(up.enabled and up.name == "ModifyAllData" for up in item.user_permissions):
+            return "danger"
+        if any(up.enabled and up.name == "ManageUsers" for up in item.user_permissions):
+            return "major"
+        if any(op.modify_all_records for op in item.object_permissions):
+            return "minor"
+        return "ok"
+
+    _risk_style = {
+        "danger": "background:rgba(255,68,68,.08);color:#c00",
+        "major":  "background:rgba(255,140,0,.08);color:#a04000",
+        "minor":  "background:rgba(240,220,0,.08);color:#665500",
+        "ok":     "",
+    }
+    _risk_label = {"danger": "⚠ CRITIQUE", "major": "⚠ RISQUE", "minor": "⚠ ATTENTION", "ok": ""}
+
+    def _sec_findings_badge(name, report):
+        if report is None or name not in report.security:
+            return ""
+        fs = report.security[name]
+        if any(f.rule.severity == "Critical" for f in fs):
+            return " <span style='color:#ff4444;font-weight:bold'>● CRITIQUE</span>"
+        if any(f.rule.severity == "Major" for f in fs):
+            return " <span style='color:#ff8c00;font-weight:bold'>● MAJEUR</span>"
+        if fs:
+            return " <span style='color:#ccbb00;font-weight:bold'>●</span>"
+        return ""
+
+    def _profile_name_cell(item, pages):
+        name = html_value(item.name)
+        if item.name in pages:
+            name = f"<a href='{href_relative(current_path, pages[item.name])}'>{html_value(item.name)}</a>"
+        badge = _sec_findings_badge(item.name, analyzer_report)
+        return f"<td>{name}{badge}</td>"
+
+    profile_detail_pages = {k.split(":", 1)[1]: v for k, v in (security_pages or {}).items() if k.startswith("profile:")}
+    permset_detail_pages = {k.split(":", 1)[1]: v for k, v in (security_pages or {}).items() if k.startswith("permset:")}
+
     profile_rows = "".join(
-        f"<tr><td>{html_value(item.name)}</td><td>{len(item.object_permissions)}</td><td>{len(item.field_permissions)}</td></tr>"
+        f"<tr style='{_risk_style[_profile_risk(item)]}'>"
+        + _profile_name_cell(item, profile_detail_pages)
+        + f"<td>{'Custom' if item.is_custom else 'Standard'}</td>"
+        + f"<td style='color:{'#ff4444' if _profile_risk(item) in ('danger','major','minor') else ''}'>"
+        + f"{_risk_label[_profile_risk(item)]}</td>"
+        + f"<td>{len(item.object_permissions)}</td><td>{len(item.field_permissions)}</td></tr>"
         for item in snapshot.profiles
-    ) or "<tr><td colspan='3' class='empty'>Aucun profil analyse.</td></tr>"
+    ) or "<tr><td colspan='5' class='empty'>Aucun profil analysé.</td></tr>"
 
     permset_rows = "".join(
-        f"<tr><td>{html_value(item.name)}</td><td>{len(item.object_permissions)}</td><td>{len(item.field_permissions)}</td></tr>"
+        f"<tr>"
+        + _profile_name_cell(item, permset_detail_pages)
+        + f"<td>{len(item.object_permissions)}</td><td>{len(item.field_permissions)}</td></tr>"
         for item in snapshot.permission_sets
-    ) or "<tr><td colspan='3' class='empty'>Aucun permission set analyse.</td></tr>"
+    ) or "<tr><td colspan='3' class='empty'>Aucun permission set analysé.</td></tr>"
+
+    # Security dashboard summary
+    m = snapshot.metrics
+    ratio_pct = m.profiles_ps_ratio_score
+    ratio_level = m.profiles_ps_ratio_level
+    _ratio_colors = {"Bon": "#22aa66", "Attention": "#ccbb00", "Risque": "#ff8c00", "Critique": "#ff4444"}
+    ratio_color = _ratio_colors.get(ratio_level, "#888")
+    profiles_list_href = ""
+    permsets_list_href = ""
+    if security_pages:
+        if "profiles_list" in security_pages:
+            profiles_list_href = href_relative(current_path, security_pages["profiles_list"])
+        if "permsets_list" in security_pages:
+            permsets_list_href = href_relative(current_path, security_pages["permsets_list"])
+
+    _profiles_title = (
+        f"<a href='{profiles_list_href}'>Profiles</a>"
+        if profiles_list_href else "Profiles"
+    )
+    _permsets_title = (
+        f"<a href='{permsets_list_href}'>Permission Sets</a>"
+        if permsets_list_href else "Permission Sets"
+    )
+
+    security_dashboard = f"""
+<div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px'>
+  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
+    <div style='font-size:.8em;color:#64748b'>Profils custom</div>
+    <div style='font-size:1.5em;font-weight:bold'>{m.custom_profiles_count}</div>
+    <div style='font-size:.8em;color:#64748b'>sur {m.profiles_count} profils total</div>
+  </div>
+  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
+    <div style='font-size:.8em;color:#64748b'>Permission Sets</div>
+    <div style='font-size:1.5em;font-weight:bold'>{m.permission_sets_count}</div>
+  </div>
+  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {ratio_color}33;border-radius:6px'>
+    <div style='font-size:.8em;color:#64748b'>Ratio Profils/PS</div>
+    <div style='font-size:1.5em;font-weight:bold;color:{ratio_color}'>{ratio_pct}%</div>
+    <div style='font-size:.8em;color:{ratio_color};font-weight:bold'>{ratio_level}</div>
+  </div>
+  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff444433" if m.dangerous_profiles_count else "#e2e8f0"};border-radius:6px'>
+    <div style='font-size:.8em;color:#64748b'>Profils dangereux</div>
+    <div style='font-size:1.5em;font-weight:bold;color:{"#ff4444" if m.dangerous_profiles_count else "#22aa66"}'>{m.dangerous_profiles_count}</div>
+    <div style='font-size:.8em;color:#64748b'>ModifyAllData / ManageUsers</div>
+  </div>
+  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff8c0033" if m.profiles_with_modify_all else "#e2e8f0"};border-radius:6px'>
+    <div style='font-size:.8em;color:#64748b'>Profils avec ModifyAllRecords</div>
+    <div style='font-size:1.5em;font-weight:bold;color:{"#ff8c00" if m.profiles_with_modify_all else "#22aa66"}'>{m.profiles_with_modify_all}</div>
+  </div>
+  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ccbb0033" if m.perm_sets_with_modify_all else "#e2e8f0"};border-radius:6px'>
+    <div style='font-size:.8em;color:#64748b'>PS avec ModifyAll (objets sensibles)</div>
+    <div style='font-size:1.5em;font-weight:bold;color:{"#ccbb00" if m.perm_sets_with_modify_all else "#22aa66"}'>{m.perm_sets_with_modify_all}</div>
+  </div>
+</div>"""
 
     TYPE_LABELS_SR = {"criteria": "Critères", "owner": "Propriétaire", "guest": "Utilisateur invité", "territory": "Territoire"}
     sharing_rule_rows = "".join(
@@ -445,11 +549,14 @@ def render_index(
             ),
             (
                 "Profiles",
-                f"<table><thead><tr><th>Profile</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}</tbody></table>",
+                security_dashboard
+                + f"<h4>{_profiles_title} ({len(snapshot.profiles)})</h4>"
+                + f"<table><thead><tr><th>Profil</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}</tbody></table>",
             ),
             (
                 "Permission Sets",
-                f"<table><thead><tr><th>Permission Set</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>",
+                f"<h4>{_permsets_title} ({len(snapshot.permission_sets)})</h4>"
+                + f"<table><thead><tr><th>Permission Set</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>",
             ),
             (
                 "Sharing Rules",
@@ -992,6 +1099,7 @@ def write_index(
     agent_pages: dict[str, Path] | None = None,
     prompt_pages: dict[str, Path] | None = None,
     listing_pages: dict[str, Path] | None = None,
+    security_pages: dict[str, Path] | None = None,
     *,
     analyzer_report=None,
     ai_usage_entries: list[AIUsageEntry] | None = None,
@@ -1026,6 +1134,7 @@ def write_index(
             agent_pages or {},
             prompt_pages or {},
             listing_pages or {},
+            security_pages or {},
             analyzer_report,
             ai_usage_entries=ai_usage_entries,
             ai_usage_page=ai_usage_page,

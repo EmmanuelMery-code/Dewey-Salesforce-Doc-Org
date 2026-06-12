@@ -432,4 +432,72 @@
     <remediation>Ajouter une description au prompt template expliquant le cas d'usage et le resultat attendu.</remediation>
   </rule>
 
+  <!-- ==================== SECURITE (PROFILS / PERMISSION SETS) ==================== -->
+
+  <rule id="SEC-001" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
+        severity="Critical" source="Well-Architected Data Security + Salesforce Security Guide"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+    <title>Profil avec permission ModifyAllData</title>
+    <description>Detecte un profil custom disposant de la user permission 'ModifyAllData', qui accorde un acces en ecriture total sur toutes les donnees de l'org.</description>
+    <rationale>
+      ModifyAllData est la permission la plus elevee sur les donnees. Sa presence dans un profil custom
+      contourne toutes les regles de partage et les FLS, exposant l'integralite des donnees a modification.
+      Le principe du moindre privilege exige que cette permission soit reservee aux seuls administrateurs systeme.
+    </rationale>
+    <remediation>Retirer la permission ModifyAllData du profil. Evaluer si un Permission Set dedie aux super-admins peut la porter a la place, avec une assignation nominative et auditee.</remediation>
+  </rule>
+
+  <rule id="SEC-002" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
+        severity="Major" source="Well-Architected Data Security + Salesforce Security Guide"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+    <title>Profil avec permission ManageUsers</title>
+    <description>Detecte un profil custom disposant de la user permission 'ManageUsers', qui permet de creer, modifier et desactiver des utilisateurs ainsi que d'assigner n'importe quel profil.</description>
+    <rationale>
+      ManageUsers est une permission a haut risque : un utilisateur qui la possede peut s'auto-elever
+      en assignant un profil administrateur. Elle doit etre portee par des Permission Sets specifiques
+      assignes aux seuls responsables RH/Salesforce, pas embarquee dans un profil large.
+    </rationale>
+    <remediation>Migrer la permission ManageUsers vers un Permission Set nomme et audite. Retirer la permission du profil.</remediation>
+  </rule>
+
+  <rule id="SEC-003" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
+        severity="Major" source="Well-Architected Data Security"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+    <title>Profil avec ModifyAllRecords sur un objet</title>
+    <description>Detecte un profil custom accordant 'ModifyAllRecords' sur au moins un objet, contournant les regles de partage pour cet objet.</description>
+    <rationale>
+      ModifyAllRecords contourne les sharing rules et permet de modifier tous les enregistrements
+      d'un objet independamment de la propriete. Ce privilege excessif au niveau profil viole
+      le principe du moindre privilege et complexifie les audits de securite.
+    </rationale>
+    <remediation>Evaluer si ModifyAllRecords est necessaire pour tous les utilisateurs du profil. Si non, migrer ce droit vers un Permission Set assigne aux seuls utilisateurs qui en ont besoin.</remediation>
+  </rule>
+
+  <rule id="SEC-004" enabled="true" scope="permission_set" category="Trusted" subcategory="Secure"
+        severity="Minor" source="Well-Architected Data Security"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+    <title>Permission Set avec ModifyAllRecords sur objet sensible</title>
+    <description>Detecte un Permission Set accordant 'ModifyAllRecords' sur un objet standard sensible (Account, Contact, Opportunity, Lead, Order, Case, Contract, User).</description>
+    <rationale>
+      Un Permission Set avec ModifyAllRecords sur un objet core du CRM peut etre assigne largement,
+      contournant ainsi les regles de partage. Bien que les PS soient une meilleure pratique que les profils,
+      des droits excessifs restent risques si le perimetre d'assignation n'est pas controle.
+    </rationale>
+    <remediation>Verifier la liste des utilisateurs ayant ce Permission Set. Limiter l'assignation aux utilisateurs ayant un besoin metier justifie. Envisager de fractionner le PS si certains utilisateurs n'ont pas besoin de ce niveau d'acces.</remediation>
+  </rule>
+
+  <rule id="SEC-005" enabled="true" scope="org" category="Trusted" subcategory="Secure"
+        severity="Info" source="Salesforce Security Best Practices"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+    <title>Ratio eleve de profils custom vs Permission Sets</title>
+    <description>Le nombre de profils custom est disproportionne par rapport au nombre de Permission Sets, indiquant une architecture de securite non optimisee.</description>
+    <rationale>
+      Salesforce recommande une approche "Permission Sets first" : un minimum de profils tres generiques
+      complementes de Permission Sets specifiques assignes de maniere granulaire. Un ratio eleve de profils
+      sur les PS signifie que les droits sont geres dans des silo, rendant la gouvernance complexe et
+      les audits laborieux.
+    </rationale>
+    <remediation>Consolider les profils similaires, migrer les droits specifiques vers des Permission Sets ou des Permission Set Groups, et adopter une strategie de gouvernance des acces documentee.</remediation>
+  </rule>
+
 </rules>
