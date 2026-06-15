@@ -48,3 +48,6 @@ static_code_analysis_rules.csv
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# Local user manual (generated separately, not committed)
+Salesforce Manuel utilisateur.rtf

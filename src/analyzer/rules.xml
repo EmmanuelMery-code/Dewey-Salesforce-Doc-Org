@@ -436,7 +436,7 @@
 
   <rule id="SEC-001" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
         severity="Critical" source="Well-Architected Data Security + Salesforce Security Guide"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="60.0" max_api_version="60.0">
     <title>Profil avec permission ModifyAllData</title>
     <description>Detecte un profil custom disposant de la user permission 'ModifyAllData', qui accorde un acces en ecriture total sur toutes les donnees de l'org.</description>
     <rationale>
@@ -449,7 +449,7 @@
 
   <rule id="SEC-002" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
         severity="Major" source="Well-Architected Data Security + Salesforce Security Guide"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="60.0" max_api_version="60.0">
     <title>Profil avec permission ManageUsers</title>
     <description>Detecte un profil custom disposant de la user permission 'ManageUsers', qui permet de creer, modifier et desactiver des utilisateurs ainsi que d'assigner n'importe quel profil.</description>
     <rationale>
@@ -462,7 +462,7 @@
 
   <rule id="SEC-003" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
         severity="Major" source="Well-Architected Data Security"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="60.0" max_api_version="60.0">
     <title>Profil avec ModifyAllRecords sur un objet</title>
     <description>Detecte un profil custom accordant 'ModifyAllRecords' sur au moins un objet, contournant les regles de partage pour cet objet.</description>
     <rationale>
@@ -475,7 +475,7 @@
 
   <rule id="SEC-004" enabled="true" scope="permission_set" category="Trusted" subcategory="Secure"
         severity="Minor" source="Well-Architected Data Security"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="60.0" max_api_version="60.0">
     <title>Permission Set avec ModifyAllRecords sur objet sensible</title>
     <description>Detecte un Permission Set accordant 'ModifyAllRecords' sur un objet standard sensible (Account, Contact, Opportunity, Lead, Order, Case, Contract, User).</description>
     <rationale>
@@ -488,7 +488,7 @@
 
   <rule id="SEC-005" enabled="true" scope="org" category="Trusted" subcategory="Secure"
         severity="Info" source="Salesforce Security Best Practices"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="60.0" max_api_version="60.0">
     <title>Ratio eleve de profils custom vs Permission Sets</title>
     <description>Le nombre de profils custom est disproportionne par rapport au nombre de Permission Sets, indiquant une architecture de securite non optimisee.</description>
     <rationale>
