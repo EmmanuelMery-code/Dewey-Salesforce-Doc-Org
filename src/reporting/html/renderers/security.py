@@ -227,6 +227,7 @@ def _render_security_list_page(
     title: str,
     detail_pages: dict[str, Path],
     current_path: Path,
+    output_dir: Path,
     assets_dir: Path,
     analyzer_report: AnalyzerReport | None,
 ) -> str:
@@ -270,7 +271,7 @@ def _render_security_list_page(
     )
 
     body = (
-        index_back_link(current_path, assets_dir)
+        index_back_link(current_path, output_dir)
         + f"<h2>{html_lib.escape(title)} ({len(artifacts)})</h2>"
         + table
     )
@@ -336,6 +337,7 @@ def write_security_pages(
             "Liste des Profils",
             profile_detail_pages,
             profiles_list_path,
+            output_dir,
             assets_dir,
             analyzer_report,
         ),
@@ -353,6 +355,7 @@ def write_security_pages(
             "Liste des Permission Sets",
             permset_detail_pages,
             permsets_list_path,
+            output_dir,
             assets_dir,
             analyzer_report,
         ),
