@@ -110,6 +110,7 @@ def render_page(
     current_path: Path,
     assets_dir: Path,
     include_mermaid: bool = True,
+    include_prism: bool = False,
 ) -> str:
     """Render the full HTML document wrapping ``body``."""
 
@@ -118,6 +119,15 @@ def render_page(
         mermaid_script = MERMAID_RUNTIME_SCRIPT
     else:
         mermaid_script = ""
+    if include_prism:
+        prism_html = """
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>"""
+    else:
+        prism_html = ""
     return f"""<!DOCTYPE html>
 <html lang="fr">
   <head>
@@ -126,6 +136,7 @@ def render_page(
     <title>{html_value(title)}</title>
     <link rel="stylesheet" href="{style_href}">
     {mermaid_script}
+    {prism_html}
   </head>
   <body>
     <div class="page">

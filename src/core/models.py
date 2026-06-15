@@ -536,6 +536,7 @@ class AgentInfo:
     name: str
     label: str = ""
     description: str = ""
+    agent_type: str = ""
     source_path: Path | None = None
 
 

@@ -171,7 +171,7 @@ class SalesforceMetadataParser:
             self.log(f"  - {len(flows_found)} flow(s) trouve(s)")
             flows.extend(flows_found)
 
-            agents_found = self._parse_agents(package_root / "agents")
+            agents_found = self._parse_agents(package_root)
             self.log(f"  - {len(agents_found)} agent(s) trouve(s)")
             agents.extend(agents_found)
 
@@ -736,15 +736,12 @@ class SalesforceMetadataParser:
             )
             artifact.sharing_declaration = sharing_match.group(1) if sharing_match else ""
             artifact.is_test = bool(re.search(r"(?i)@isTest\b|\btestMethod\b", body))
-            _m_soql = re.search(r"(?is)for\s*\(.*?\)\s*\{.{0,2000}?\[\s*SELECT\b", body)
-            artifact.query_in_loop = bool(_m_soql)
-            artifact.query_in_loop_line = (body[: _m_soql.end()].count("\n") + 1) if _m_soql else None
-            _m_dml = re.search(
-                r"(?is)for\s*\(.*?\)\s*\{.{0,2000}?\b(?:insert|update|upsert|delete|undelete|merge)\b",
-                body,
-            )
-            artifact.dml_in_loop = bool(_m_dml)
-            artifact.dml_in_loop_line = (body[: _m_dml.end()].count("\n") + 1) if _m_dml else None
+            _soql_loop_line = _detect_pattern_in_loop(body, _SOQL_IN_LOOP_RE)
+            artifact.query_in_loop = _soql_loop_line is not None
+            artifact.query_in_loop_line = _soql_loop_line
+            _dml_loop_line = _detect_pattern_in_loop(body, _DML_IN_LOOP_RE)
+            artifact.dml_in_loop = _dml_loop_line is not None
+            artifact.dml_in_loop_line = _dml_loop_line
             artifacts.append(artifact)
 
         return artifacts
@@ -1181,20 +1178,73 @@ class SalesforceMetadataParser:
             unique_rows.append(row)
         return unique_rows
 
-    def _parse_agents(self, folder: Path) -> list[AgentInfo]:
+    def _parse_agents(self, package_root: Path) -> list[AgentInfo]:
+        """Parse agents from all known Salesforce metadata locations:
+
+        * ``aiAuthoringBundles/`` — Agentforce agents stored as YAML ``.agent``
+          files (one per sub-folder, e.g. ``aiAuthoringBundles/MyAgent/MyAgent.agent``).
+        * ``bots/`` — Einstein / Service-Cloud bots stored as XML
+          ``.bot-meta.xml`` files (one per sub-folder).
+        * ``agents/`` — legacy location using ``.agent-meta.xml`` XML files.
+        """
         agents: list[AgentInfo] = []
-        if not folder.exists():
-            return agents
-        for agent_file in sorted(folder.glob("*.agent-meta.xml")):
-            root = parse_xml(agent_file)
-            agents.append(
-                AgentInfo(
-                    name=agent_file.stem.replace(".agent-meta", ""),
-                    label=child_text(root, "label"),
-                    description=child_text(root, "description"),
-                    source_path=agent_file,
+
+        # --- aiAuthoringBundles (Agentforce, .agent YAML) ---
+        ai_bundles_folder = package_root / "aiAuthoringBundles"
+        if ai_bundles_folder.exists():
+            for agent_file in sorted(ai_bundles_folder.rglob("*.agent")):
+                name, label, description, agent_type = _parse_dot_agent_file(agent_file)
+                agents.append(
+                    AgentInfo(
+                        name=name,
+                        label=label,
+                        description=description,
+                        agent_type=agent_type,
+                        source_path=agent_file,
+                    )
                 )
-            )
+
+        # --- bots (Einstein / Service bots, .bot-meta.xml XML) ---
+        bots_folder = package_root / "bots"
+        if bots_folder.exists():
+            for bot_file in sorted(bots_folder.rglob("*.bot-meta.xml")):
+                root = parse_xml(bot_file)
+                if root is None:
+                    continue
+                # Label / name are under <botMlDomain>
+                bot_ml = root.find("{http://soap.sforce.com/2006/04/metadata}botMlDomain")
+                if bot_ml is not None:
+                    label = child_text(bot_ml, "label")
+                    name = child_text(bot_ml, "name")
+                else:
+                    name = bot_file.stem.replace(".bot-meta", "")
+                    label = name
+                agent_type = child_text(root, "agentType") or "Bot"
+                agents.append(
+                    AgentInfo(
+                        name=name or bot_file.stem.replace(".bot-meta", ""),
+                        label=label,
+                        description="",
+                        agent_type=agent_type,
+                        source_path=bot_file,
+                    )
+                )
+
+        # --- agents/ (legacy XML .agent-meta.xml) ---
+        legacy_folder = package_root / "agents"
+        if legacy_folder.exists():
+            for agent_file in sorted(legacy_folder.glob("*.agent-meta.xml")):
+                root = parse_xml(agent_file)
+                agents.append(
+                    AgentInfo(
+                        name=agent_file.stem.replace(".agent-meta", ""),
+                        label=child_text(root, "label"),
+                        description=child_text(root, "description"),
+                        agent_type="",
+                        source_path=agent_file,
+                    )
+                )
+
         return agents
 
     def _parse_gen_ai_prompts(self, folder: Path) -> list[GenAiPromptInfo]:
@@ -1257,3 +1307,194 @@ class SalesforceMetadataParser:
             return str(path.relative_to(self.source_dir)).replace("\\", "/")
         except ValueError:
             return str(path)
+
+
+# ---------------------------------------------------------------------------
+# Agent YAML parser helper
+# ---------------------------------------------------------------------------
+
+_AGENT_LABEL_RE = re.compile(r"agent_label\s*:\s*['\"]?([^'\"\n]+)['\"]?", re.IGNORECASE)
+_AGENT_TYPE_RE = re.compile(r"agent_type\s*:\s*['\"]?([^'\"\n]+)['\"]?", re.IGNORECASE)
+_AGENT_DESC_RE = re.compile(r"description\s*:\s*['\"]?([^'\"\n]+)['\"]?", re.IGNORECASE)
+_AGENT_DEV_NAME_RE = re.compile(r"developer_name\s*:\s*['\"]?([^'\"\n]+)['\"]?", re.IGNORECASE)
+
+
+def _parse_dot_agent_file(path: Path) -> tuple[str, str, str, str]:
+    """Parse a Salesforce Agentforce ``.agent`` file (YAML-ish format).
+
+    Returns ``(name, label, description, agent_type)``.  Falls back to the
+    file stem when a field cannot be extracted.
+    """
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        stem = path.stem
+        return stem, stem, "", ""
+
+    def _extract(pattern: re.Pattern) -> str:
+        m = pattern.search(text)
+        return m.group(1).strip() if m else ""
+
+    # The folder / file stem is the API name of the bundle (unique per org).
+    # The developer_name inside the file can differ (e.g. duplicate bundles),
+    # so we use the stem as the canonical name.
+    name = path.stem
+    label = _extract(_AGENT_LABEL_RE) or _extract(_AGENT_DEV_NAME_RE) or name
+    description = _extract(_AGENT_DESC_RE)
+    agent_type = _extract(_AGENT_TYPE_RE)
+    return name, label, description, agent_type
+
+
+# ---------------------------------------------------------------------------
+# Brace-aware DML/SOQL-in-loop detection helpers
+# ---------------------------------------------------------------------------
+
+_SOQL_IN_LOOP_RE = re.compile(
+    r"\[\s*SELECT\b|Database\.query\s*\(", re.IGNORECASE
+)
+_DML_IN_LOOP_RE = re.compile(
+    r"\b(?:insert|update|upsert|delete|undelete|merge)\b"
+    r"|Database\.(?:insert|update|upsert|delete|undelete|merge)\s*\(",
+    re.IGNORECASE,
+)
+_LOOP_KEYWORD_RE = re.compile(r"\b(for|while|do)\b", re.IGNORECASE)
+
+
+def _strip_apex_comments(body: str) -> str:
+    """Return *body* with comments (// and /* */) and string literals replaced
+    by spaces, preserving newlines so that line numbers stay correct."""
+    out = list(body)
+    i = 0
+    n = len(body)
+    while i < n:
+        ch = body[i]
+        nxt = body[i + 1] if i + 1 < n else ""
+        if ch == "/" and nxt == "/":
+            # single-line comment: blank to end of line
+            while i < n and body[i] != "\n":
+                out[i] = " "
+                i += 1
+        elif ch == "/" and nxt == "*":
+            # block comment
+            out[i] = " "
+            i += 1
+            out[i] = " "
+            i += 1
+            while i < n:
+                if body[i] == "*" and i + 1 < n and body[i + 1] == "/":
+                    out[i] = " "
+                    i += 1
+                    out[i] = " "
+                    i += 1
+                    break
+                elif body[i] != "\n":
+                    out[i] = " "
+                i += 1
+        elif ch in ('"', "'"):
+            quote = ch
+            out[i] = " "
+            i += 1
+            while i < n and body[i] != quote:
+                if body[i] == "\\" and i + 1 < n:
+                    out[i] = " "
+                    i += 1
+                    out[i] = " "
+                    i += 1
+                elif body[i] != "\n":
+                    out[i] = " "
+                    i += 1
+                else:
+                    i += 1
+            if i < n:
+                out[i] = " "
+                i += 1
+        else:
+            i += 1
+    return "".join(out)
+
+
+def _detect_pattern_in_loop(body: str, pattern: re.Pattern) -> int | None:
+    """Return the 1-based line number of the first *pattern* match found
+    inside an Apex loop body (for / while / do-while), or ``None``.
+
+    The search is brace-aware: it extracts the exact body delimited by the
+    matching closing brace before searching, so a DML/SOQL statement written
+    *after* a loop (but within a few hundred characters) is **not** reported
+    as a false positive.
+
+    The function also ignores matches in the loop header itself — e.g. the
+    SOQL written directly in ``for (SObject s : [SELECT ...])`` is skipped
+    because that is the recommended pattern and does not cause governor issues.
+    """
+    clean = _strip_apex_comments(body)
+    n = len(clean)
+    i = 0
+
+    while i < n:
+        m = _LOOP_KEYWORD_RE.search(clean, i)
+        if not m:
+            break
+
+        keyword = m.group(1).lower()
+        pos = m.end()
+
+        if keyword == "do":
+            # do { ... } while (...)
+            while pos < n and clean[pos] in " \t\r\n":
+                pos += 1
+            if pos >= n or clean[pos] != "{":
+                i = m.end()
+                continue
+        else:
+            # for / while: skip the condition (...)
+            while pos < n and clean[pos] in " \t\r\n":
+                pos += 1
+            if pos >= n or clean[pos] != "(":
+                i = m.end()
+                continue
+            # skip the entire condition, counting nested parens
+            depth = 1
+            pos += 1
+            while pos < n and depth > 0:
+                if clean[pos] == "(":
+                    depth += 1
+                elif clean[pos] == ")":
+                    depth -= 1
+                pos += 1
+            # skip whitespace/newlines to reach the loop body {
+            while pos < n and clean[pos] in " \t\r\n":
+                pos += 1
+            if pos >= n or clean[pos] != "{":
+                # No braces: single-statement loop — still check it
+                # by scanning to end of statement (next ;)
+                stmt_start = pos
+                stmt_end = clean.find(";", pos)
+                if stmt_end == -1:
+                    i = m.end()
+                    continue
+                hit = pattern.search(clean, stmt_start, stmt_end + 1)
+                if hit:
+                    return clean[: hit.end()].count("\n") + 1
+                i = stmt_end + 1
+                continue
+
+        # Found the loop body opening brace — extract body by depth
+        body_start = pos + 1
+        depth = 1
+        pos += 1
+        while pos < n and depth > 0:
+            if clean[pos] == "{":
+                depth += 1
+            elif clean[pos] == "}":
+                depth -= 1
+            pos += 1
+        body_end = pos - 1  # exclusive; points at char after '}'
+
+        hit = pattern.search(clean, body_start, body_end)
+        if hit:
+            return clean[: hit.end()].count("\n") + 1
+
+        # Move past this loop and continue (handles nested / sequential loops)
+        i = pos
+
+    return None
