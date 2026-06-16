@@ -40,6 +40,10 @@ class IndexCardVisibility:
     show_debt: bool = True
     show_innovation: bool = True
     show_sharing_rules: bool = True
+    show_duplicate_rules: bool = True
+    show_lwc: bool = True
+    show_aura: bool = True
+    show_dependencies: bool = True
 
     def to_settings(self) -> dict[str, bool]:
         """Return the JSON-friendly mapping persisted in ``app_settings.json``."""
@@ -65,6 +69,10 @@ class IndexCardVisibility:
             "show_card_debt": self.show_debt,
             "show_card_innovation": self.show_innovation,
             "show_card_sharing_rules": self.show_sharing_rules,
+            "show_card_duplicate_rules": self.show_duplicate_rules,
+            "show_card_lwc": self.show_lwc,
+            "show_card_aura": self.show_aura,
+            "show_card_dependencies": self.show_dependencies,
         }
 
 
@@ -89,6 +97,10 @@ _SETTING_KEYS: dict[str, str] = {
     "show_debt": "show_card_debt",
     "show_innovation": "show_card_innovation",
     "show_sharing_rules": "show_card_sharing_rules",
+    "show_duplicate_rules": "show_card_duplicate_rules",
+    "show_lwc": "show_card_lwc",
+    "show_aura": "show_card_aura",
+    "show_dependencies": "show_card_dependencies",
 }
 
 

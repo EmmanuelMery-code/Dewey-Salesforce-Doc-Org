@@ -97,6 +97,8 @@ class AppSettingsMixin:
             "generate_org_check_reports": bool(self.generate_org_check_reports_var.get()),
             "generate_data_dictionary_word": bool(self.generate_data_dictionary_word_var.get()),
             "generate_summary_word": bool(self.generate_summary_word_var.get()),
+            "generate_audit_summary_rtf": bool(self.generate_audit_summary_rtf_var.get()),
+            "generate_html": bool(self.generate_html_var.get()),
             "scoring_weights": dict(self.scoring_weights),
             "adopt_adapt_weights": dict(self.adopt_adapt_weights),
             "scoring_thresholds": list(self.scoring_thresholds),
@@ -106,6 +108,8 @@ class AppSettingsMixin:
             "profiles_ps_ratio_thresholds": list(self.profiles_ps_ratio_thresholds),
             "ai_usage_tags": list(self.ai_usage_tags),
             "posture_adopt_adapt": serialize_posture_config(self.posture_config),
+            "run_tests": bool(self.run_tests_var.get()),
+            "calculate_coverage": bool(self.calculate_coverage_var.get()),
             "dd_html": self.settings.get("dd_html", True),
             "dd_word": self.settings.get("dd_word", True),
             "dd_excel": self.settings.get("dd_excel", True),
@@ -139,6 +143,11 @@ class AppSettingsMixin:
             show_test_coverage=bool(self.show_card_test_coverage_var.get()),
             show_debt=bool(self.show_card_debt_var.get()),
             show_innovation=bool(self.show_card_innovation_var.get()),
+            show_sharing_rules=bool(self.show_card_sharing_rules_var.get()),
+            show_duplicate_rules=bool(self.show_card_duplicate_rules_var.get()),
+            show_lwc=bool(self.show_card_lwc_var.get()),
+            show_aura=bool(self.show_card_aura_var.get()),
+            show_dependencies=bool(self.show_card_dependencies_var.get()),
         )
 
     def _to_rel_path(self, path_str: str) -> str:

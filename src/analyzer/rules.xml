@@ -28,7 +28,7 @@
 
   <rule id="APEX-SEC-001" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
         severity="Critical" source="PMD ApexSharingViolations + Well-Architected Data Security"
-        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="10.0" max_api_version="66">
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="10.0" max_api_version="66.0">
     <title>Classe Apex sans declaration de partage explicite</title>
     <description>Detecte une classe non-test qui ne declare ni 'with sharing', ni 'without sharing', ni 'inherited sharing'.</description>
     <rationale>
@@ -275,6 +275,74 @@
       Les flows inactifs alourdissent le package et peuvent reveler une migration inachevee.
     </rationale>
     <remediation>Activer le flow s'il est utilise, ou le supprimer / archiver s'il ne sert plus.</remediation>
+  </rule>
+
+  <rule id="FLOW-PERF-002" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
+        severity="Critical" source="Salesforce Flow Best Practices"
+        reference="https://help.salesforce.com/s/articleView?id=sf.flow_concepts_design_best_practices.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>SOQL (Get Records) dans une boucle de Flow</title>
+    <description>Une operation de lecture de donnees apparait dans une boucle, ce qui risque d'atteindre les limites de gouverneur.</description>
+    <rationale>
+      Comme en Apex, les operations de base de donnees dans les boucles de Flow sont couteuses et risquent de depasser les limites (100 requetes par transaction).
+    </rationale>
+    <remediation>Extraire le 'Get Records' avant la boucle ou utiliser des collections pour traiter les donnees en masse.</remediation>
+  </rule>
+
+  <rule id="FLOW-PERF-003" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
+        severity="Critical" source="Salesforce Flow Best Practices"
+        reference="https://help.salesforce.com/s/articleView?id=sf.flow_concepts_design_best_practices.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>DML (Create/Update/Delete) dans une boucle de Flow</title>
+    <description>Une operation d'ecriture de donnees apparait dans une boucle.</description>
+    <rationale>
+      Les operations DML dans les boucles de Flow sont un anti-pattern majeur. Elles provoquent des echecs de transaction des que le volume d'enregistrements augmente.
+    </rationale>
+    <remediation>Accumuler les changements dans une variable de collection et effectuer un seul 'Update Records' ou 'Create Records' a la sortie de la boucle.</remediation>
+  </rule>
+
+  <!-- ==================== LIGHTNING COMPONENTS ==================== -->
+
+  <rule id="LWC-MAINT-001" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Minor" source="LWC Best Practices"
+        reference="https://developer.salesforce.com/docs/component-library/guide/lwc-coding-guidelines.html" min_api_version="10.0" max_api_version="100.0">
+    <title>Composant LWC JS trop volumineux</title>
+    <description>Le fichier Javascript du composant depasse 300 lignes.</description>
+    <rationale>
+      Un fichier JS trop long devient difficile a maintenir et a tester. Il est preferable de decouper la logique en modules de service ou en sous-composants.
+    </rationale>
+    <remediation>Extraire la logique metier dans des fichiers JS partages ou scinder le composant en plus petites unites.</remediation>
+  </rule>
+
+  <rule id="LWC-MAINT-002" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Minor" source="LWC Best Practices"
+        reference="https://developer.salesforce.com/docs/component-library/guide/lwc-coding-guidelines.html" min_api_version="10.0" max_api_version="100.0">
+    <title>Template LWC HTML trop volumineux</title>
+    <description>Le fichier HTML du composant depasse 200 lignes.</description>
+    <rationale>
+      Un template HTML trop long nuit a la lisibilite et a la reutilisation de l'UI.
+    </rationale>
+    <remediation>Decouper l'interface en sous-composants fonctionnels.</remediation>
+  </rule>
+
+  <rule id="LWC-SEC-001" enabled="true" scope="lwc" category="Trusted" subcategory="Secure"
+        severity="Major" source="LWC Security Guide"
+        reference="https://developer.salesforce.com/docs/component-library/guide/lwc-security.html" min_api_version="10.0" max_api_version="100.0">
+    <title>Utilisation de @AuraEnabled dans un LWC</title>
+    <description>Le composant appelle des methodes Apex via @AuraEnabled.</description>
+    <rationale>
+      Les appels Apex depuis le frontend sont des points d'entree critiques. Ils doivent etre audites pour s'assurer que les controles de securite (with sharing, CRUD/FLS) sont bien en place.
+    </rationale>
+    <remediation>Verifier que la classe Apex appelee respecte les regles de securite et n'expose pas de donnees sensibles.</remediation>
+  </rule>
+
+  <rule id="AURA-MAINT-001" enabled="true" scope="aura" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Salesforce Modernization Guide"
+        reference="https://developer.salesforce.com/docs/component-library/guide/lwc-migration.html" min_api_version="10.0" max_api_version="100.0">
+    <title>Composant Aura volumineux</title>
+    <description>Le composant Aura depasse les seuils de taille recommandes (200 lignes CMP / 300 lignes JS).</description>
+    <rationale>
+      Les composants Aura sont plus difficiles a optimiser et a maintenir que les LWC. Un composant Aura complexe est un candidat prioritaire pour une migration vers LWC.
+    </rationale>
+    <remediation>Envisager une reecriture en Lightning Web Components (LWC) pour de meilleures performances et une maintenance simplifiee.</remediation>
   </rule>
 
   <!-- ==================== OBJECTS ==================== -->

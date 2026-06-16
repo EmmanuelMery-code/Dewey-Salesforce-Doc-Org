@@ -44,6 +44,8 @@ from src.reporting.html.renderers import (
     objects as objects_renderer,
     omni as omni_renderer,
     security as security_renderer,
+    security_matrix as security_matrix_renderer,
+    psg as psg_renderer,
 )
 
 
@@ -86,6 +88,8 @@ class HtmlReportWriter:
         snapshot: MetadataSnapshot,
         *,
         analyzer_report=None,
+        apex_pages: dict[str, Path] | None = None,
+        flow_pages: dict[str, Path] | None = None,
     ) -> dict[str, Path]:
         return objects_renderer.write_object_pages(
             snapshot,
@@ -94,6 +98,8 @@ class HtmlReportWriter:
             self.assets_dir,
             self.log,
             analyzer_report=analyzer_report,
+            apex_pages=apex_pages,
+            flow_pages=flow_pages,
         )
 
     def write_combined_data_dictionary_html(
@@ -325,13 +331,20 @@ class HtmlReportWriter:
         snapshot: MetadataSnapshot,
         analyzer_report=None,
     ) -> dict[str, Path]:
-        return security_renderer.write_security_pages(
+        pages = security_renderer.write_security_pages(
             snapshot,
             self.output_dir,
             self.assets_dir,
             self.log,
             analyzer_report=analyzer_report,
         )
+        pages["security_matrix"] = security_matrix_renderer.write_security_matrix_page(
+            snapshot, self.output_dir, self.assets_dir
+        )
+        pages["psg_list"] = psg_renderer.write_psg_list_page(
+            snapshot, self.output_dir, self.assets_dir
+        )
+        return pages
 
     def write_index(
         self,

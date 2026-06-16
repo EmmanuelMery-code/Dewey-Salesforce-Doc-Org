@@ -9,6 +9,8 @@ from src.analyzer.apex_analyzer import (
     analyze_apex_artifact,
 )
 from src.analyzer.flow_analyzer import analyze_flow
+from src.analyzer.lwc_analyzer import analyze_lwc
+from src.analyzer.aura_analyzer import analyze_aura
 from src.analyzer.models import Finding, Rule, SEVERITY_ORDER
 from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule
 from src.analyzer.omni_analyzer import analyze_data_transform
@@ -21,9 +23,11 @@ from src.analyzer.security_analyzer import (
 from src.core.models import (
     AgentInfo,
     ApexArtifact,
+    AuraInfo,
     DEFAULT_PROFILES_PS_RATIO_THRESHOLDS,
     FlowInfo,
     GenAiPromptInfo,
+    LwcInfo,
     MetadataSnapshot,
     ObjectInfo,
     ValidationRuleInfo,
@@ -205,6 +209,16 @@ class AnalyzerEngine:
                 )
         return _sorted(findings)
 
+    def analyze_lwc(self, lwc: LwcInfo) -> list[Finding]:
+        findings = analyze_lwc(lwc, self.catalog)
+        filtered = [f for f in findings if self._is_rule_applicable(f.rule, lwc.name)]
+        return _sorted(filtered)
+
+    def analyze_aura(self, aura: AuraInfo) -> list[Finding]:
+        findings = analyze_aura(aura, self.catalog)
+        filtered = [f for f in findings if self._is_rule_applicable(f.rule, aura.name)]
+        return _sorted(filtered)
+
     # ------------------------------------------------------------------ snapshot-level API
 
     def analyze_snapshot(self, snapshot: MetadataSnapshot) -> "AnalyzerReport":
@@ -260,6 +274,14 @@ class AnalyzerEngine:
         for prompt in snapshot.gen_ai_prompts:
             prompt_findings[prompt.name] = self.analyze_prompt(prompt)
 
+        lwc_findings: dict[str, list[Finding]] = {}
+        for lwc in snapshot.lwc:
+            lwc_findings[lwc.name] = self.analyze_lwc(lwc)
+
+        aura_findings: dict[str, list[Finding]] = {}
+        for aura in snapshot.aura:
+            aura_findings[aura.name] = self.analyze_aura(aura)
+
         security_findings: dict[str, list[Finding]] = {}
         for profile in snapshot.profiles:
             f = analyze_profile(profile, self.catalog)
@@ -287,6 +309,8 @@ class AnalyzerEngine:
             data_transforms=omni_findings,
             agents=agent_findings,
             prompts=prompt_findings,
+            lwc=lwc_findings,
+            aura=aura_findings,
             security=security_findings,
             rules_used=self.catalog.enabled,
         )
@@ -304,6 +328,8 @@ class AnalyzerReport:
         data_transforms: dict[str, list[Finding]] | None = None,
         agents: dict[str, list[Finding]] | None = None,
         prompts: dict[str, list[Finding]] | None = None,
+        lwc: dict[str, list[Finding]] | None = None,
+        aura: dict[str, list[Finding]] | None = None,
         security: dict[str, list[Finding]] | None = None,
         rules_used: list | None = None,
     ) -> None:
@@ -314,6 +340,8 @@ class AnalyzerReport:
         self.data_transforms = data_transforms or {}
         self.agents = agents or {}
         self.prompts = prompts or {}
+        self.lwc = lwc or {}
+        self.aura = aura or {}
         self.security = security or {}
         self.rules_used = rules_used or []
 
@@ -327,6 +355,8 @@ class AnalyzerReport:
             self.data_transforms,
             self.agents,
             self.prompts,
+            self.lwc,
+            self.aura,
             self.security,
         ):
             for findings in group.values():

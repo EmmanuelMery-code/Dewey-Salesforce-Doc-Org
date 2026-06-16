@@ -46,6 +46,9 @@ class HistoryEntry:
     gen_ai_prompts: int = 0
     einstein_predictions: int = 0
     sharing_rules: int = 0
+    duplicate_rules: int = 0
+    lwc_count: int = 0
+    aura_count: int = 0
     findings_total: int = 0
     findings_critical: int = 0
     findings_major: int = 0
@@ -126,6 +129,9 @@ class HistoryService:
                     gen_ai_prompts INTEGER,
                     einstein_predictions INTEGER,
                     sharing_rules INTEGER DEFAULT 0,
+                    duplicate_rules INTEGER DEFAULT 0,
+                    lwc_count INTEGER DEFAULT 0,
+                    aura_count INTEGER DEFAULT 0,
                     findings_total INTEGER,
                     findings_critical INTEGER,
                     findings_major INTEGER,
@@ -174,6 +180,9 @@ class HistoryService:
                 ("test_coverage_apex", "REAL"),
                 ("test_coverage_flows", "REAL"),
                 ("sharing_rules", "INTEGER DEFAULT 0"),
+                ("duplicate_rules", "INTEGER DEFAULT 0"),
+                ("lwc_count", "INTEGER DEFAULT 0"),
+                ("aura_count", "INTEGER DEFAULT 0"),
                 ("comment", "TEXT DEFAULT ''"),
             ]
             for col_name, col_type in new_cols:
@@ -215,11 +224,11 @@ class HistoryService:
                     total_custom_components, total_standard_components,
                     adopt_ootb_count, adopt_decl_count, adapt_low_count, adapt_high_count,
                     apex_classes_triggers,
-                    omni_components, agents, gen_ai_prompts, einstein_predictions, sharing_rules, findings_total, findings_critical,
+                    omni_components, agents, gen_ai_prompts, einstein_predictions, sharing_rules, duplicate_rules, lwc_count, aura_count, findings_total, findings_critical,
                     findings_major, findings_minor, findings_info,
                     ai_usage_pct, data_model_custom_pct, data_model_standard_pct,
                     adoption_pct, adaptation_pct, test_coverage, test_coverage_apex, test_coverage_flows, timestamp, generation_number, comment
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
                 entry.score_no_code, entry.score_low_code, entry.score_pro_code,
@@ -231,7 +240,7 @@ class HistoryService:
                 entry.total_custom_components, entry.total_standard_components,
                 entry.adopt_ootb_count, entry.adopt_decl_count, entry.adapt_low_count, entry.adapt_high_count,
                 entry.apex_classes_triggers, entry.omni_components,
-                entry.agents, entry.gen_ai_prompts, entry.einstein_predictions, entry.sharing_rules,
+                entry.agents, entry.gen_ai_prompts, entry.einstein_predictions, entry.sharing_rules, entry.duplicate_rules, entry.lwc_count, entry.aura_count,
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
@@ -332,7 +341,7 @@ class HistoryService:
                     total_custom_components = ?, total_standard_components = ?,
                     adopt_ootb_count = ?, adopt_decl_count = ?, adapt_low_count = ?, adapt_high_count = ?,
                     apex_classes_triggers = ?, omni_components = ?,
-                    agents = ?, gen_ai_prompts = ?, einstein_predictions = ?, sharing_rules = ?,
+                    agents = ?, gen_ai_prompts = ?, einstein_predictions = ?, sharing_rules = ?, duplicate_rules = ?, lwc_count = ?, aura_count = ?,
                     findings_total = ?, findings_critical = ?, findings_major = ?,
                     findings_minor = ?, findings_info = ?, ai_usage_pct = ?,
                     data_model_custom_pct = ?, data_model_standard_pct = ?,
@@ -350,7 +359,7 @@ class HistoryService:
                 entry.total_custom_components, entry.total_standard_components,
                 entry.adopt_ootb_count, entry.adopt_decl_count, entry.adapt_low_count, entry.adapt_high_count,
                 entry.apex_classes_triggers, entry.omni_components,
-                entry.agents, entry.gen_ai_prompts, entry.einstein_predictions, entry.sharing_rules,
+                entry.agents, entry.gen_ai_prompts, entry.einstein_predictions, entry.sharing_rules, entry.duplicate_rules, entry.lwc_count, entry.aura_count,
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
                 entry.data_model_custom_pct, entry.data_model_standard_pct,
@@ -409,6 +418,9 @@ class HistoryService:
             gen_ai_prompts=get_val("gen_ai_prompts"),
             einstein_predictions=get_val("einstein_predictions"),
             sharing_rules=get_val("sharing_rules"),
+            duplicate_rules=get_val("duplicate_rules"),
+            lwc_count=get_val("lwc_count"),
+            aura_count=get_val("aura_count"),
             findings_total=get_val("findings_total"),
             findings_critical=get_val("findings_critical"),
             findings_major=get_val("findings_major"),

@@ -115,6 +115,14 @@ def show_configuration_screen(app: Application) -> None:
         "generate_summary_word": tk.BooleanVar(
             value=bool(app.generate_summary_word_var.get())
         ),
+        "generate_audit_summary_rtf": tk.BooleanVar(
+            value=bool(app.generate_audit_summary_rtf_var.get())
+        ),
+        "generate_html": tk.BooleanVar(
+            value=bool(app.generate_html_var.get())
+        ),
+        "run_tests": tk.BooleanVar(value=bool(app.run_tests_var.get())),
+        "calculate_coverage": tk.BooleanVar(value=bool(app.calculate_coverage_var.get())),
         "show_card_customization_level": tk.BooleanVar(
             value=bool(app.show_card_customization_level_var.get())
         ),
@@ -171,6 +179,21 @@ def show_configuration_screen(app: Application) -> None:
         ),
         "show_card_innovation": tk.BooleanVar(
             value=bool(app.show_card_innovation_var.get())
+        ),
+        "show_card_sharing_rules": tk.BooleanVar(
+            value=bool(app.show_card_sharing_rules_var.get())
+        ),
+        "show_card_duplicate_rules": tk.BooleanVar(
+            value=bool(app.show_card_duplicate_rules_var.get())
+        ),
+        "show_card_lwc": tk.BooleanVar(
+            value=bool(app.show_card_lwc_var.get())
+        ),
+        "show_card_aura": tk.BooleanVar(
+            value=bool(app.show_card_aura_var.get())
+        ),
+        "show_card_dependencies": tk.BooleanVar(
+            value=bool(app.show_card_dependencies_var.get())
         ),
     }
 
@@ -244,6 +267,11 @@ def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dic
     reports.pack(fill="x", pady=(0, 8))
     ttk.Checkbutton(
         reports,
+        text=app._t("menu_generate_html"),
+        variable=edit_vars["generate_html"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
         text=app._t("configuration_generate_excels"),
         variable=edit_vars["generate_excels"],
     ).pack(anchor="w", pady=(2, 2))
@@ -261,6 +289,24 @@ def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dic
         reports,
         text=app._t("configuration_generate_summary_word"),
         variable=edit_vars["generate_summary_word"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_audit_summary_rtf"),
+        variable=edit_vars["generate_audit_summary_rtf"],
+    ).pack(anchor="w", pady=(2, 2))
+
+    tests = ttk.LabelFrame(parent, text=app._t("configuration_section_tests"), padding=10)
+    tests.pack(fill="x", pady=(0, 8))
+    ttk.Checkbutton(
+        tests,
+        text=app._t("configuration_run_tests"),
+        variable=edit_vars["run_tests"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        tests,
+        text=app._t("configuration_calculate_coverage"),
+        variable=edit_vars["calculate_coverage"],
     ).pack(anchor="w", pady=(2, 2))
 
 
@@ -502,6 +548,10 @@ def _build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[
                 ("show_card_einstein_predictions", "configuration_card_einstein_predictions"),
                 ("show_card_agents", "configuration_card_agents"),
                 ("show_card_gen_ai_prompts", "configuration_card_gen_ai_prompts"),
+                ("show_card_sharing_rules", "configuration_card_sharing_rules"),
+                ("show_card_duplicate_rules", "configuration_card_duplicate_rules"),
+                ("show_card_lwc", "configuration_card_lwc"),
+                ("show_card_aura", "configuration_card_aura"),
             ],
         ),
         (
@@ -523,6 +573,7 @@ def _build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[
                 ("show_card_adopt_adapt_posture", "configuration_card_adopt_adapt_posture"),
                 ("show_card_debt", "configuration_card_debt"),
                 ("show_card_innovation", "configuration_card_innovation"),
+                ("show_card_dependencies", "configuration_card_dependencies"),
             ],
         ),
         (
@@ -622,6 +673,14 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     app.generate_summary_word_var.set(
         bool(edit_vars["generate_summary_word"].get())
     )
+    app.generate_audit_summary_rtf_var.set(
+        bool(edit_vars["generate_audit_summary_rtf"].get())
+    )
+    app.generate_html_var.set(
+        bool(edit_vars["generate_html"].get())
+    )
+    app.run_tests_var.set(bool(edit_vars["run_tests"].get()))
+    app.calculate_coverage_var.set(bool(edit_vars["calculate_coverage"].get()))
     app.show_card_customization_level_var.set(
         bool(edit_vars["show_card_customization_level"].get())
     )
@@ -678,6 +737,21 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     )
     app.show_card_innovation_var.set(
         bool(edit_vars["show_card_innovation"].get())
+    )
+    app.show_card_sharing_rules_var.set(
+        bool(edit_vars["show_card_sharing_rules"].get())
+    )
+    app.show_card_duplicate_rules_var.set(
+        bool(edit_vars["show_card_duplicate_rules"].get())
+    )
+    app.show_card_lwc_var.set(
+        bool(edit_vars["show_card_lwc"].get())
+    )
+    app.show_card_aura_var.set(
+        bool(edit_vars["show_card_aura"].get())
+    )
+    app.show_card_dependencies_var.set(
+        bool(edit_vars["show_card_dependencies"].get())
     )
 
     if app._config_system_prompt_widget is not None:

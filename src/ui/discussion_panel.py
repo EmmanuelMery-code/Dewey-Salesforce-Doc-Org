@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import time
 import tkinter as tk
+from pathlib import Path
 from threading import Thread
 from tkinter import scrolledtext, ttk
 from typing import TYPE_CHECKING
@@ -106,6 +107,11 @@ def build_panel(app: Application, parent: ttk.Frame) -> None:
         ttk.Button(input_row, command=lambda: clear_history(app))
     )
     app.discussion_clear_button.pack(side="left", padx=(8, 0))
+
+    app.discussion_summarize_button = app._track_button(
+        ttk.Button(input_row, command=lambda: summarize_org(app))
+    )
+    app.discussion_summarize_button.pack(side="left", padx=(8, 0))
 
     # Navigation + copy bar shown right below the input field.
     nav_row = ttk.Frame(container)
@@ -390,7 +396,6 @@ def _has_generated_documentation(directory: str | None) -> bool:
 
     if not directory:
         return False
-    from pathlib import Path  # local import keeps the panel light at import time
 
     try:
         path = Path(directory).expanduser()
@@ -449,6 +454,18 @@ def toggle_force_existing_docs(app: Application) -> None:
     update_context_status(app)
 
 
+def summarize_org(app: Application) -> None:
+    """Send a pre-defined prompt to the AI to summarize the org."""
+    if app.discussion_pending:
+        append_line(app, app._t("discussion_busy"), tag="error")
+        return
+    
+    app.is_summarize_request = True
+    prompt = app._t("discussion_summarize_prompt")
+    app.discussion_input_var.set(prompt)
+    send_message(app)
+
+
 def send_message(app: Application) -> None:
     if app.discussion_pending:
         append_line(app, app._t("discussion_busy"), tag="error")
@@ -495,6 +512,27 @@ def send_message(app: Application) -> None:
         return
 
     system_prompt = app.system_prompt or build_system_prompt(app.language)
+    
+    # If it's a summarize request, we MUST ensure we use the latest metrics from the DB for the selected alias
+    history_metrics = None
+    if getattr(app, "is_summarize_request", False):
+        try:
+            # Get the effective alias (either from the entry or the selected org)
+            selected_org = app._selected_org()
+            alias = selected_org.org_ref if selected_org else app.alias_var.get().strip()
+            
+            if alias:
+                app_root = Path(__file__).resolve().parent.parent.parent
+                db_path = app_root / "history.db"
+                if db_path.exists():
+                    from src.core.history_service import HistoryService
+                    service = HistoryService(db_path)
+                    entries = service.list_entries_for_alias(alias)
+                    if entries:
+                        history_metrics = entries[0] # Latest entry
+        except Exception as exc:
+            append_line(app, f"Avertissement : impossible de charger l'historique pour le resume : {exc}", tag="system")
+
     snapshot_for_context = (
         None
         if getattr(app, "discussion_force_existing_docs", False)
@@ -504,7 +542,10 @@ def send_message(app: Application) -> None:
         snapshot_for_context,
         source_dir=app.source_var.get().strip() or None,
         documentation_dir=app.output_var.get().strip() or None,
+        exclusion_path=app.exclusion_file_var.get().strip() or None,
+        history_entry=history_metrics,
     )
+
     full_system = f"{system_prompt}\n\n{context}"
 
     settings_for_service = {
@@ -528,6 +569,8 @@ def send_message(app: Application) -> None:
     app.discussion_pending = True
     app._discussion_last_send_ts = time.monotonic()
     app.discussion_send_button.configure(state="disabled")
+    if hasattr(app, "discussion_summarize_button"):
+        app.discussion_summarize_button.configure(state="disabled")
     append_line(
         app, app._t("discussion_thinking", provider=provider), tag="system"
     )
@@ -550,9 +593,13 @@ def send_message(app: Application) -> None:
 
     def worker() -> None:
         try:
+            # Increase max_tokens for summaries to avoid truncation
+            max_tokens = 8192 if getattr(app, "is_summarize_request", False) else 4096
+            
             reply = service.chat(
                 messages_snapshot,
                 system_prompt=full_system,
+                max_tokens=max_tokens,
                 on_retry=on_retry,
             )
             queue.put(("discussion_reply", {"provider": provider, "reply": reply}))
@@ -572,17 +619,37 @@ def handle_reply(app: Application, payload: dict[str, str]) -> None:
     provider = payload.get("provider", "")
     app.discussion_pending = False
     app.discussion_send_button.configure(state="normal")
+    if hasattr(app, "discussion_summarize_button"):
+        app.discussion_summarize_button.configure(state="normal")
     if reply:
         app.discussion_messages.append(AIMessage(role="assistant", content=reply))
         append_line(app, f"[{provider}] {reply}", tag="assistant")
+        
+        # If it was a summarize request, save as RTF
+        if getattr(app, "is_summarize_request", False):
+            app.is_summarize_request = False
+            try:
+                from src.core.audit_generator import generate_ai_summary_rtf
+                output_dir = Path(app.output_var.get().strip())
+                word_dir = output_dir / "word"
+                word_dir.mkdir(parents=True, exist_ok=True)
+                rtf_path = word_dir / "ai_org_summary.rtf"
+                generate_ai_summary_rtf(reply, rtf_path)
+                append_line(app, f"Resume IA enregistre dans : {rtf_path}", tag="system")
+            except Exception as exc:
+                append_line(app, f"Erreur lors de l'enregistrement du resume RTF : {exc}", tag="error")
     else:
+        app.discussion_empty_reply = True # Just to keep track
         append_line(app, app._t("discussion_empty_reply"), tag="error")
     update_navigation_state(app)
 
 
 def handle_error(app: Application, message: str) -> None:
     app.discussion_pending = False
+    app.is_summarize_request = False
     app.discussion_send_button.configure(state="normal")
+    if hasattr(app, "discussion_summarize_button"):
+        app.discussion_summarize_button.configure(state="normal")
     _rollback_failed_user_message(app)
     append_line(app, app._t("discussion_error", error=message), tag="error")
 

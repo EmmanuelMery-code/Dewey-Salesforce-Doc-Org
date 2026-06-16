@@ -316,6 +316,18 @@ class Application(
         self.generate_summary_word_var = tk.BooleanVar(
             value=bool(self.settings.get("generate_summary_word", True))
         )
+        self.generate_audit_summary_rtf_var = tk.BooleanVar(
+            value=bool(self.settings.get("generate_audit_summary_rtf", True))
+        )
+        self.generate_html_var = tk.BooleanVar(
+            value=bool(self.settings.get("generate_html", True))
+        )
+        self.run_tests_var = tk.BooleanVar(
+            value=bool(self.settings.get("run_tests", False))
+        )
+        self.calculate_coverage_var = tk.BooleanVar(
+            value=bool(self.settings.get("calculate_coverage", True))
+        )
 
         # Index card visibility flags
         icv = parse_index_card_visibility(self.settings)
@@ -348,6 +360,11 @@ class Application(
         self.show_card_test_coverage_var = tk.BooleanVar(value=icv.show_test_coverage)
         self.show_card_debt_var = tk.BooleanVar(value=icv.show_debt)
         self.show_card_innovation_var = tk.BooleanVar(value=icv.show_innovation)
+        self.show_card_sharing_rules_var = tk.BooleanVar(value=icv.show_sharing_rules)
+        self.show_card_duplicate_rules_var = tk.BooleanVar(value=icv.show_duplicate_rules)
+        self.show_card_lwc_var = tk.BooleanVar(value=icv.show_lwc)
+        self.show_card_aura_var = tk.BooleanVar(value=icv.show_aura)
+        self.show_card_dependencies_var = tk.BooleanVar(value=icv.show_dependencies)
 
         # Window / widget references (set by _build_ui / secondary screens)
         self.hero_image: tk.PhotoImage | None = None
