@@ -67,7 +67,11 @@ class AppGenerationMixin:
             if generate_excels_override is None
             else generate_excels_override
         )
-        generate_html = True if generate_html_override is None else generate_html_override
+        generate_html = (
+            bool(self.generate_html_var.get())
+            if generate_html_override is None
+            else generate_html_override
+        )
         generate_dd_word = (
             bool(self.generate_data_dictionary_word_var.get())
             if generate_data_dictionary_word_override is None
@@ -78,6 +82,7 @@ class AppGenerationMixin:
             if generate_summary_word_override is None
             else generate_summary_word_override
         )
+        generate_audit_summary_rtf = bool(self.generate_audit_summary_rtf_var.get())
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
         selected_org = self._selected_org()
@@ -86,23 +91,26 @@ class AppGenerationMixin:
         def task() -> GenerationResult:
             test_coverage = None
             if selected_org:
-                self.task_manager.queue_log("")
-                self.task_manager.queue_log("=" * 80)
-                self.task_manager.queue_log("EXECUTION DES TESTS APEX (RunLocalTests)")
-                self.task_manager.queue_log(
-                    "Vous pouvez suivre l'avancement dans votre org :"
-                )
-                self.task_manager.queue_log(
-                    "  Configuration > Apex > Execution des tests Apex"
-                )
-                self.task_manager.queue_log("=" * 80)
-                self.task_manager.queue_log("")
-                self.cli_service.run_apex_tests(selected_org.org_ref)
-                self.task_manager.queue_log("")
-                self.task_manager.queue_log(
-                    "Tests termines. Recuperation de la couverture de tests..."
-                )
-                test_coverage = self._fetch_test_coverage(selected_org.org_ref)
+                if self.run_tests_var.get():
+                    self.task_manager.queue_log("")
+                    self.task_manager.queue_log("=" * 80)
+                    self.task_manager.queue_log("EXECUTION DES TESTS APEX (RunLocalTests)")
+                    self.task_manager.queue_log(
+                        "Vous pouvez suivre l'avancement dans votre org :"
+                    )
+                    self.task_manager.queue_log(
+                        "  Configuration > Apex > Execution des tests Apex"
+                    )
+                    self.task_manager.queue_log("=" * 80)
+                    self.task_manager.queue_log("")
+                    self.cli_service.run_apex_tests(selected_org.org_ref)
+                
+                if self.calculate_coverage_var.get():
+                    self.task_manager.queue_log("")
+                    self.task_manager.queue_log(
+                        "Recuperation de la couverture de tests..."
+                    )
+                    test_coverage = self._fetch_test_coverage(selected_org.org_ref)
 
             self._run_org_check_pre_step(
                 output, generate_org_check, org_check_choice, org_ref
@@ -117,6 +125,7 @@ class AppGenerationMixin:
                 generate_html=generate_html,
                 generate_data_dictionary_word=generate_dd_word,
                 generate_summary_word=generate_summary_word,
+                generate_audit_summary_rtf=generate_audit_summary_rtf,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),
@@ -188,20 +197,23 @@ class AppGenerationMixin:
             self.task_manager.queue_log("CALCUL DE LA COUVERTURE DE TESTS")
             self.task_manager.queue_log(sep)
             self.task_manager.queue_log("")
-            self.task_manager.queue_log(sep)
-            self.task_manager.queue_log("EXECUTION DES TESTS APEX (RunLocalTests)")
+            
+            if self.run_tests_var.get():
+                self.task_manager.queue_log(sep)
+                self.task_manager.queue_log("EXECUTION DES TESTS APEX (RunLocalTests)")
+                self.task_manager.queue_log(
+                    "Vous pouvez suivre l'avancement dans votre org :"
+                )
+                self.task_manager.queue_log(
+                    "  Configuration > Apex > Execution des tests Apex"
+                )
+                self.task_manager.queue_log(sep)
+                self.task_manager.queue_log("")
+                self.cli_service.run_apex_tests(org_ref)
+                self.task_manager.queue_log("")
+            
             self.task_manager.queue_log(
-                "Vous pouvez suivre l'avancement dans votre org :"
-            )
-            self.task_manager.queue_log(
-                "  Configuration > Apex > Execution des tests Apex"
-            )
-            self.task_manager.queue_log(sep)
-            self.task_manager.queue_log("")
-            self.cli_service.run_apex_tests(org_ref)
-            self.task_manager.queue_log("")
-            self.task_manager.queue_log(
-                "Tests termines. Recuperation des resultats de couverture..."
+                "Recuperation des resultats de couverture..."
             )
             self.task_manager.queue_log("")
 

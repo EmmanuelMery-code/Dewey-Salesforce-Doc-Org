@@ -211,7 +211,7 @@ class AIServiceBase:
         self,
         messages: list[AIMessage],
         system_prompt: str = "",
-        max_tokens: int = 4096,
+        max_tokens: int = 8192,
         *,
         on_retry: RetryNotifier | None = None,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -230,7 +230,7 @@ class ClaudeService(AIServiceBase):
         self,
         messages: list[AIMessage],
         system_prompt: str = "",
-        max_tokens: int = 4096,
+        max_tokens: int = 8192,
         *,
         on_retry: RetryNotifier | None = None,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -294,7 +294,7 @@ class GeminiService(AIServiceBase):
         self,
         messages: list[AIMessage],
         system_prompt: str = "",
-        max_tokens: int = 4096,
+        max_tokens: int = 8192,
         *,
         on_retry: RetryNotifier | None = None,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -433,7 +433,7 @@ class GatewayService(AIServiceBase):
         self,
         messages: list[AIMessage],
         system_prompt: str = "",
-        max_tokens: int = 4096,
+        max_tokens: int = 8192,
         *,
         on_retry: RetryNotifier | None = None,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -467,7 +467,7 @@ class GatewayService(AIServiceBase):
                 headers=headers, 
                 json=payload, 
                 verify=self.cert_path,
-                timeout=60
+                timeout=180
             )
             response.raise_for_status()
             return response.json()

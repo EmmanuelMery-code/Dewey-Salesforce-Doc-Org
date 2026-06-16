@@ -10,6 +10,7 @@ from typing import Callable
 from src.analyzer.models import Finding
 from src.core.models import (
     ApexArtifact,
+    Dependency,
     MetadataSnapshot,
     PmdViolation,
     ReviewResult,
@@ -19,6 +20,7 @@ from src.core.utils import html_value, safe_slug, write_text
 from src.reporting.html.dependencies import (
     apex_dependencies,
     build_apex_reference_index,
+    get_incoming_dependencies,
     render_apex_dependency_graph,
     render_apex_dependency_rows,
     trigger_object_name,
@@ -49,9 +51,19 @@ def render_apex_page(
     apex_pages: dict[str, Path],
     dependencies: list[dict[str, str]],
     pmd_violations: list[PmdViolation],
+    all_dependencies: list[Dependency] | None = None,
     findings: list[Finding] | None = None,
 ) -> str:
     findings = findings or []
+    all_dependencies = all_dependencies or []
+    
+    # Merge with incoming dependencies from other sources (Flows, etc.)
+    incoming = get_incoming_dependencies(artifact.name, "Apex", all_dependencies)
+    for inc in incoming:
+        # Avoid duplicates if apex_dependencies already found it
+        if not any(d["name"] == inc["name"] and d["direction"] == "Entrant" for d in dependencies):
+            dependencies.append(inc)
+            
     metrics_list = list(review.metrics)
     metrics_list.append(("Couverture de tests", (f"{artifact.test_coverage:.1f} %") if artifact.test_coverage is not None else "N/A"))
         
@@ -238,7 +250,8 @@ def write_apex_pages(
                 output,
                 dependencies,
                 pmd_results.get(artifact.name, []),
-                apex_findings.get(artifact.name, []),
+                all_dependencies=snapshot.dependencies,
+                findings=apex_findings.get(artifact.name, []),
             ),
         )
     log(f"{len(output)} page(s) Apex/Trigger generee(s).")

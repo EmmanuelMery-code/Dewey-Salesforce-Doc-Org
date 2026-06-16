@@ -26,7 +26,12 @@ def build_system_prompt(language: str = "fr") -> str:
             "You assist the user in analysing a Salesforce org, giving insights on "
             "customisation, adoption vs adaptation trade-offs, Apex, Flows, LWC, "
             "OmniStudio, security and release engineering. "
-            "Always ground your answers in the provided org context.\n\n"
+            "Always ground your answers in the provided org context. "
+            "IMPORTANT: You MUST use the figures and metrics provided in the "
+            "'METRICS SUMMARY TABLE' below. These are the ONLY valid values. "
+            "NEVER mention Process Builders or Workflows if their count is 0 in the table. "
+            "Your summary must NOT contradict any figures from the index.html page or other "
+            "generated documentation pages.\n\n"
             "The exact source repository path and generated documentation path are "
             "provided in the 'Chemins a explorer' / 'Paths to explore' section of "
             "the org context below. You MUST walk through BOTH directories: "
@@ -51,7 +56,12 @@ def build_system_prompt(language: str = "fr") -> str:
         "Tu aides l'utilisateur a analyser une org Salesforce, a donner des recommandations "
         "sur la customisation, l'arbitrage Adopt vs Adapt, Apex, Flows, LWC, OmniStudio, "
         "la securite et la gestion des livraisons. "
-        "Appuie toujours tes reponses sur le contexte fourni sur l'org.\n\n"
+        "Appuie toujours tes reponses sur le contexte fourni sur l'org. "
+        "IMPORTANT : Tu DOIS imperativement utiliser les chiffres et metriques fournis dans le "
+        "'TABLEAU RECAPITULATIF DES METRIQUES' ci-dessous. Ce sont les SEULES valeurs valides. "
+        "Ne mentionne JAMAIS de Process Builder ou de Workflow si leur compte est a 0 dans le tableau. "
+        "Ton resume ne doit contenir AUCUNE contradiction avec les chiffres de la page index.html ou des autres pages "
+        "de la documentation generee.\n\n"
         "Les chemins exacts du depot source et de la documentation generee te sont "
         "fournis dans la section 'Chemins a explorer' du contexte ci-dessous. Tu "
         "DOIS parcourir ces DEUX repertoires : explore de maniere recursive chaque "
@@ -77,23 +87,113 @@ def build_org_context(
     *,
     source_dir: str | Path | None = None,
     documentation_dir: str | Path | None = None,
+    exclusion_path: str | Path | None = None,
+    history_entry: Any = None,
 ) -> str:
     """Build a textual context string for the current metadata snapshot.
 
-    ``source_dir`` and ``documentation_dir`` are the paths currently configured
-    in the UI (picker values). They are ALWAYS reinjected at each call so the
-    assistant sees the up-to-date locations, even if the user changes them
-    between two questions or before the first analysis. When a snapshot is
-    available, ``snapshot.source_dir`` is also surfaced (the path used for the
-    actual analysis).
+    ``source_dir``, ``documentation_dir`` and ``exclusion_path`` are the paths
+    currently configured in the UI (picker values). They are ALWAYS reinjected
+    at each call so the assistant sees the up-to-date locations.
+    
+    If ``history_entry`` is provided (a HistoryEntry object), its metrics will
+    be used to build the summary table, ensuring consistency with the last
+    saved generation for the selected alias.
     """
     paths_block = _format_paths_block(
         source_dir=source_dir,
         documentation_dir=documentation_dir,
         snapshot=snapshot,
+        exclusion_path=exclusion_path,
     )
 
-    if snapshot is None:
+    # 1. Build the metrics summary table
+    # We prioritize history_entry if provided, then snapshot.metrics
+    metrics_table = ""
+    if history_entry:
+        h = history_entry
+        metrics_table = f"""
+## TABLEAU RECAPITULATIF DES METRIQUES (VERITE TERRAIN - DERNIERE GENERATION EN BASE)
+IMPORTANT : Ces chiffres sont les SEULS valides pour ton resume.
+
+| Metrique | Valeur | Detail / Pourcentage |
+| :--- | :--- | :--- |
+| Score de complexite | {h.score} | Breakdown: No:{h.score_no_code}, Low:{h.score_low_code}, Pro:{h.score_pro_code} |
+| Score Adopt vs Adapt | {h.adopt_adapt_score} | |
+| Posture Adoption | {h.adoption_pct:.1f}% | Poids total adoption |
+| Posture Adaptation | {h.adaptation_pct:.1f}% | Poids total adaptation |
+| Objets personnalises | {h.custom_objects} | {h.data_model_custom_pct:.1f}% des objets |
+| Champs personnalises | {h.custom_fields} | |
+| Empreinte Data Model | {h.data_model_custom_pct:.1f}% | Global custom |
+| Record Types | {h.record_types} | |
+| Validation Rules | {h.validation_rules} | |
+| Sharing Rules | {h.sharing_rules} | |
+| Duplicate Rules | {h.duplicate_rules} | |
+| Layouts | {h.page_layouts} | |
+| Onglets personnalises | {h.custom_tabs} | |
+| Applications personnalisees | {h.custom_apps} | |
+| Flows (incl. Process Builders) | {h.flows} | |
+| Classes Apex | {h.apex_classes_triggers} | (Classes + Triggers) |
+| Couverture de tests | {f'{h.test_coverage:.1f}%' if h.test_coverage is not None else 'N/A'} | Global org |
+| LWC | {h.lwc_count} | |
+| Composants Aura | {h.aura_count} | |
+| OmniStudio | {h.omni_components} | Total composants |
+| Usage IA | {h.ai_usage_pct:.1f}% | Elements custom tagges |
+| Findings Critiques | {h.findings_critical} | |
+| Findings Majeurs | {h.findings_major} | |
+| Findings Mineurs | {h.findings_minor} | |
+| Process Builders | 0 | (Sauf si inclus dans Flows) |
+| Workflows | 0 | |
+"""
+    elif snapshot:
+        m = snapshot.metrics
+        f = snapshot.findings_summary
+        dm = snapshot.data_model_stats
+        ad = snapshot.adoption_stats
+        ai = snapshot.ai_usage_stats
+        
+        ad_pct = f"{ad.percent_adoption:.1f}%" if ad else "N/A"
+        ad_adapt_pct = f"{ad.percent_adaptation:.1f}%" if ad else "N/A"
+        dm_obj_pct = f"{dm.percent_custom_objects:.1f}% des objets" if dm else ""
+        dm_global_pct = f"{dm.percent_custom_global:.1f}%" if dm else "N/A"
+        ai_pct = f"{ai.percent_with_tag:.1f}%" if ai else "N/A"
+
+        metrics_table = f"""
+## TABLEAU RECAPITULATIF DES METRIQUES (VERITE TERRAIN - SESSION EN COURS)
+IMPORTANT : Ces chiffres sont les SEULS valides pour ton resume.
+
+| Metrique | Valeur | Detail / Pourcentage |
+| :--- | :--- | :--- |
+| Score de complexite | {m.score} | Breakdown: No:{m.score_no_code}, Low:{m.score_low_code}, Pro:{m.score_pro_code} |
+| Score Adopt vs Adapt | {m.adopt_adapt_score} | |
+| Posture Adoption | {ad_pct} | Poids total adoption |
+| Posture Adaptation | {ad_adapt_pct} | Poids total adaptation |
+| Objets personnalises | {m.custom_objects} | {dm_obj_pct} |
+| Champs personnalises | {m.custom_fields} | |
+| Empreinte Data Model | {dm_global_pct} | Global custom |
+| Record Types | {m.record_types} | |
+| Validation Rules | {m.validation_rules} | |
+| Sharing Rules | {m.sharing_rules} | |
+| Duplicate Rules | {m.duplicate_rules} | |
+| Layouts | {m.layouts} | |
+| Onglets personnalises | {m.custom_tabs} | |
+| Applications personnalisees | {m.custom_apps} | |
+| Flows (incl. Process Builders) | {m.flows} | |
+| Classes Apex | {m.apex_classes} | |
+| Triggers Apex | {m.apex_triggers} | |
+| Couverture de tests | {f'{m.test_coverage:.1f}%' if m.test_coverage is not None else 'N/A'} | Global org |
+| LWC | {m.lwc_count} | |
+| Composants Aura | {len(snapshot.aura)} | |
+| OmniStudio | {m.omni_scripts + m.omni_integration_procedures + m.omni_ui_cards + m.omni_data_transforms} | Total composants |
+| Usage IA | {ai_pct} | Elements custom tagges |
+| Findings Critiques | {f.get('Critical', 0)} | |
+| Findings Majeurs | {f.get('Major', 0)} | |
+| Findings Mineurs | {f.get('Minor', 0)} | |
+| Process Builders | 0 | |
+| Workflows | 0 | |
+"""
+
+    if snapshot is None and not history_entry:
         # No in-memory snapshot, BUT the source and documentation directories
         # may already be populated on disk from a previous run (very common
         # right after an app restart). In that case the assistant must NOT
@@ -139,43 +239,28 @@ def build_org_context(
             "documentation si elle n'a pas encore ete faite."
         )
 
-    metrics = snapshot.metrics
     lines: list[str] = []
     lines.append("=== CONTEXTE DE L'ORG SALESFORCE ANALYSEE ===")
+    lines.append("IMPORTANT : Les chiffres ci-dessous sont les SEULS chiffres valides. ")
+    lines.append("Ne mentionne JAMAIS de Process Builder ou de Workflow si leur compte est a 0. ")
+    lines.append("Ne mentionne aucun composant qui n'est pas explicitement liste ici avec un compte superieur a 0.")
+    lines.append("")
+
     if paths_block:
         lines.append(paths_block)
         lines.append("")
-    lines.append(f"Packages detectes : {len(snapshot.package_roots)}")
-    lines.append("")
+    
+    if metrics_table:
+        lines.append(metrics_table)
+        lines.append("")
 
-    lines.append("## Metriques globales")
-    lines.append(f"- Score de complexite : {metrics.score} ({metrics.level})")
-    lines.append(
-        f"- Score Adopt vs Adapt : {metrics.adopt_adapt_score} ({metrics.adopt_adapt_level})"
-    )
-    lines.append(f"- Objets personnalises : {metrics.custom_objects}")
-    lines.append(f"- Champs personnalises : {metrics.custom_fields}")
-    lines.append(f"- Record Types : {metrics.record_types}")
-    lines.append(f"- Validation Rules : {metrics.validation_rules}")
-    lines.append(f"- Layouts : {metrics.layouts}")
-    lines.append(f"- Onglets personnalises : {metrics.custom_tabs}")
-    lines.append(f"- Applications personnalisees : {metrics.custom_apps}")
-    lines.append(f"- Flows : {metrics.flows}")
-    lines.append(f"- Classes Apex : {metrics.apex_classes}")
-    lines.append(f"- Triggers Apex : {metrics.apex_triggers}")
-    lines.append(f"- Lightning Web Components : {metrics.lwc_count}")
-    lines.append(f"- FlexiPages : {metrics.flexipage_count}")
-    lines.append(f"- OmniScripts : {metrics.omni_scripts}")
-    lines.append(f"- Integration Procedures : {metrics.omni_integration_procedures}")
-    lines.append(f"- UI Cards : {metrics.omni_ui_cards}")
-    lines.append(f"- Data Transforms : {metrics.omni_data_transforms}")
-    lines.append("")
-
-    _append_objects(lines, snapshot)
-    _append_apex(lines, snapshot)
-    _append_flows(lines, snapshot)
-    _append_security(lines, snapshot)
-    _append_inventory(lines, snapshot)
+    if snapshot:
+        lines.append("## Metriques globales (Detail)")
+        _append_objects(lines, snapshot)
+        _append_apex(lines, snapshot)
+        _append_flows(lines, snapshot)
+        _append_security(lines, snapshot)
+        _append_inventory(lines, snapshot)
 
     return "\n".join(lines).strip()
 
@@ -240,6 +325,7 @@ def _format_paths_block(
     source_dir: str | Path | None,
     documentation_dir: str | Path | None,
     snapshot: MetadataSnapshot | None,
+    exclusion_path: str | Path | None = None,
 ) -> str:
     """Build the 'Chemins a explorer' section listing the live paths.
 
@@ -248,11 +334,12 @@ def _format_paths_block(
     """
     configured_source = _normalize_path(source_dir)
     configured_docs = _normalize_path(documentation_dir)
+    configured_exclusion = _normalize_path(exclusion_path)
     analysed_source = (
         _normalize_path(snapshot.source_dir) if snapshot is not None else ""
     )
 
-    if not (configured_source or configured_docs or analysed_source):
+    if not (configured_source or configured_docs or analysed_source or configured_exclusion):
         return ""
 
     entries: list[str] = []
@@ -269,6 +356,16 @@ def _format_paths_block(
     if configured_docs:
         entries.append(
             f"- Repertoire de la documentation generee (HTML/Excel) : {configured_docs}"
+        )
+    if configured_exclusion:
+        entries.append(
+            f"- Fichier des exclusions (Excel) : {configured_exclusion}"
+        )
+        entries.append(
+            "IMPORTANT : Ce fichier contient la liste des elements (objets, classes, etc.) "
+            "qui ont ete EXCLUS de l'analyse. Tu DOIS en tenir compte dans ton resume : "
+            "si un element est dans ce fichier, il ne doit pas apparaitre comme une "
+            "omission ou une erreur dans ton analyse, car il a ete volontairement ecarte."
         )
     entries.append(
         "Tu DOIS parcourir recursivement ces dossiers et leurs sous-dossiers "

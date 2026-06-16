@@ -14,6 +14,8 @@ from src.core.customization_metrics import (
 )
 from src.core.index_card_visibility import IndexCardVisibility
 from src.core.models import (
+    AuraInfo,
+    LwcInfo,
     MetadataSnapshot,
     PmdViolation,
     ReviewResult,
@@ -163,6 +165,16 @@ def render_index_analyzer_panel(
         if row:
             artifact_rows.append(row)
 
+    for name, flist in analyzer_report.lwc.items():
+        row = _artifact_row("LWC", name, flist, "")
+        if row:
+            artifact_rows.append(row)
+
+    for name, flist in analyzer_report.aura.items():
+        row = _artifact_row("Aura", name, flist, "")
+        if row:
+            artifact_rows.append(row)
+
     artifact_rows.sort()
     if not artifact_rows:
         artifact_table = "<p class='empty'>Aucun composant impacte.</p>"
@@ -291,6 +303,27 @@ def render_index_pmd_rows(
     return "".join(rows) or "<tr><td colspan='5' class='empty'>Aucune violation PMD detectee.</td></tr>"
 
 
+def render_index_dependencies_panel(snapshot: MetadataSnapshot) -> str:
+    if not snapshot.dependencies:
+        return "<p class='empty'>Aucune dependance detectee.</p>"
+
+    rows = []
+    for dep in sorted(snapshot.dependencies, key=lambda d: (d.source_kind, d.source_name)):
+        rows.append(
+            f"<tr>"
+            f"<td>{html_value(dep.source_name)}</td>"
+            f"<td>{html_value(dep.source_kind)}</td>"
+            f"<td>{html_value(dep.target_name)}</td>"
+            f"<td>{html_value(dep.target_kind)}</td>"
+            f"</tr>"
+        )
+
+    return (
+        "<table><thead><tr><th>Source</th><th>Type Source</th><th>Cible</th><th>Type Cible</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
 def render_index(
     snapshot: MetadataSnapshot,
     object_pages: dict[str, Path],
@@ -343,10 +376,11 @@ def render_index(
 
     object_rows = "".join(
         f"<tr><td><a href='{href_relative(current_path, object_pages[item.api_name])}'>{html_value(item.api_name)}</a></td>"
-        f"<td>{html_value(item.label)}</td><td>{len(item.fields)}</td><td>{len(item.relationships)}</td></tr>"
+        f"<td>{html_value(item.label)}</td><td>{len(item.fields)}</td><td>{len(item.relationships)}</td>"
+        f"<td>{len(item.validation_rules)} (Σ={sum(vr.complexity_score for vr in item.validation_rules)})</td></tr>"
         for item in snapshot.objects
         if item.api_name in object_pages
-    ) or "<tr><td colspan='4' class='empty'>Aucun objet analyse.</td></tr>"
+    ) or "<tr><td colspan='5' class='empty'>Aucun objet analyse.</td></tr>"
 
     _DANGER_PERMS = {"ModifyAllData", "ManageUsers"}
     _PERM_COLORS = {"ModifyAllData": "#ff4444", "ManageUsers": "#ff8c00"}
@@ -387,25 +421,35 @@ def render_index(
         badge = _sec_findings_badge(item.name, analyzer_report)
         return f"<td>{name}{badge}</td>"
 
+    def _security_artifact_row(item, pages, is_profile=True):
+        risk = _profile_risk(item)
+        row_style = _risk_style[risk]
+        risk_label = _risk_label[risk]
+        risk_color = '#ff4444' if risk in ('danger','major','minor') else ''
+        
+        kind_label = ('Custom' if item.is_custom else 'Standard') if is_profile else 'Permission Set'
+        
+        return (
+            f"<tr style='{row_style}'>"
+            + _profile_name_cell(item, pages)
+            + f"<td>{kind_label}</td>"
+            + f"<td style='color:{risk_color}'>{risk_label}</td>"
+            + f"<td>{len(item.object_permissions)}</td>"
+            + f"<td>{len(item.field_permissions)}</td></tr>"
+        )
+
     profile_detail_pages = {k.split(":", 1)[1]: v for k, v in (security_pages or {}).items() if k.startswith("profile:")}
     permset_detail_pages = {k.split(":", 1)[1]: v for k, v in (security_pages or {}).items() if k.startswith("permset:")}
 
     profile_rows = "".join(
-        f"<tr style='{_risk_style[_profile_risk(item)]}'>"
-        + _profile_name_cell(item, profile_detail_pages)
-        + f"<td>{'Custom' if item.is_custom else 'Standard'}</td>"
-        + f"<td style='color:{'#ff4444' if _profile_risk(item) in ('danger','major','minor') else ''}'>"
-        + f"{_risk_label[_profile_risk(item)]}</td>"
-        + f"<td>{len(item.object_permissions)}</td><td>{len(item.field_permissions)}</td></tr>"
+        _security_artifact_row(item, profile_detail_pages, is_profile=True)
         for item in snapshot.profiles
     ) or "<tr><td colspan='5' class='empty'>Aucun profil analysé.</td></tr>"
 
     permset_rows = "".join(
-        f"<tr>"
-        + _profile_name_cell(item, permset_detail_pages)
-        + f"<td>{len(item.object_permissions)}</td><td>{len(item.field_permissions)}</td></tr>"
+        _security_artifact_row(item, permset_detail_pages, is_profile=False)
         for item in snapshot.permission_sets
-    ) or "<tr><td colspan='3' class='empty'>Aucun permission set analysé.</td></tr>"
+    ) or "<tr><td colspan='5' class='empty'>Aucun permission set analysé.</td></tr>"
 
     # Security dashboard summary
     m = snapshot.metrics
@@ -431,34 +475,41 @@ def render_index(
     )
 
     security_dashboard = f"""
-<div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px'>
-  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
-    <div style='font-size:.8em;color:#64748b'>Profils custom</div>
-    <div style='font-size:1.5em;font-weight:bold'>{m.custom_profiles_count}</div>
-    <div style='font-size:.8em;color:#64748b'>sur {m.profiles_count} profils total</div>
-  </div>
-  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
-    <div style='font-size:.8em;color:#64748b'>Permission Sets</div>
-    <div style='font-size:1.5em;font-weight:bold'>{m.permission_sets_count}</div>
-  </div>
-  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {ratio_color}33;border-radius:6px'>
-    <div style='font-size:.8em;color:#64748b'>Ratio Profils/PS</div>
-    <div style='font-size:1.5em;font-weight:bold;color:{ratio_color}'>{ratio_pct}%</div>
-    <div style='font-size:.8em;color:{ratio_color};font-weight:bold'>{ratio_level}</div>
-  </div>
-  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff444433" if m.dangerous_profiles_count else "#e2e8f0"};border-radius:6px'>
-    <div style='font-size:.8em;color:#64748b'>Profils dangereux</div>
-    <div style='font-size:1.5em;font-weight:bold;color:{"#ff4444" if m.dangerous_profiles_count else "#22aa66"}'>{m.dangerous_profiles_count}</div>
-    <div style='font-size:.8em;color:#64748b'>ModifyAllData / ManageUsers</div>
-  </div>
-  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff8c0033" if m.profiles_with_modify_all else "#e2e8f0"};border-radius:6px'>
-    <div style='font-size:.8em;color:#64748b'>Profils avec ModifyAllRecords</div>
-    <div style='font-size:1.5em;font-weight:bold;color:{"#ff8c00" if m.profiles_with_modify_all else "#22aa66"}'>{m.profiles_with_modify_all}</div>
-  </div>
-  <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ccbb0033" if m.perm_sets_with_modify_all else "#e2e8f0"};border-radius:6px'>
-    <div style='font-size:.8em;color:#64748b'>PS avec ModifyAll (objets sensibles)</div>
-    <div style='font-size:1.5em;font-weight:bold;color:{"#ccbb00" if m.perm_sets_with_modify_all else "#22aa66"}'>{m.perm_sets_with_modify_all}</div>
-  </div>
+<div class='section'>
+    <div class='topnav'>
+        <a href='{href_relative(current_path, security_pages.get("security_matrix")) if security_pages else "#"}'>Voir la matrice de securite (CRUD)</a> | 
+        <a href='{href_relative(current_path, security_pages.get("psg_list")) if security_pages else "#"}'>Voir les Permission Set Groups</a>
+    </div>
+    <div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px'>
+      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
+        <div style='font-size:.8em;color:#64748b'>Profils custom</div>
+        <div style='font-size:1.5em;font-weight:bold'>{m.custom_profiles_count}</div>
+        <div style='font-size:.8em;color:#64748b'>sur {m.profiles_count} profils total</div>
+      </div>
+      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
+        <div style='font-size:.8em;color:#64748b'>Permission Sets</div>
+        <div style='font-size:1.5em;font-weight:bold'>{m.permission_sets_count}</div>
+      </div>
+      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {ratio_color}33;border-radius:6px'>
+        <div style='font-size:.8em;color:#64748b'>Ratio Profils/PS</div>
+        <div style='font-size:1.5em;font-weight:bold;color:{ratio_color}'>{ratio_pct}%</div>
+        <div style='font-size:.8em;color:{ratio_color};font-weight:bold'>{ratio_level}</div>
+      </div>
+      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff444433" if m.dangerous_profiles_count else "#e2e8f0"};border-radius:6px'>
+        <div style='font-size:.8em;color:#64748b'>Profils dangereux</div>
+        <div style='font-size:1.5em;font-weight:bold;color:{"#ff4444" if m.dangerous_profiles_count else "#22aa66"}'>{m.dangerous_profiles_count}</div>
+        <div style='font-size:.8em;color:#64748b'>ModifyAllData / ManageUsers</div>
+      </div>
+      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff8c0033" if m.profiles_with_modify_all else "#e2e8f0"};border-radius:6px'>
+        <div style='font-size:.8em;color:#64748b'>Profils avec ModifyAllRecords</div>
+        <div style='font-size:1.5em;font-weight:bold;color:{"#ff8c00" if m.profiles_with_modify_all else "#22aa66"}'>{m.profiles_with_modify_all}</div>
+      </div>
+      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ccbb0033" if m.perm_sets_with_modify_all else "#e2e8f0"};border-radius:6px'>
+        <div style='font-size:.8em;color:#64748b'>PS avec ModifyAll (objets sensibles)</div>
+        <div style='font-size:1.5em;font-weight:bold;color:{"#ccbb00" if m.perm_sets_with_modify_all else "#22aa66"}'>{m.perm_sets_with_modify_all}</div>
+      </div>
+    </div>
+    <table><thead><tr><th>Profil / Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}{permset_rows}</tbody></table>
 </div>"""
 
     TYPE_LABELS_SR = {"criteria": "Critères", "owner": "Propriétaire", "guest": "Utilisateur invité", "territory": "Territoire"}
@@ -479,7 +530,8 @@ def render_index(
 
     flow_rows = "".join(
         f"<tr><td><a href='{href_relative(current_path, flow_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.process_type)}</td><td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td><td>{item.described_elements}</td>"
+        f"<td>{html_value(item.process_type)}</td><td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td>"
+        f"<td>{'⚠' if item.soql_in_loop or item.dml_in_loop else 'OK'}</td>"
         f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_elements_covered}/{item.test_coverage_elements_covered + item.test_coverage_elements_uncovered} blocs)') if item.test_coverage is not None else 'N/A'}</td></tr>"
         for item in snapshot.flows
         if item.name in flow_pages
@@ -524,6 +576,34 @@ def render_index(
         flow_pages,
     )
 
+    dependencies_panel = render_index_dependencies_panel(snapshot)
+    
+    vr_header = (
+        '<span title="Nombre de règles de validation et score de complexité cumulé (Σ). '
+        'Le score est calculé selon la longueur de la formule (1pt par 50 car.) '
+        'et le nombre d\'opérateurs logiques (IF, AND, OR, CASE, parenthèses).">'
+        'VR (Complexité)</span>'
+    )
+    # ── Org Health ───────────────────────────────────────────────────
+    orphan_rows = "".join(
+        f"<tr><td>{html_value(o.name)}</td><td>{html_value(o.kind)}</td></tr>"
+        for o in snapshot.orphans
+    ) or "<tr><td colspan='2' class='empty'>Aucun composant orphelin detecte.</td></tr>"
+    
+    redundant_flow_rows = "".join(
+        f"<tr><td>{html_value(g.object_name)}</td><td>{html_value(g.trigger_type)}</td><td>{', '.join(g.flows)}</td></tr>"
+        for g in snapshot.redundant_flows
+    ) or "<tr><td colspan='3' class='empty'>Aucune redondance de Flow detectee.</td></tr>"
+    
+    health_panel = f"""
+<h3>Composants Orphelins</h3>
+<p>Composants non references dans Apex, Flows ou Rapports.</p>
+<table><thead><tr><th>Nom</th><th>Type</th></tr></thead><tbody>{orphan_rows}</tbody></table>
+<h3>Redondance des Flows</h3>
+<p>Plusieurs Record-Triggered Flows actifs sur le meme objet et evenement.</p>
+<table><thead><tr><th>Objet</th><th>Evenement</th><th>Flows</th></tr></thead><tbody>{redundant_flow_rows}</tbody></table>
+"""
+
     tabs = tabbed_sections(
         "index",
         [
@@ -532,8 +612,16 @@ def render_index(
                 excel_links,
             ),
             (
+                "Sante de l'Org",
+                health_panel,
+            ),
+            (
                 "Omni / BRE",
                 omni_panel,
+            ),
+            (
+                "Dependances",
+                dependencies_panel,
             ),
             (
                 "Agents",
@@ -545,7 +633,7 @@ def render_index(
             ),
             (
                 "Objets",
-                f"<table><thead><tr><th>Objet</th><th>Label</th><th>Nb champs</th><th>Nb relations</th></tr></thead><tbody>{object_rows}</tbody></table>",
+                f"<table><thead><tr><th>Objet</th><th>Label</th><th>Nb champs</th><th>Nb relations</th><th>{vr_header}</th></tr></thead><tbody>{object_rows}</tbody></table>",
             ),
             (
                 "Profiles",
@@ -556,7 +644,7 @@ def render_index(
             (
                 "Permission Sets",
                 f"<h4>{_permsets_title} ({len(snapshot.permission_sets)})</h4>"
-                + f"<table><thead><tr><th>Permission Set</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>",
+                + f"<table><thead><tr><th>Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>",
             ),
             (
                 "Sharing Rules",
@@ -568,7 +656,7 @@ def render_index(
             ),
             (
                 "Flows",
-                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>Documentes</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>",
+                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>",
             ),
             (
                 "Analyseur",
@@ -774,6 +862,24 @@ def render_index(
         if visibility.show_gen_ai_prompts
         else ""
     )
+    lwc_card = (
+        f'  <div class="card"><span>{_listing_link("lwc", "Composants LWC", metrics.lwc_count)} <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
+        f'<span class="value">{metrics.lwc_count}</span></div>\n'
+        if metrics.lwc_count > 0
+        else ""
+    )
+    aura_card = (
+        f'  <div class="card"><span>{_listing_link("aura", "Composants Aura", len(snapshot.aura))} <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
+        f'<span class="value">{len(snapshot.aura)}</span></div>\n'
+        if len(snapshot.aura) > 0
+        else ""
+    )
+    duplicate_rules_card = (
+        f'  <div class="card"><span>{_listing_link("duplicate_rules", "Duplicate Rules", metrics.duplicate_rules)} <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
+        f'<span class="value">{metrics.duplicate_rules}</span></div>\n'
+        if metrics.duplicate_rules > 0
+        else ""
+    )
     sharing_rules_card = (
         f'  <div class="card"><span>{_listing_link("sharing_rules", "Sharing Rules", metrics.sharing_rules)} <small style="color: #64748b; font-weight: normal;">(No-code)</small></span>'
         f'<span class="value">{metrics.sharing_rules}</span></div>\n'
@@ -787,8 +893,8 @@ def render_index(
     # 1. Description
     desc_content = "".join([
         custom_objects_card, custom_fields_card, flows_card, 
-        apex_classes_triggers_card, omni_components_card, 
-        predictions_card, agents_card, prompts_card, sharing_rules_card
+        apex_classes_triggers_card, lwc_card, aura_card, omni_components_card, 
+        predictions_card, agents_card, prompts_card, sharing_rules_card, duplicate_rules_card
     ])
     if desc_content.strip():
         summary_tabs_sections.append(("Description", f'<div class="cards">{desc_content}</div>'))

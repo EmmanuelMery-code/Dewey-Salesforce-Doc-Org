@@ -23,6 +23,7 @@ from src.core.ai_usage import (
     compute_ai_usage_stats,
     scan_ai_usage,
 )
+from src.core.audit_generator import generate_audit_summary_rtf
 from src.core.customization_metrics import (
     AdoptionStats,
     DataModelCustomisationStats,
@@ -33,6 +34,7 @@ from src.core.customization_metrics import (
 from src.core.history_service import HistoryEntry, HistoryService
 from src.core.index_card_visibility import IndexCardVisibility
 from src.core.models import MetadataSnapshot, PmdViolation, TechnicalDebtItem, DeviationItem, InnovationItem
+from src.core.utils import safe_slug
 from src.core.pmd_service import PmdService
 from src.parsers.salesforce_parser import SalesforceMetadataParser
 from src.reporting.excel_writer import ExcelReportWriter
@@ -107,6 +109,7 @@ class SalesforceDocumentationGenerator:
         generate_html: bool = True,
         generate_data_dictionary_word: bool = True,
         generate_summary_word: bool = True,
+        generate_audit_summary_rtf: bool = True,
         scoring_weights: dict[str, int] | None = None,
         adopt_adapt_weights: dict[str, int] | None = None,
         scoring_thresholds: tuple[int, int, int] | None = None,
@@ -137,6 +140,7 @@ class SalesforceDocumentationGenerator:
         self.generate_html = generate_html
         self.generate_data_dictionary_word = generate_data_dictionary_word
         self.generate_summary_word = generate_summary_word
+        self.generate_audit_summary_rtf = generate_audit_summary_rtf
         self.scoring_weights = scoring_weights
         self.adopt_adapt_weights = adopt_adapt_weights
         self.scoring_thresholds = scoring_thresholds
@@ -259,7 +263,9 @@ class SalesforceDocumentationGenerator:
                     metrics.apex_triggers + metrics.omni_scripts +
                     metrics.omni_integration_procedures + metrics.omni_ui_cards +
                     metrics.omni_data_transforms + metrics.agents +
-                    metrics.gen_ai_prompts + metrics.einstein_predictions
+                    metrics.gen_ai_prompts + metrics.einstein_predictions +
+                    metrics.sharing_rules + metrics.duplicate_rules +
+                    metrics.lwc_count + len(snapshot.aura)
                 ),
                 total_standard_components=(
                     (dm_stats.standard_objects + dm_stats.standard_fields) if dm_stats else 0
@@ -279,6 +285,9 @@ class SalesforceDocumentationGenerator:
                 gen_ai_prompts=metrics.gen_ai_prompts,
                 einstein_predictions=metrics.einstein_predictions,
                 sharing_rules=metrics.sharing_rules,
+                duplicate_rules=metrics.duplicate_rules,
+                lwc_count=metrics.lwc_count,
+                aura_count=len(snapshot.aura),
                 findings_total=len(analyzer_report.all_findings()),
                 findings_critical=sev_counts.get("Critical", 0),
                 findings_major=sev_counts.get("Major", 0),
@@ -394,11 +403,8 @@ class SalesforceDocumentationGenerator:
         analyzer_report: AnalyzerReport,
         result: GenerationResult,
     ) -> None:
-        if not (self.generate_data_dictionary_word or self.generate_summary_word):
-            self.log("Generation des documents Word desactivee.")
-            return
-
         word_dir = self.output_dir / "word"
+        word_dir.mkdir(parents=True, exist_ok=True)
         word_writer = WordReportWriter(language=self.language, log_callback=self.log)
 
         if self.generate_data_dictionary_word:
@@ -408,9 +414,7 @@ class SalesforceDocumentationGenerator:
                     snapshot, word_dir / "data_dictionary.docx"
                 ),
             )
-        else:
-            self.log("Generation du Data Dictionary Word desactivee.")
-
+        
         if self.generate_summary_word:
             result.summary_word = self._safe_run(
                 "summary.docx",
@@ -418,8 +422,16 @@ class SalesforceDocumentationGenerator:
                     snapshot, analyzer_report, word_dir / "summary.docx"
                 ),
             )
-        else:
-            self.log("Generation du resume Word desactivee.")
+
+        # Generate RTF Audit Summary
+        if self.generate_audit_summary_rtf:
+            self._safe_run(
+                "audit_summary.rtf",
+                lambda: generate_audit_summary_rtf(
+                    snapshot, snapshot.metrics, word_dir / "audit_summary.rtf"
+                ),
+            )
+
 
     def _generate_html(
         self,
@@ -433,8 +445,25 @@ class SalesforceDocumentationGenerator:
         html_writer = HtmlReportWriter(self.output_dir, log_callback=self.log)
         html_writer.write_assets()
 
+        # Pre-calculate predictable paths for circular linking
+        apex_pages = {
+            art.name: html_writer.apex_dir / f"{safe_slug(art.name)}.html"
+            for art in snapshot.apex_artifacts
+        }
+        flow_pages = {
+            flow.name: html_writer.flows_dir / f"{safe_slug(flow.name)}.html"
+            for flow in snapshot.flows
+        }
+        object_pages = {
+            obj.api_name: html_writer.objects_dir / f"{obj.api_name}.html"
+            for obj in snapshot.objects
+        }
+
         result.object_pages = html_writer.write_object_pages(
-            snapshot, analyzer_report=analyzer_report
+            snapshot, 
+            analyzer_report=analyzer_report,
+            apex_pages=apex_pages,
+            flow_pages=flow_pages,
         )
         result.apex_pages = html_writer.write_apex_pages(
             snapshot,
@@ -469,6 +498,9 @@ class SalesforceDocumentationGenerator:
         )
         result.debt_page = html_writer.write_debt_page(snapshot)
         result.innovation_page = html_writer.write_innovation_page(snapshot)
+        result.security_pages = html_writer.write_security_pages(
+            snapshot, analyzer_report=analyzer_report
+        )
         result.methodology_page = html_writer.write_methodology_page(
             posture_config=self.posture_config,
             data_model_thresholds=self.data_model_thresholds,
@@ -761,6 +793,7 @@ class SalesforceDocumentationGenerator:
         analyzer_engine = AnalyzerEngine(analyzer_catalog, exclusion_path=self.exclusion_config_path)
         analyzer_report = analyzer_engine.analyze_snapshot(snapshot)
         result.analyzer_report = analyzer_report
+        snapshot.findings_summary = analyzer_report.severity_counts()
         self.log(
             f"Analyseur : {len(analyzer_report.all_findings())} finding(s) detecte(s)."
         )
@@ -779,6 +812,7 @@ class SalesforceDocumentationGenerator:
         result.ai_usage_stats = compute_ai_usage_stats(
             snapshot, result.ai_usage_entries
         )
+        snapshot.ai_usage_stats = result.ai_usage_stats
         stats = result.ai_usage_stats
         self.log(
             "Univers personnalisation/code/lowcode : "
@@ -788,6 +822,7 @@ class SalesforceDocumentationGenerator:
         )
 
         result.data_model_stats = compute_data_model_stats(snapshot)
+        snapshot.data_model_stats = result.data_model_stats
         dm_stats = result.data_model_stats
         self.log(
             "Empreinte data model : "
@@ -801,6 +836,7 @@ class SalesforceDocumentationGenerator:
         result.adoption_stats = compute_adoption_stats(
             snapshot, self.posture_config or None
         )
+        snapshot.adoption_stats = result.adoption_stats
         adoption = result.adoption_stats
         self.log(
             "Posture Adopt vs Adapt : "

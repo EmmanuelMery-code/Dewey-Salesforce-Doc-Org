@@ -81,6 +81,7 @@ class AppLanguageMixin:
         self.discussion_input_label.configure(text=self._t("discussion_input"))
         self.discussion_send_button.configure(text=self._t("discussion_send"))
         self.discussion_clear_button.configure(text=self._t("discussion_clear"))
+        self.discussion_summarize_button.configure(text=self._t("discussion_summarize_org"))
         self.discussion_prev_button.configure(text=self._t("discussion_prev"))
         self.discussion_next_button.configure(text=self._t("discussion_next"))
         self.discussion_copy_last_button.configure(text=self._t("discussion_copy_last"))

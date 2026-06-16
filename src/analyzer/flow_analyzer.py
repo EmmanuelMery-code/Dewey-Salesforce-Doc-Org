@@ -86,6 +86,32 @@ def analyze_flow(flow: FlowInfo, catalog: RuleCatalog) -> list[Finding]:
                 )
             )
 
+    # FLOW-PERF-002 : SOQL in loop
+    rule = catalog.get("FLOW-PERF-002")
+    if rule and rule.enabled and flow.soql_in_loop:
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="Flow",
+                target_name=flow.name,
+                message="Une operation de lecture (Get Records) apparait dans une boucle.",
+                source_path=flow.source_path,
+            )
+        )
+
+    # FLOW-PERF-003 : DML in loop
+    rule = catalog.get("FLOW-PERF-003")
+    if rule and rule.enabled and flow.dml_in_loop:
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="Flow",
+                target_name=flow.name,
+                message="Une operation d'ecriture (Create/Update/Delete) apparait dans une boucle.",
+                source_path=flow.source_path,
+            )
+        )
+
     rule = catalog.get("FLOW-MAINT-003")
     if rule and rule.enabled and flow.max_depth > 4:
         findings.append(

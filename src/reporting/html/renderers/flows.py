@@ -6,12 +6,13 @@ from pathlib import Path
 from typing import Callable
 
 from src.analyzer.models import Finding
-from src.core.models import FlowInfo, MetadataSnapshot, ReviewResult
+from src.core.models import FlowInfo, MetadataSnapshot, ReviewResult, Dependency
 from src.core.utils import html_value, safe_slug, write_text
 
 from src.reporting.html.dependencies import (
     build_flow_reference_index,
     flow_dependencies,
+    get_incoming_dependencies,
     render_component_dependency_graph,
     render_dependency_rows,
 )
@@ -42,9 +43,18 @@ def render_flow_page(
     flow_pages: dict[str, Path],
     object_pages: dict[str, Path],
     apex_pages: dict[str, Path],
+    all_dependencies: list[Dependency] | None = None,
     findings: list[Finding] | None = None,
 ) -> str:
     findings = findings or []
+    all_dependencies = all_dependencies or []
+    
+    # Merge with incoming dependencies
+    incoming = get_incoming_dependencies(flow.name, "Flow", all_dependencies)
+    for inc in incoming:
+        if not any(d["name"] == inc["name"] and d["direction"] == "Entrant" for d in dependencies):
+            dependencies.append(inc)
+            
     metrics_list = list(review.metrics)
     metrics_list.append(("Couverture de tests", (f"{flow.test_coverage:.1f} %") if flow.test_coverage is not None else "N/A"))
 
@@ -161,7 +171,8 @@ def write_flow_pages(
                 output,
                 object_pages,
                 apex_pages,
-                flow_findings.get(flow.name, []),
+                all_dependencies=snapshot.dependencies,
+                findings=flow_findings.get(flow.name, []),
             ),
         )
     log(f"{len(output)} page(s) Flow generee(s).")

@@ -111,15 +111,18 @@ def analyze_validation_rule(
 
     rule = catalog.get("VR-MAINT-001")
     if rule and rule.enabled:
-        formula = vr.error_condition_formula or ""
-        operator_count = len(re.findall(r"\b(AND|OR|NOT|IF)\b\s*\(", formula))
-        if len(formula) > 500 or operator_count > 8:
+        score = vr.complexity_score
+        if score > 15:
             findings.append(
                 Finding(
                     rule=rule,
                     target_kind="ValidationRule",
                     target_name=target_name,
-                    message=f"Formule de {len(formula)} caracteres, {operator_count} operateurs logiques.",
+                    message=f"Formule complexe (score={score}).",
+                    details=[
+                        f"Longueur: {len(vr.error_condition_formula or '')} caracteres.",
+                        "Considerez une simplification ou un passage en Apex si la logique devient trop lourde."
+                    ]
                 )
             )
 

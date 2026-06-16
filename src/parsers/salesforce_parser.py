@@ -13,17 +13,24 @@ from src.core.models import (
     AgentInfo,
     ApexArtifact,
     CustomizationMetrics,
+    Dependency,
+    DuplicateRuleInfo,
     FieldInfo,
     FieldPermission,
     FlowElementInfo,
     FlowInfo,
     GenAiPromptInfo,
+    LwcInfo,
+    AuraInfo,
     MetadataSnapshot,
     NamedAccess,
     ObjectInfo,
     ObjectPermission,
+    OrphanInfo,
+    PermissionSetGroupInfo,
     RecordTypeInfo,
     RecordTypeVisibility,
+    RedundantFlowGroup,
     RelationshipInfo,
     SecurityArtifact,
     SharingRuleInfo,
@@ -143,6 +150,7 @@ class SalesforceMetadataParser:
         agents: list[AgentInfo] = []
         gen_ai_prompts: list[GenAiPromptInfo] = []
         sharing_rules: list[SharingRuleInfo] = []
+        duplicate_rules: list[DuplicateRuleInfo] = []
         metrics = CustomizationMetrics()
 
         for package_root in package_roots:
@@ -184,13 +192,24 @@ class SalesforceMetadataParser:
             sharing_rules.extend(sr_found)
             metrics.sharing_rules += len(sr_found)
 
-            metrics.lwc_count += len(
-                [
-                    path
-                    for path in (package_root / "lwc").glob("*")
-                    if path.is_dir() and not self._is_excluded("lwc", path.name)
-                ]
-            )
+            dr_found = self._parse_duplicate_rules(package_root / "duplicateRules")
+            self.log(f"  - {len(dr_found)} duplicate rule(s) trouve(e)s")
+            duplicate_rules.extend(dr_found)
+            metrics.duplicate_rules += len(dr_found)
+
+            psg_found = self._parse_permission_set_groups(package_root / "permissionsetgroups")
+            self.log(f"  - {len(psg_found)} permission set group(s) trouve(s)")
+            snapshot.permission_set_groups.extend(psg_found)
+
+            lwc_found = self._parse_lwc(package_root / "lwc")
+            self.log(f"  - {len(lwc_found)} LWC trouve(s)")
+            snapshot.lwc.extend(lwc_found)
+            metrics.lwc_count += len(lwc_found)
+
+            aura_found = self._parse_aura(package_root / "aura")
+            self.log(f"  - {len(aura_found)} Aura trouve(s)")
+            snapshot.aura.extend(aura_found)
+
             metrics.flexipage_count += len(
                 [
                     path
@@ -263,6 +282,7 @@ class SalesforceMetadataParser:
         snapshot.agents = sorted(agents, key=lambda item: item.name.lower())
         snapshot.gen_ai_prompts = sorted(gen_ai_prompts, key=lambda item: item.name.lower())
         snapshot.sharing_rules = sorted(sharing_rules, key=lambda item: (item.object_name.lower(), item.full_name.lower()))
+        snapshot.duplicate_rules = sorted(duplicate_rules, key=lambda item: (item.object_name.lower(), item.full_name.lower()))
 
         snapshot.profiles = [
             item
@@ -338,6 +358,7 @@ class SalesforceMetadataParser:
         # ── end security metrics ──────────────────────────────────────────
 
         snapshot.metrics = metrics
+        self._analyze_dependencies(snapshot)
         return snapshot
 
     def _load_exclusion_rules(
@@ -687,6 +708,50 @@ class SalesforceMetadataParser:
 
         return artifacts
 
+    def _parse_permission_set_groups(self, folder: Path) -> list[PermissionSetGroupInfo]:
+        groups: list[PermissionSetGroupInfo] = []
+        if not folder.exists():
+            return groups
+
+        for meta_file in sorted(folder.glob("*.permissionsetgroup-meta.xml")):
+            root = parse_xml(meta_file)
+            if root is None:
+                continue
+
+            ps_list = []
+            for node in root.findall("sf:permissionSets", SF_NS):
+                ps_list.append(node.text)
+
+            groups.append(PermissionSetGroupInfo(
+                name=meta_file.name.split(".")[0],
+                label=child_text(root, "label") or meta_file.name.split(".")[0],
+                description=child_text(root, "description"),
+                status=child_text(root, "status"),
+                permission_sets=ps_list,
+                source_path=meta_file,
+            ))
+        return groups
+
+        # 5. Flow redundancy detection
+        self.log("Analyse de redondance des Flows...")
+        # Group flows by object and trigger type
+        flow_groups: dict[tuple[str, str], list[FlowInfo]] = {}
+        for flow in snapshot.flows:
+            if flow.status != "Active":
+                continue
+            if not flow.start_object or not flow.trigger_type:
+                continue
+            key = (flow.start_object, flow.trigger_type)
+            flow_groups.setdefault(key, []).append(flow)
+        
+        for (obj, trigger), flows in flow_groups.items():
+            if len(flows) > 1:
+                snapshot.redundant_flows.append(RedundantFlowGroup(
+                    object_name=obj,
+                    trigger_type=trigger,
+                    flows=[f.name for f in flows]
+                ))
+                
     def _parse_apex_folder(self, folder: Path, kind: str) -> list[ApexArtifact]:
         artifacts: list[ApexArtifact] = []
         pattern = "*.cls" if kind == "class" else "*.trigger"
@@ -872,6 +937,9 @@ class SalesforceMetadataParser:
             min_height = 0
             max_height = 0
             max_depth = 0
+            dml_in_loop = False
+            soql_in_loop = False
+
             if start_node and start_node in nodes_by_name:
                 paths = self._flow_paths(start_node, adjacency)
                 if paths:
@@ -884,6 +952,24 @@ class SalesforceMetadataParser:
                             if nodes_by_name.get(node_name) in structural_types
                         )
                         max_depth = max(max_depth, depth)
+
+            # Check for DML/SOQL in loops
+            dml_ops = {"recordCreates", "recordUpdates", "recordDeletes"}
+            soql_ops = {"recordLookups"}
+            
+            for loop_node in root.findall("sf:loops", SF_NS):
+                loop_name = child_text(loop_node, "name")
+                next_connector = loop_node.find("sf:nextValueConnector", SF_NS)
+                next_target = child_text(next_connector, "targetReference") if next_connector is not None else ""
+                
+                if next_target:
+                    if self._is_node_reachable(next_target, dml_ops, loop_name, nodes_by_name, adjacency):
+                        dml_in_loop = True
+                    if self._is_node_reachable(next_target, soql_ops, loop_name, nodes_by_name, adjacency):
+                        soql_in_loop = True
+                
+                if dml_in_loop and soql_in_loop:
+                    break
 
             flow = FlowInfo(
                 name=flow_file.stem.replace(".flow-meta", ""),
@@ -911,6 +997,8 @@ class SalesforceMetadataParser:
                 max_height=max_height,
                 max_depth=max_depth,
                 elements=elements,
+                dml_in_loop=dml_in_loop,
+                soql_in_loop=soql_in_loop,
             )
             flows.append(flow)
 
@@ -938,6 +1026,37 @@ class SalesforceMetadataParser:
                 paths.append(path)
 
         return paths
+
+    def _is_node_reachable(
+        self,
+        start_node: str,
+        target_types: set[str],
+        end_node: str,
+        nodes_by_name: dict[str, str],
+        adjacency: dict[str, list[str]],
+    ) -> bool:
+        if not start_node or start_node not in nodes_by_name:
+            return False
+
+        visited = set()
+        stack = [start_node]
+
+        while stack:
+            current = stack.pop()
+            if current == end_node:
+                continue
+            if current in visited:
+                continue
+            visited.add(current)
+
+            if nodes_by_name.get(current) in target_types:
+                return True
+
+            for neighbor in adjacency.get(current, []):
+                if neighbor:
+                    stack.append(neighbor)
+
+        return False
 
     def _inventory_record_types(self, objects: list[ObjectInfo]) -> list[dict[str, object]]:
         rows: list[dict[str, object]] = []
@@ -1263,6 +1382,86 @@ class SalesforceMetadataParser:
             )
         return prompts
 
+    def _parse_lwc(self, folder: Path) -> list[LwcInfo]:
+        components: list[LwcInfo] = []
+        if not folder.exists():
+            return components
+
+        for component_dir in sorted(path for path in folder.iterdir() if path.is_dir()):
+            name = component_dir.name
+            if self._is_excluded("lwc", name):
+                continue
+
+            meta_file = component_dir / f"{name}.js-meta.xml"
+            info = LwcInfo(name=name, source_path=component_dir)
+
+            if meta_file.exists():
+                root = parse_xml(meta_file)
+                info.label = child_text(root, "masterLabel")
+                info.description = child_text(root, "description")
+                info.api_version = child_text(root, "apiVersion")
+                info.is_exposed = to_bool(child_text(root, "isExposed"))
+                info.targets = child_texts(root.find("sf:targets", SF_NS), "target")
+
+            js_file = component_dir / f"{name}.js"
+            if js_file.exists():
+                try:
+                    js_content = js_file.read_text(encoding="utf-8")
+                    info.line_count_js = len(js_content.splitlines())
+                    info.has_aura_enabled = "@AuraEnabled" in js_content
+                except OSError:
+                    pass
+
+            html_file = component_dir / f"{name}.html"
+            if html_file.exists():
+                try:
+                    html_content = html_file.read_text(encoding="utf-8")
+                    info.line_count_html = len(html_content.splitlines())
+                except OSError:
+                    pass
+
+            components.append(info)
+
+        return components
+
+    def _parse_aura(self, folder: Path) -> list[AuraInfo]:
+        components: list[AuraInfo] = []
+        if not folder.exists():
+            return components
+
+        for component_dir in sorted(path for path in folder.iterdir() if path.is_dir()):
+            name = component_dir.name
+            if self._is_excluded("aura", name):
+                continue
+
+            info = AuraInfo(name=name, source_path=component_dir)
+
+            meta_file = component_dir / f"{name}.cmp-meta.xml"
+            if meta_file.exists():
+                root = parse_xml(meta_file)
+                info.api_version = child_text(root, "apiVersion")
+
+            cmp_file = component_dir / f"{name}.cmp"
+            if cmp_file.exists():
+                try:
+                    cmp_content = cmp_file.read_text(encoding="utf-8")
+                    info.line_count_cmp = len(cmp_content.splitlines())
+                except OSError:
+                    pass
+
+            for js_suffix in ("Controller.js", "Helper.js"):
+                js_file = component_dir / f"{name}{js_suffix}"
+                if js_file.exists():
+                    try:
+                        js_content = js_file.read_text(encoding="utf-8")
+                        info.line_count_js += len(js_content.splitlines())
+                    except OSError:
+                        pass
+
+            components.append(info)
+
+        return components
+
     def _parse_sharing_rules(self, folder: Path) -> list[SharingRuleInfo]:
         """Parse all .sharingRules-meta.xml files, skipping empty ones."""
         rules: list[SharingRuleInfo] = []
@@ -1301,6 +1500,180 @@ class SalesforceMetadataParser:
                         )
                     )
         return rules
+
+    def _parse_duplicate_rules(self, folder: Path) -> list[DuplicateRuleInfo]:
+        rules: list[DuplicateRuleInfo] = []
+        if not folder.exists():
+            return rules
+
+        for dr_file in sorted(folder.glob("*.duplicateRule-meta.xml")):
+            object_name = dr_file.name.replace(".duplicateRule-meta.xml", "")
+            root = parse_xml(dr_file)
+            if root is None:
+                continue
+            
+            rules.append(DuplicateRuleInfo(
+                full_name=child_text(root, "fullName") or dr_file.stem.replace(".duplicateRule-meta", ""),
+                object_name=object_name,
+                action_on_insert=child_text(root, "actionOnInsert"),
+                action_on_update=child_text(root, "actionOnUpdate"),
+                active=to_bool(child_text(root, "isActive")),
+            ))
+        return rules
+
+    def _analyze_dependencies(self, snapshot: MetadataSnapshot) -> None:
+        """Perform a basic dependency analysis by scanning metadata for references."""
+        self.log("Analyse des dependances (Impact Analysis)...")
+        
+        object_names = {obj.api_name for obj in snapshot.objects}
+        apex_names = {art.name for art in snapshot.apex_artifacts}
+        
+        # Pre-calculate field names for scanning
+        all_fields = []
+        for obj in snapshot.objects:
+            for field in obj.fields:
+                all_fields.append((obj.api_name, field.api_name))
+
+        # 1. Scan Apex for Object, Class and Field dependencies
+        for artifact in snapshot.apex_artifacts:
+            body_lower = artifact.body.lower()
+            for obj_name in object_names:
+                if obj_name.lower() in body_lower:
+                    snapshot.dependencies.append(Dependency(
+                        source_name=artifact.name,
+                        source_kind=artifact.kind,
+                        target_name=obj_name,
+                        target_kind="Object"
+                    ))
+            for other_apex in apex_names:
+                if other_apex != artifact.name and other_apex.lower() in body_lower:
+                    snapshot.dependencies.append(Dependency(
+                        source_name=artifact.name,
+                        source_kind=artifact.kind,
+                        target_name=other_apex,
+                        target_kind="Apex"
+                    ))
+            
+            # Field scanning (limited to common patterns: Obj.Field or [SELECT ... Field ...])
+            for obj_name, field_name in all_fields:
+                pattern = f"{obj_name}.{field_name}".lower()
+                if pattern in body_lower:
+                    snapshot.dependencies.append(Dependency(
+                        source_name=artifact.name,
+                        source_kind=artifact.kind,
+                        target_name=f"{obj_name}.{field_name}",
+                        target_kind="Field"
+                    ))
+
+        # 2. Scan Flows for Object dependencies
+        for flow in snapshot.flows:
+            if flow.start_object:
+                snapshot.dependencies.append(Dependency(
+                    source_name=flow.name,
+                    source_kind="Flow",
+                    target_name=flow.start_object,
+                    target_kind="Object"
+                ))
+            
+            # Scan elements for object references
+            for element in flow.elements:
+                if element.element_type in ("recordLookups", "recordCreates", "recordUpdates", "recordDeletes"):
+                    # We don't store the object name in FlowElementInfo yet, but we could parse it
+                    pass
+                
+                if element.element_type == "actionCalls":
+                    # Check for Apex actions
+                    # The Apex class name is often in the 'actionName' attribute or child node
+                    pass
+            
+            # Simple text scan of Flow XML for Apex class names
+            try:
+                flow_xml = flow.source_path.read_text(encoding="utf-8", errors="ignore")
+                for apex_name in apex_names:
+                    if f">{apex_name}<" in flow_xml or f"/{apex_name}<" in flow_xml:
+                        snapshot.dependencies.append(Dependency(
+                            source_name=flow.name,
+                            source_kind="Flow",
+                            target_name=apex_name,
+                            target_kind="Apex"
+                        ))
+            except Exception:
+                pass
+
+        # 3. Scan Reports for Object dependencies
+        for row in snapshot.inventory.get("reports", []):
+            source = str(row.get("Source") or "")
+            if not source:
+                continue
+            candidate = self.source_dir / source
+            if not candidate.exists():
+                continue
+            try:
+                content = candidate.read_text(encoding="utf-8", errors="ignore")
+                for obj_name in object_names:
+                    if f"<reportType>{obj_name}</reportType>" in content or f"<reportType>{obj_name}_" in content:
+                        snapshot.dependencies.append(Dependency(
+                            source_name=str(row.get("Nom")),
+                            source_kind="Report",
+                            target_name=obj_name,
+                            target_kind="Object"
+                        ))
+            except OSError:
+                continue
+        
+        # 4. Orphan detection
+        self.log("Detection des composants orphelins...")
+        used_targets = {(d.target_name, d.target_kind) for d in snapshot.dependencies}
+        
+        # Apex orphans
+        for artifact in snapshot.apex_artifacts:
+            if artifact.is_test:
+                continue
+            if (artifact.name, "Apex") not in used_targets:
+                # Check if it's a trigger (triggers are entry points)
+                if artifact.kind == "trigger":
+                    continue
+                snapshot.orphans.append(OrphanInfo(
+                    name=artifact.name,
+                    kind="Apex Class",
+                    source_path=artifact.source_path
+                ))
+        
+        # Object orphans (standard objects are never orphans)
+        for obj in snapshot.objects:
+            if not obj.custom:
+                continue
+            if (obj.api_name, "Object") not in used_targets:
+                snapshot.orphans.append(OrphanInfo(
+                    name=obj.api_name,
+                    kind="Custom Object",
+                    source_path=obj.source_path
+                ))
+                
+        # Field orphans
+        for obj in snapshot.objects:
+            for field in obj.fields:
+                if not field.custom:
+                    continue
+                field_full_name = f"{obj.api_name}.{field.api_name}"
+                if (field_full_name, "Field") not in used_targets:
+                    snapshot.orphans.append(OrphanInfo(
+                        name=field_full_name,
+                        kind="Custom Field",
+                        source_path=obj.source_path
+                    ))
+        
+        # Flow orphans
+        for flow in snapshot.flows:
+            if (flow.name, "Flow") not in used_targets:
+                # Flows can be entry points (Screen flows, scheduled flows)
+                if flow.process_type in ("Flow", "AutoLaunchedFlow") and not flow.trigger_type:
+                    # Potential orphan if not called by anything
+                    snapshot.orphans.append(OrphanInfo(
+                        name=flow.name,
+                        kind="Flow",
+                        source_path=flow.source_path
+                    ))
 
     def _safe_relative_path(self, path: Path) -> str:
         try:

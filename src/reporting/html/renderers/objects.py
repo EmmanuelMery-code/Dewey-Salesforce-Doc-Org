@@ -6,13 +6,18 @@ from pathlib import Path
 from typing import Callable
 
 from src.analyzer.models import Finding
-from src.core.models import MetadataSnapshot, ObjectInfo
+from src.core.models import MetadataSnapshot, ObjectInfo, Dependency
 from src.core.utils import html_value, safe_slug, write_text
 from src.reporting.html_mermaid import (
     object_mermaid,
     validation_rule_mermaid,
 )
 
+from src.reporting.html.dependencies import (
+    object_dependencies,
+    field_dependencies,
+    render_dependency_rows,
+)
 from src.reporting.html.findings import (
     render_analyzer_tab,
     render_findings_summary,
@@ -37,17 +42,35 @@ def render_object_body(
     assets_dir: Path,
     object_findings: list[Finding] | None = None,
     validation_findings: list[Finding] | None = None,
+    all_dependencies: list[Dependency] | None = None,
+    link_maps: dict[str, dict[str, Path]] | None = None,
 ) -> str:
     object_findings = object_findings or []
     validation_findings = validation_findings or []
+    all_dependencies = all_dependencies or []
+    link_maps = link_maps or {}
+
     profiles = security_rows(snapshot.profiles, item.api_name)
     permsets = security_rows(snapshot.permission_sets, item.api_name)
-    fields_rows = "".join(
-        f"<tr><td>{html_value(field.api_name)}</td><td>{html_value(field.label)}</td>"
-        f"<td>{html_value(field.data_type)}</td><td>{html_value(field.description)}</td>"
-        f"<td>{'Oui' if field.required else 'Non'}</td></tr>"
-        for field in item.fields
-    ) or "<tr><td colspan='5' class='empty'>Aucun champ detecte.</td></tr>"
+    
+    # Impact Analysis (Where it's used)
+    used_rows = object_dependencies(item.api_name, all_dependencies)
+    impact_table = render_dependency_rows(used_rows, current_path, link_maps)
+
+    fields_rows_list = []
+    for field in item.fields:
+        field_full_name = f"{item.api_name}.{field.api_name}"
+        f_deps = field_dependencies(field_full_name, all_dependencies)
+        usage_badge = ""
+        if f_deps:
+            usage_badge = f" <span class='badge' title='Utilise dans {len(f_deps)} composant(s)'>⚠ {len(f_deps)}</span>"
+        
+        fields_rows_list.append(
+            f"<tr><td>{html_value(field.api_name)}{usage_badge}</td><td>{html_value(field.label)}</td>"
+            f"<td>{html_value(field.data_type)}</td><td>{html_value(field.description)}</td>"
+            f"<td>{'Oui' if field.required else 'Non'}</td></tr>"
+        )
+    fields_rows = "".join(fields_rows_list) or "<tr><td colspan='5' class='empty'>Aucun champ detecte.</td></tr>"
 
     record_type_rows = "".join(
         f"<tr><td>{html_value(record_type.full_name)}</td><td>{html_value(record_type.label)}</td>"
@@ -119,7 +142,7 @@ def render_object_body(
             ("Permission Sets", f"<table><thead><tr><th>Permission Set</th><th>Lecture</th><th>Creation</th><th>Modification</th><th>Suppression</th><th>Nb champs visibles</th><th>Nb champs modifiables</th></tr></thead><tbody>{permset_rows}</tbody></table>"),
             ("Record Types", f"<table><thead><tr><th>Nom</th><th>Label</th><th>Description</th><th>Actif</th></tr></thead><tbody>{record_type_rows}</tbody></table>"),
             ("Validation Rules", f"<table><thead><tr><th>Nom</th><th>Actif</th><th>Description</th><th>Champ d'erreur</th><th>Message d'erreur</th></tr></thead><tbody>{validation_rows}</tbody></table><hr/>{validation_content}"),
-            ("Relations", f"{mermaid}<table><thead><tr><th>Champ</th><th>Type</th><th>Cible</th></tr></thead><tbody>{relation_table}</tbody></table>"),
+            ("Relations", f"{mermaid}<h4>Relations sortantes (Lookups)</h4><table><thead><tr><th>Champ</th><th>Type</th><th>Cible</th></tr></thead><tbody>{relation_table}</tbody></table><h4>Analyse d'impact (Ou est-il utilise ?)</h4><table><thead><tr><th>Composant</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{impact_table}</tbody></table>"),
             ("Analyseur", analyzer_content),
         ],
     )
@@ -143,10 +166,12 @@ def render_object_page(
     assets_dir: Path,
     object_findings: list[Finding] | None = None,
     validation_findings: list[Finding] | None = None,
+    all_dependencies: list[Dependency] | None = None,
+    link_maps: dict[str, dict[str, Path]] | None = None,
 ) -> str:
     body = f"""
 {index_back_link(current_path, output_dir, "objets")}
-{render_object_body(item, snapshot, current_path, output_dir, assets_dir, object_findings, validation_findings)}
+{render_object_body(item, snapshot, current_path, output_dir, assets_dir, object_findings, validation_findings, all_dependencies, link_maps)}
 """
     return render_page(item.api_name, body, current_path, assets_dir)
 
@@ -194,10 +219,18 @@ def write_object_pages(
     log: LogCallback,
     *,
     analyzer_report=None,
+    apex_pages: dict[str, Path] | None = None,
+    flow_pages: dict[str, Path] | None = None,
 ) -> dict[str, Path]:
     output: dict[str, Path] = {}
     object_findings = getattr(analyzer_report, "objects", {}) if analyzer_report else {}
     validation_findings = getattr(analyzer_report, "validation_rules", {}) if analyzer_report else {}
+    
+    link_maps = {
+        "Apex": apex_pages or {},
+        "Flow": flow_pages or {},
+    }
+    
     for item in snapshot.objects:
         path = objects_dir / f"{item.api_name}.html"
         vr_findings_for_object: list[Finding] = []
@@ -212,6 +245,8 @@ def write_object_pages(
             assets_dir,
             object_findings.get(item.api_name, []),
             vr_findings_for_object,
+            all_dependencies=snapshot.dependencies,
+            link_maps=link_maps,
         )
         write_text(path, content)
         output[item.api_name] = path

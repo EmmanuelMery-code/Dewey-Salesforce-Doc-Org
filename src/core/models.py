@@ -35,6 +35,19 @@ class ValidationRuleInfo:
     error_condition_formula: str = ""
     api_version: str = ""
 
+    @property
+    def complexity_score(self) -> int:
+        if not self.error_condition_formula:
+            return 0
+        # Basic complexity: length + number of functions/operators
+        score = len(self.error_condition_formula) // 50
+        score += self.error_condition_formula.count("(")
+        score += self.error_condition_formula.count("IF")
+        score += self.error_condition_formula.count("AND")
+        score += self.error_condition_formula.count("OR")
+        score += self.error_condition_formula.count("CASE")
+        return score
+
 
 @dataclass(slots=True)
 class RelationshipInfo:
@@ -187,6 +200,8 @@ class FlowInfo:
     test_coverage: float | None = None  # Percentage 0-100
     test_coverage_elements_covered: int = 0  # Nombre d'éléments couverts
     test_coverage_elements_uncovered: int = 0  # Nombre d'éléments non couverts
+    dml_in_loop: bool = False
+    soql_in_loop: bool = False
 
     @property
     def complexity_score(self) -> int:
@@ -321,6 +336,7 @@ class CustomizationMetrics:
     gen_ai_prompts: int = 0
     einstein_predictions: int = 0
     sharing_rules: int = 0
+    duplicate_rules: int = 0
     lwc_count: int = 0
     flexipage_count: int = 0
     test_coverage: float | None = None  # Global org test coverage
@@ -577,19 +593,96 @@ class InnovationItem:
 
 
 @dataclass(slots=True)
+class LwcInfo:
+    name: str
+    label: str = ""
+    description: str = ""
+    api_version: str = ""
+    is_exposed: bool = False
+    targets: list[str] = field(default_factory=list)
+    has_aura_enabled: bool = False
+    line_count_js: int = 0
+    line_count_html: int = 0
+    source_path: Path | None = None
+
+
+@dataclass(slots=True)
+class AuraInfo:
+    name: str
+    label: str = ""
+    description: str = ""
+    api_version: str = ""
+    line_count_cmp: int = 0
+    line_count_js: int = 0
+    source_path: Path | None = None
+
+
+@dataclass(slots=True)
+class Dependency:
+    source_name: str
+    source_kind: str
+    target_name: str
+    target_kind: str
+
+
+@dataclass(slots=True)
+class DuplicateRuleInfo:
+    full_name: str
+    object_name: str
+    action_on_insert: str = ""
+    action_on_update: str = ""
+    active: bool = False
+
+
+@dataclass(slots=True)
+class PermissionSetGroupInfo:
+    name: str
+    label: str = ""
+    description: str = ""
+    status: str = ""
+    permission_sets: list[str] = field(default_factory=list)
+    source_path: Path | None = None
+
+
+@dataclass(slots=True)
+class OrphanInfo:
+    name: str
+    kind: str
+    source_path: Path | None = None
+
+
+@dataclass(slots=True)
+class RedundantFlowGroup:
+    object_name: str
+    trigger_type: str
+    flows: list[str]
+
+
+@dataclass(slots=True)
 class MetadataSnapshot:
     source_dir: Path
     package_roots: list[Path]
     objects: list[ObjectInfo] = field(default_factory=list)
     profiles: list[SecurityArtifact] = field(default_factory=list)
     permission_sets: list[SecurityArtifact] = field(default_factory=list)
+    permission_set_groups: list[PermissionSetGroupInfo] = field(default_factory=list)
     apex_artifacts: list[ApexArtifact] = field(default_factory=list)
     flows: list[FlowInfo] = field(default_factory=list)
     agents: list[AgentInfo] = field(default_factory=list)
     gen_ai_prompts: list[GenAiPromptInfo] = field(default_factory=list)
     sharing_rules: list[SharingRuleInfo] = field(default_factory=list)
+    duplicate_rules: list[DuplicateRuleInfo] = field(default_factory=list)
+    lwc: list[LwcInfo] = field(default_factory=list)
+    aura: list[AuraInfo] = field(default_factory=list)
+    dependencies: list[Dependency] = field(default_factory=list)
+    orphans: list[OrphanInfo] = field(default_factory=list)
+    redundant_flows: list[RedundantFlowGroup] = field(default_factory=list)
     technical_debt: list[TechnicalDebtItem] = field(default_factory=list)
     deviations: list[DeviationItem] = field(default_factory=list)
     innovations: list[InnovationItem] = field(default_factory=list)
     metrics: CustomizationMetrics = field(default_factory=CustomizationMetrics)
     inventory: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    ai_usage_stats: Any | None = None
+    data_model_stats: Any | None = None
+    adoption_stats: Any | None = None
+    findings_summary: dict[str, int] = field(default_factory=dict)
