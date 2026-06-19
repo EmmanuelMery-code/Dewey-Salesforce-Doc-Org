@@ -78,6 +78,8 @@ def render_index_analyzer_panel(
     object_pages: dict[str, Path],
     apex_pages: dict[str, Path],
     flow_pages: dict[str, Path],
+    agent_pages: dict[str, Path] | None = None,
+    prompt_pages: dict[str, Path] | None = None,
 ) -> str:
     if analyzer_report is None:
         return "<p class='empty'>Analyseur non execute.</p>"
@@ -87,104 +89,50 @@ def render_index_analyzer_panel(
     if not findings:
         return summary + "<p class='empty'>Aucun finding : le projet respecte toutes les regles activees.</p>"
 
-    rule_counts = analyzer_report.rule_counts()
-    rules_by_id = {rule.id: rule for rule in analyzer_report.rules_used}
-    rule_rows = []
-    for rule_id, count in sorted(rule_counts.items(), key=lambda kv: (-kv[1], kv[0])):
-        rule = rules_by_id.get(rule_id)
-        if not rule:
-            continue
-        sev_css = SEVERITY_CSS_CLASS.get(rule.severity, "sev-info")
-        sev_label = SEVERITY_LABEL.get(rule.severity, rule.severity)
-        reference = ""
-        if rule.reference:
-            reference = f"<a href='{html_value(rule.reference)}' target='_blank' rel='noopener'>Reference</a>"
-        rule_rows.append(
-            f"<tr>"
-            f"<td><span class='sev-badge {sev_css}'>{html_value(sev_label)}</span></td>"
-            f"<td>{html_value(rule.id)}</td>"
-            f"<td>{html_value(rule.title)}</td>"
-            f"<td>{html_value(rule.category)} - {html_value(rule.subcategory)}</td>"
-            f"<td>{count}</td>"
-            f"<td>{reference}</td>"
-            f"</tr>"
-        )
-    rule_table = (
-        "<table><thead><tr><th>Severite</th><th>Identifiant</th><th>Regle</th><th>Categorie</th><th>Occurrences</th><th>Reference</th></tr></thead>"
-        f"<tbody>{''.join(rule_rows)}</tbody></table>"
-    )
+    # 2. Group by severity
+    findings_by_sev: dict[str, list[Finding]] = {"Critical": [], "Major": [], "Minor": [], "Info": []}
+    for f in findings:
+        if f.rule.severity in findings_by_sev:
+            findings_by_sev[f.rule.severity].append(f)
 
-    artifact_rows: list[str] = []
+    def _render_severity_table(sev_findings: list[Finding]) -> str:
+        if not sev_findings:
+            return "<p class='empty'>Aucun finding pour cette severite.</p>"
+        
+        # Group by component for this severity
+        comp_findings: dict[tuple[str, str, str], list[Finding]] = {}
+        for f in sev_findings:
+            key = (f.target_kind, f.target_name, "") # href logic below
+            if key not in comp_findings:
+                comp_findings[key] = []
+            comp_findings[key].append(f)
+            
+        rows = []
+        for (kind, name, _), flist in sorted(comp_findings.items()):
+            # Find href
+            href = ""
+            if kind == "Objet": href = href_relative(current_path, object_pages.get(name)) if object_pages.get(name) else ""
+            elif kind == "Apex": href = href_relative(current_path, apex_pages.get(name)) if apex_pages.get(name) else ""
+            elif kind == "Flow": href = href_relative(current_path, flow_pages.get(name)) if flow_pages.get(name) else ""
+            elif kind == "Agent" and agent_pages: href = href_relative(current_path, agent_pages.get(name)) if agent_pages.get(name) else ""
+            elif kind == "Prompt" and prompt_pages: href = href_relative(current_path, prompt_pages.get(name)) if prompt_pages.get(name) else ""
+            
+            name_cell = f"<a href='{html_value(href)}'>{html_value(name)}</a>" if href else html_value(name)
+            
+            # List rules for this component
+            rules_list = "<ul>" + "".join(f"<li>{html_value(f.rule.title)}: {html_value(f.message)}</li>" for f in flist) + "</ul>"
+            
+            rows.append(f"<tr><td>{html_value(kind)}</td><td>{name_cell}</td><td>{rules_list}</td></tr>")
+            
+        return f"<table><thead><tr><th>Type</th><th>Composant</th><th>Regles impactees</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
 
-    def _artifact_row(kind: str, name: str, findings_list: list[Finding], href: str) -> str:
-        if not findings_list:
-            return ""
-        counts = {"Critical": 0, "Major": 0, "Minor": 0, "Info": 0}
-        for finding in findings_list:
-            counts[finding.rule.severity] = counts.get(finding.rule.severity, 0) + 1
-        sev_cells = "".join(
-            f"<td>{counts.get(sev, 0)}</td>"
-            for sev in ("Critical", "Major", "Minor", "Info")
-        )
-        name_cell = (
-            f"<a href='{html_value(href)}'>{html_value(name)}</a>" if href else html_value(name)
-        )
-        return (
-            f"<tr><td>{html_value(kind)}</td><td>{name_cell}</td>"
-            f"{sev_cells}<td>{len(findings_list)}</td></tr>"
-        )
-
-    for name, flist in analyzer_report.objects.items():
-        page = object_pages.get(name)
-        href = href_relative(current_path, page) if page else ""
-        row = _artifact_row("Objet", name, flist, href)
-        if row:
-            artifact_rows.append(row)
-
-    for name, flist in analyzer_report.apex.items():
-        page = apex_pages.get(name)
-        href = href_relative(current_path, page) if page else ""
-        row = _artifact_row("Apex", name, flist, href)
-        if row:
-            artifact_rows.append(row)
-
-    for name, flist in analyzer_report.flows.items():
-        page = flow_pages.get(name)
-        href = href_relative(current_path, page) if page else ""
-        row = _artifact_row("Flow", name, flist, href)
-        if row:
-            artifact_rows.append(row)
-
-    for name, flist in analyzer_report.validation_rules.items():
-        row = _artifact_row("Validation Rule", name, flist, "")
-        if row:
-            artifact_rows.append(row)
-
-    for name, flist in analyzer_report.data_transforms.items():
-        row = _artifact_row("Data Transform", name, flist, "")
-        if row:
-            artifact_rows.append(row)
-
-    for name, flist in analyzer_report.lwc.items():
-        row = _artifact_row("LWC", name, flist, "")
-        if row:
-            artifact_rows.append(row)
-
-    for name, flist in analyzer_report.aura.items():
-        row = _artifact_row("Aura", name, flist, "")
-        if row:
-            artifact_rows.append(row)
-
-    artifact_rows.sort()
-    if not artifact_rows:
-        artifact_table = "<p class='empty'>Aucun composant impacte.</p>"
-    else:
-        artifact_table = (
-            "<table><thead><tr><th>Type</th><th>Composant</th>"
-            "<th>Critique</th><th>Majeur</th><th>Mineur</th><th>Info</th><th>Total</th></tr></thead>"
-            f"<tbody>{''.join(artifact_rows)}</tbody></table>"
-        )
-
+    sections = [
+        ("Critique", _render_severity_table(findings_by_sev["Critical"])),
+        ("Majeur", _render_severity_table(findings_by_sev["Major"])),
+        ("Mineur", _render_severity_table(findings_by_sev["Minor"])),
+        ("Info", _render_severity_table(findings_by_sev["Info"])),
+    ]
+    
     note = (
         "<p class='empty'>Analyseur inspire de "
         "<a href='https://docs.pmd-code.org/latest/pmd_rules_apex.html' target='_blank' rel='noopener'>PMD Apex</a>, du "
@@ -194,10 +142,6 @@ def render_index_analyzer_panel(
         "Les regles sont declarees dans <code>src/analyzer/rules.xml</code> et peuvent etre activees / desactivees via l'attribut <code>enabled</code>.</p>"
     )
 
-    sections = [
-        ("Synthese par regle", rule_table),
-        ("Par composant", artifact_table),
-    ]
     return summary + tabbed_sections("index-analyzer", sections) + note
 
 
@@ -244,84 +188,165 @@ def render_index_improvements(
     apex_pages: dict[str, Path],
     flow_pages: dict[str, Path],
 ) -> str:
-    rows: list[str] = []
+    # Group improvements by type
+    improvements_by_type: dict[str, list[str]] = {}
+
     for artifact in snapshot.apex_artifacts:
         review = apex_reviews.get(artifact.name)
         if review is None:
             continue
+        
+        kind = f"Apex/{artifact.kind}"
+        if kind not in improvements_by_type:
+            improvements_by_type[kind] = []
+            
         page = apex_pages.get(artifact.name)
-        if page:
-            component = f"<a href='{href_relative(current_path, page)}'>{html_value(artifact.name)}</a>"
-        else:
-            component = html_value(artifact.name)
+        component = f"<a href='{href_relative(current_path, page)}'>{html_value(artifact.name)}</a>" if page else html_value(artifact.name)
+        
         for improvement in review.improvements:
-            rows.append(
-                f"<tr><td>Apex/{html_value(artifact.kind)}</td><td>{component}</td><td>{html_value(improvement)}</td></tr>"
+            improvements_by_type[kind].append(
+                f"<tr><td>{component}</td><td>{html_value(improvement)}</td></tr>"
             )
 
     for flow in snapshot.flows:
         review = flow_reviews.get(flow.name)
         if review is None:
             continue
+            
+        kind = "Flow"
+        if kind not in improvements_by_type:
+            improvements_by_type[kind] = []
+            
         page = flow_pages.get(flow.name)
-        if page:
-            component = f"<a href='{href_relative(current_path, page)}'>{html_value(flow.name)}</a>"
-        else:
-            component = html_value(flow.name)
+        component = f"<a href='{href_relative(current_path, page)}'>{html_value(flow.name)}</a>" if page else html_value(flow.name)
+        
         for improvement in review.improvements:
-            rows.append(
-                f"<tr><td>Flow</td><td>{component}</td><td>{html_value(improvement)}</td></tr>"
+            improvements_by_type[kind].append(
+                f"<tr><td>{component}</td><td>{html_value(improvement)}</td></tr>"
             )
 
-    return "".join(rows) or "<tr><td colspan='3' class='empty'>Aucune amelioration detectee.</td></tr>"
+    if not improvements_by_type:
+        return "<p class='empty'>Aucune amelioration detectee.</p>"
+
+    sections: list[tuple[str, str]] = []
+    for kind in sorted(improvements_by_type.keys()):
+        rows = improvements_by_type[kind]
+        label = f"{kind} ({len(rows)})"
+        table = (
+            "<table><thead><tr><th>Composant</th><th>Amelioration</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table>"
+        )
+        sections.append((label, table))
+
+    return tabbed_sections("index-improvements", sections)
 
 
-def render_index_pmd_rows(
+def render_index_pmd_panel(
     snapshot: MetadataSnapshot,
     pmd_results: dict[str, list[PmdViolation]],
     current_path: Path,
     apex_pages: dict[str, Path],
 ) -> str:
-    rows: list[str] = []
+    # Group violations by rule
+    violations_by_rule: dict[str, list[str]] = {}
+    
     for artifact in snapshot.apex_artifacts:
         violations = pmd_results.get(artifact.name, [])
         if not violations:
             continue
+            
         target = apex_pages.get(artifact.name)
-        component = (
-            f"<a href='{href_relative(current_path, target)}'>{html_value(artifact.name)}</a>"
-            if target
-            else html_value(artifact.name)
-        )
-        for violation in violations:
-            line_value = violation.begin_line or ""
-            rows.append(
-                f"<tr><td>{component}</td><td>{html_value(violation.rule)}</td>"
-                f"<td>{html_value(violation.priority)}</td><td>{html_value(line_value)}</td>"
-                f"<td>{html_value(violation.message)}</td></tr>"
+        component = f"<a href='{href_relative(current_path, target)}'>{html_value(artifact.name)}</a>" if target else html_value(artifact.name)
+        
+        for v in violations:
+            rule_name = v.rule
+            if rule_name not in violations_by_rule:
+                violations_by_rule[rule_name] = []
+                
+            line_value = v.begin_line or ""
+            violations_by_rule[rule_name].append(
+                f"<tr><td>{component}</td><td>{html_value(v.priority)}</td><td>{html_value(line_value)}</td><td>{html_value(v.message)}</td></tr>"
             )
-    return "".join(rows) or "<tr><td colspan='5' class='empty'>Aucune violation PMD detectee.</td></tr>"
+
+    if not violations_by_rule:
+        return "<p class='empty'>Aucune violation PMD detectee.</p>"
+
+    sections: list[tuple[str, str]] = []
+    for rule in sorted(violations_by_rule.keys()):
+        rows = violations_by_rule[rule]
+        label = f"{rule} ({len(rows)})"
+        table = (
+            "<table><thead><tr><th>Composant</th><th>Priorite</th><th>Ligne</th><th>Message</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table>"
+        )
+        sections.append((label, table))
+
+    return tabbed_sections("index-pmd", sections)
 
 
-def render_index_dependencies_panel(snapshot: MetadataSnapshot) -> str:
+def render_index_dependencies_panel(
+    snapshot: MetadataSnapshot,
+    current_path: Path,
+    object_pages: dict[str, Path],
+    apex_pages: dict[str, Path],
+    flow_pages: dict[str, Path],
+    agent_pages: dict[str, Path] | None = None,
+    prompt_pages: dict[str, Path] | None = None,
+) -> str:
     if not snapshot.dependencies:
         return "<p class='empty'>Aucune dependance detectee.</p>"
 
-    rows = []
-    for dep in sorted(snapshot.dependencies, key=lambda d: (d.source_kind, d.source_name)):
-        rows.append(
+    def _get_link(name: str, kind: str) -> str:
+        href = ""
+        if kind == "Objet":
+            page = object_pages.get(name)
+            if page: href = href_relative(current_path, page)
+        elif kind == "Apex":
+            page = apex_pages.get(name)
+            if page: href = href_relative(current_path, page)
+        elif kind == "Flow":
+            page = flow_pages.get(name)
+            if page: href = href_relative(current_path, page)
+        elif kind == "Agent" and agent_pages:
+            page = agent_pages.get(name)
+            if page: href = href_relative(current_path, page)
+        elif kind == "Prompt" and prompt_pages:
+            page = prompt_pages.get(name)
+            if page: href = href_relative(current_path, page)
+        
+        if href:
+            return f"<a href='{html_value(href)}'>{html_value(name)}</a>"
+        return html_value(name)
+
+    # Group dependencies by source_kind
+    deps_by_kind: dict[str, list[str]] = {}
+    for dep in sorted(snapshot.dependencies, key=lambda d: (d.source_kind, d.source_name, d.target_name)):
+        kind = dep.source_kind or "Autre"
+        if kind not in deps_by_kind:
+            deps_by_kind[kind] = []
+        
+        source_link = _get_link(dep.source_name, dep.source_kind)
+        target_link = _get_link(dep.target_name, dep.target_kind)
+        
+        deps_by_kind[kind].append(
             f"<tr>"
-            f"<td>{html_value(dep.source_name)}</td>"
-            f"<td>{html_value(dep.source_kind)}</td>"
-            f"<td>{html_value(dep.target_name)}</td>"
+            f"<td>{source_link}</td>"
+            f"<td>{target_link}</td>"
             f"<td>{html_value(dep.target_kind)}</td>"
             f"</tr>"
         )
 
-    return (
-        "<table><thead><tr><th>Source</th><th>Type Source</th><th>Cible</th><th>Type Cible</th></tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
-    )
+    sections: list[tuple[str, str]] = []
+    for kind in sorted(deps_by_kind.keys()):
+        rows = deps_by_kind[kind]
+        label = f"{kind} ({len(rows)})"
+        table = (
+            "<table><thead><tr><th>Source</th><th>Cible</th><th>Type Cible</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table>"
+        )
+        sections.append((label, table))
+
+    return tabbed_sections("index-dependencies", sections)
 
 
 def render_index(
@@ -476,10 +501,6 @@ def render_index(
 
     security_dashboard = f"""
 <div class='section'>
-    <div class='topnav'>
-        <a href='{href_relative(current_path, security_pages.get("security_matrix")) if security_pages else "#"}'>Voir la matrice de securite (CRUD)</a> | 
-        <a href='{href_relative(current_path, security_pages.get("psg_list")) if security_pages else "#"}'>Voir les Permission Set Groups</a>
-    </div>
     <div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px'>
       <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
         <div style='font-size:.8em;color:#64748b'>Profils custom</div>
@@ -537,20 +558,6 @@ def render_index(
         if item.name in flow_pages
     ) or "<tr><td colspan='7' class='empty'>Aucun flow analyse.</td></tr>"
 
-    improvements_rows = render_index_improvements(
-        snapshot,
-        apex_reviews,
-        flow_reviews,
-        current_path,
-        apex_pages,
-        flow_pages,
-    )
-    pmd_rows = render_index_pmd_rows(
-        snapshot,
-        pmd_results,
-        current_path,
-        apex_pages,
-    )
     excel_links = render_excel_exports(root_dir, current_path)
     omni_panel = render_index_omni_panel(omni_pages, current_path)
     
@@ -574,9 +581,19 @@ def render_index(
         object_pages,
         apex_pages,
         flow_pages,
+        agent_pages=agent_pages,
+        prompt_pages=prompt_pages,
     )
 
-    dependencies_panel = render_index_dependencies_panel(snapshot)
+    dependencies_panel = render_index_dependencies_panel(
+        snapshot,
+        current_path,
+        object_pages,
+        apex_pages,
+        flow_pages,
+        agent_pages=agent_pages,
+        prompt_pages=prompt_pages,
+    )
     
     vr_header = (
         '<span title="Nombre de règles de validation et score de complexité cumulé (Σ). '
@@ -584,25 +601,71 @@ def render_index(
         'et le nombre d\'opérateurs logiques (IF, AND, OR, CASE, parenthèses).">'
         'VR (Complexité)</span>'
     )
+    # ── Security ─────────────────────────────────────────────────────
+    security_dashboard_tab = tabbed_sections("index-security", [
+        ("Synthese", security_dashboard),
+        ("Profiles", f"<h4>{_profiles_title} ({len(snapshot.profiles)})</h4><table><thead><tr><th>Profil</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}</tbody></table>"),
+        ("Permission Sets", f"<h4>{_permsets_title} ({len(snapshot.permission_sets)})</h4><table><thead><tr><th>Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>"),
+        ("CRUD", f"<p><a href='{href_relative(current_path, security_pages.get('security_matrix')) if security_pages else '#'}' target='_blank' rel='noopener'>Ouvrir la matrice de securite (CRUD) dans un nouvel onglet</a></p>"),
+        ("PS Group", f"<p><a href='{href_relative(current_path, security_pages.get('psg_list')) if security_pages else '#'}' target='_blank' rel='noopener'>Ouvrir les Permission Set Groups dans un nouvel onglet</a></p>"),
+    ])
+
     # ── Org Health ───────────────────────────────────────────────────
-    orphan_rows = "".join(
-        f"<tr><td>{html_value(o.name)}</td><td>{html_value(o.kind)}</td></tr>"
-        for o in snapshot.orphans
-    ) or "<tr><td colspan='2' class='empty'>Aucun composant orphelin detecte.</td></tr>"
-    
+    orphans_by_kind: dict[str, list[str]] = {}
+    for o in snapshot.orphans:
+        kind = o.kind or "Autre"
+        if kind not in orphans_by_kind:
+            orphans_by_kind[kind] = []
+        
+        href = ""
+        if kind == "Objet": href = href_relative(current_path, object_pages.get(o.name)) if object_pages.get(o.name) else ""
+        elif kind == "Apex": href = href_relative(current_path, apex_pages.get(o.name)) if apex_pages.get(o.name) else ""
+        elif kind == "Flow": href = href_relative(current_path, flow_pages.get(o.name)) if flow_pages.get(o.name) else ""
+        elif kind == "Agent" and agent_pages: href = href_relative(current_path, agent_pages.get(o.name)) if agent_pages.get(o.name) else ""
+        elif kind == "Prompt" and prompt_pages: href = href_relative(current_path, prompt_pages.get(o.name)) if prompt_pages.get(o.name) else ""
+        
+        name_cell = f"<a href='{html_value(href)}'>{html_value(o.name)}</a>" if href else html_value(o.name)
+        orphans_by_kind[kind].append(f"<tr><td>{name_cell}</td></tr>")
+        
+    if not snapshot.orphans:
+        health_panel = "<p class='empty'>Aucun composant orphelin detecte.</p>"
+    else:
+        orphan_sections = []
+        for kind in sorted(orphans_by_kind.keys()):
+            rows = orphans_by_kind[kind]
+            label = f"{kind} ({len(rows)})"
+            table = f"<table><thead><tr><th>Nom</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
+            orphan_sections.append((label, table))
+        health_panel = tabbed_sections("index-orphans", orphan_sections)
+
+    # ── Improvements & PMD ───────────────────────────────────────────
+    improvements_panel = render_index_improvements(
+        snapshot,
+        apex_reviews,
+        flow_reviews,
+        current_path,
+        apex_pages,
+        flow_pages,
+    )
+    pmd_panel = render_index_pmd_panel(
+        snapshot,
+        pmd_results,
+        current_path,
+        apex_pages,
+    )
+
+    # ── Flows ────────────────────────────────────────────────────────
     redundant_flow_rows = "".join(
         f"<tr><td>{html_value(g.object_name)}</td><td>{html_value(g.trigger_type)}</td><td>{', '.join(g.flows)}</td></tr>"
         for g in snapshot.redundant_flows
     ) or "<tr><td colspan='3' class='empty'>Aucune redondance de Flow detectee.</td></tr>"
     
-    health_panel = f"""
-<h3>Composants Orphelins</h3>
-<p>Composants non references dans Apex, Flows ou Rapports.</p>
-<table><thead><tr><th>Nom</th><th>Type</th></tr></thead><tbody>{orphan_rows}</tbody></table>
-<h3>Redondance des Flows</h3>
-<p>Plusieurs Record-Triggered Flows actifs sur le meme objet et evenement.</p>
-<table><thead><tr><th>Objet</th><th>Evenement</th><th>Flows</th></tr></thead><tbody>{redundant_flow_rows}</tbody></table>
-"""
+    flow_list_table = f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>"
+    flow_redundancy_table = f"<table><thead><tr><th>Objet</th><th>Evenement</th><th>Flows</th></tr></thead><tbody>{redundant_flow_rows}</tbody></table>"
+    flow_panel = tabbed_sections("index-flows", [
+        ("Liste", flow_list_table),
+        ("Redondance", flow_redundancy_table),
+    ])
 
     tabs = tabbed_sections(
         "index",
@@ -612,39 +675,12 @@ def render_index(
                 excel_links,
             ),
             (
-                "Sante de l'Org",
-                health_panel,
-            ),
-            (
-                "Omni / BRE",
-                omni_panel,
-            ),
-            (
-                "Dependances",
-                dependencies_panel,
-            ),
-            (
-                "Agents",
-                f"<table><thead><tr><th>Agent</th><th>Label</th><th>Description</th></tr></thead><tbody>{agent_rows}</tbody></table>",
-            ),
-            (
-                "Prompts",
-                f"<table><thead><tr><th>Prompt</th><th>Label</th><th>Description</th></tr></thead><tbody>{prompt_rows}</tbody></table>",
-            ),
-            (
                 "Objets",
                 f"<table><thead><tr><th>Objet</th><th>Label</th><th>Nb champs</th><th>Nb relations</th><th>{vr_header}</th></tr></thead><tbody>{object_rows}</tbody></table>",
             ),
             (
-                "Profiles",
-                security_dashboard
-                + f"<h4>{_profiles_title} ({len(snapshot.profiles)})</h4>"
-                + f"<table><thead><tr><th>Profil</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}</tbody></table>",
-            ),
-            (
-                "Permission Sets",
-                f"<h4>{_permsets_title} ({len(snapshot.permission_sets)})</h4>"
-                + f"<table><thead><tr><th>Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>",
+                "Profiles & PS",
+                security_dashboard_tab,
             ),
             (
                 "Sharing Rules",
@@ -656,7 +692,23 @@ def render_index(
             ),
             (
                 "Flows",
-                f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>",
+                flow_panel,
+            ),
+            (
+                "Omni / BRE",
+                omni_panel,
+            ),
+            (
+                "Prompts",
+                f"<table><thead><tr><th>Prompt</th><th>Label</th><th>Description</th></tr></thead><tbody>{prompt_rows}</tbody></table>",
+            ),
+            (
+                "Agents",
+                f"<table><thead><tr><th>Agent</th><th>Label</th><th>Description</th></tr></thead><tbody>{agent_rows}</tbody></table>",
+            ),
+            (
+                "Dependances",
+                dependencies_panel,
             ),
             (
                 "Analyseur",
@@ -664,11 +716,15 @@ def render_index(
             ),
             (
                 "Ameliorations",
-                f"<table><thead><tr><th>Type</th><th>Composant</th><th>Amelioration</th></tr></thead><tbody>{improvements_rows}</tbody></table>",
+                improvements_panel,
             ),
             (
                 "Qualite PMD",
-                f"<table><thead><tr><th>Composant</th><th>Regle</th><th>Priorite</th><th>Ligne</th><th>Message</th></tr></thead><tbody>{pmd_rows}</tbody></table>",
+                pmd_panel,
+            ),
+            (
+                "Comp. Orphelin",
+                health_panel,
             ),
         ],
     )

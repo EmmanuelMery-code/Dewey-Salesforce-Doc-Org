@@ -101,6 +101,42 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 )
             )
 
+    # APEX-SEC-003 : SOQL injection
+    rule = catalog.get("APEX-SEC-003")
+    if rule and rule.enabled and not artifact.is_test:
+        injection_lines = _detect_soql_injection(artifact.body)
+        if injection_lines:
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="ApexClass",
+                    target_name=artifact.name,
+                    message="Risque d'injection SOQL detecte dans une requete dynamique.",
+                    details=[
+                        "L'utilisation de Database.query() avec des variables concatenees sans echappement est risquee.",
+                    ],
+                    source_path=artifact.source_path,
+                    line=injection_lines[0],
+                )
+            )
+
+    # APEX-SEC-004 : CRUD/FLS enforcement
+    rule = catalog.get("APEX-SEC-004")
+    if rule and rule.enabled and not artifact.is_test:
+        if (artifact.dml_count > 0 or artifact.soql_count > 0) and not _has_security_enforcement(artifact.body):
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="ApexClass",
+                    target_name=artifact.name,
+                    message="Absence de controle CRUD/FLS explicite detectee.",
+                    details=[
+                        "La classe effectue des operations de donnees sans utiliser WITH USER_MODE, Security.stripInaccessible() ou WITH SECURITY_ENFORCED.",
+                    ],
+                    source_path=artifact.source_path,
+                )
+            )
+
     # APEX-REL-001 : try/catch around DML/SOQL
     rule = catalog.get("APEX-REL-001")
     if rule and rule.enabled and not artifact.is_test:
@@ -495,3 +531,44 @@ def _detect_trigger_after_save_recursion(body: str) -> tuple[set[str], str] | No
 def _shorten(text: str, limit: int = 80) -> str:
     text = " ".join(text.split())
     return text if len(text) <= limit else text[: limit - 1] + "..."
+
+
+def _detect_soql_injection(body: str) -> list[int]:
+    """Detect dynamic SOQL queries with potential injection risks."""
+    clean = _strip_comments_and_strings(body)
+    injection_lines = []
+
+    # Look for Database.query(dynamic_string)
+    # We look for concatenation (+) or variable interpolation ($)
+    # while excluding String.escapeSingleQuotes
+    query_re = re.compile(r"Database\.query\s*\(([^)]+)\)", re.IGNORECASE)
+
+    for match in query_re.finditer(clean):
+        arg = match.group(1)
+        # If the argument contains concatenation or variable interpolation
+        # and doesn't seem to use escapeSingleQuotes or bind variables
+        if ("+" in arg or "$" in arg) and "escapesinglequotes" not in arg.lower() and ":" not in arg:
+            line_num = body[: match.start()].count("\n") + 1
+            injection_lines.append(line_num)
+
+    return injection_lines
+
+
+def _has_security_enforcement(body: str) -> bool:
+    """Check if the class uses any explicit CRUD/FLS enforcement mechanism."""
+    clean = _strip_comments_and_strings(body).upper()
+
+    enforcements = [
+        "WITH USER_MODE",
+        "WITH SYSTEM_MODE",
+        "WITH SECURITY_ENFORCED",
+        "SECURITY.STRIPINACCESSIBLE",
+        "ACCESSLEVEL.USER_MODE",
+        "ACCESSLEVEL.SYSTEM_MODE",
+        "ISACCESSIBLE(",
+        "ISCREATEABLE(",
+        "ISUPDATEABLE(",
+        "ISDELETABLE(",
+    ]
+
+    return any(e in clean for e in enforcements)

@@ -4,7 +4,7 @@ import re
 
 from src.analyzer.models import Finding
 from src.analyzer.rule_catalog import RuleCatalog
-from src.core.models import ObjectInfo, ValidationRuleInfo
+from src.core.models import ObjectInfo, ValidationRuleInfo, DuplicateRuleInfo
 
 
 def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
@@ -125,5 +125,37 @@ def analyze_validation_rule(
                     ]
                 )
             )
+
+    return findings
+
+
+def analyze_duplicate_rule(
+    dr: DuplicateRuleInfo, object_name: str, catalog: RuleCatalog
+) -> list[Finding]:
+    findings: list[Finding] = []
+    target_name = f"{object_name}.{dr.full_name}"
+
+    rule = catalog.get("DR-READ-001")
+    if rule and rule.enabled and not dr.description:
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="DuplicateRule",
+                target_name=target_name,
+                message="La duplicate rule ne fournit pas de description.",
+            )
+        )
+
+    rule = catalog.get("DR-SEC-001")
+    if rule and rule.enabled and dr.security_enforcement == "EnforceSharingRules":
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="DuplicateRule",
+                target_name=target_name,
+                message="La duplicate rule applique les regles de partage (Sharing Rules).",
+                details=["Cela peut limiter la detection de doublons si l'utilisateur n'a pas acces aux enregistrements existants."],
+            )
+        )
 
     return findings

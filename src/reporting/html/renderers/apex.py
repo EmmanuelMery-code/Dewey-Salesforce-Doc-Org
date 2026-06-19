@@ -229,8 +229,13 @@ def write_apex_pages(
     object_names = [item.api_name for item in snapshot.objects]
     flow_names = [item.name for item in snapshot.flows]
     apex_findings = getattr(analyzer_report, "apex", {}) if analyzer_report else {}
-    for artifact in artifacts:
+    total = len(artifacts)
+    for index, artifact in enumerate(artifacts):
         path = output[artifact.name]
+        
+        if index % 20 == 0:
+            log(f"Generation HTML : Apex {index + 1}/{total} ({artifact.name})")
+            
         dependencies = apex_dependencies(
             artifact,
             artifacts,

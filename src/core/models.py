@@ -166,12 +166,20 @@ class ApexArtifact:
 
 
 @dataclass(slots=True)
+class FlowConnector:
+    target: str
+    label: str = ""
+
+
+@dataclass(slots=True)
 class FlowElementInfo:
     element_type: str
     name: str
     label: str = ""
     description: str = ""
-    target: str = ""
+    connectors: list[FlowConnector] = field(default_factory=list)
+    targets: list[str] = field(default_factory=list)
+    target: str = ""  # Legacy, for backward compatibility if needed
 
 
 @dataclass(slots=True)
@@ -184,6 +192,7 @@ class FlowInfo:
     api_version: str = ""
     trigger_type: str = ""
     start_object: str = ""
+    start_node: str = ""
     source_path: Path | None = None
     element_counts: dict[str, int] = field(default_factory=dict)
     described_elements: int = 0
@@ -632,6 +641,17 @@ class DuplicateRuleInfo:
     action_on_insert: str = ""
     action_on_update: str = ""
     active: bool = False
+    description: str = ""
+    security_enforcement: str = ""
+    
+    @property
+    def complexity_score(self) -> int:
+        # Basic complexity for duplicate rules
+        score = 1
+        if self.action_on_insert == "Block": score += 2
+        if self.action_on_update == "Block": score += 2
+        if self.description: score -= 1
+        return max(1, score)
 
 
 @dataclass(slots=True)

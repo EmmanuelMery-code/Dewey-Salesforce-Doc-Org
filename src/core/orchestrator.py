@@ -403,6 +403,7 @@ class SalesforceDocumentationGenerator:
         analyzer_report: AnalyzerReport,
         result: GenerationResult,
     ) -> None:
+        self.log("Generation des documents Word.")
         word_dir = self.output_dir / "word"
         word_dir.mkdir(parents=True, exist_ok=True)
         word_writer = WordReportWriter(language=self.language, log_callback=self.log)
@@ -442,6 +443,7 @@ class SalesforceDocumentationGenerator:
         pmd_by_artifact: dict[str, list[PmdViolation]],
         result: GenerationResult,
     ) -> None:
+        self.log("Generation des pages HTML.")
         html_writer = HtmlReportWriter(self.output_dir, log_callback=self.log)
         html_writer.write_assets()
 
@@ -561,6 +563,8 @@ class SalesforceDocumentationGenerator:
     # ------------------------------------------------------------------
 
     def generate(self) -> GenerationResult:
+        import time
+        start_time = time.time()
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.log("Debut de l'analyse Salesforce.")
 
@@ -860,5 +864,11 @@ class SalesforceDocumentationGenerator:
 
         self._save_to_history(snapshot, result, analyzer_report)
 
-        self.log("Generation terminee.")
+        end_time = time.time()
+        duration = end_time - start_time
+        minutes = int(duration // 60)
+        seconds = int(duration % 60)
+        time_str = f"{minutes} min {seconds} s" if minutes > 0 else f"{seconds} s"
+        
+        self.log(f"Generation terminee en {time_str}.")
         return result

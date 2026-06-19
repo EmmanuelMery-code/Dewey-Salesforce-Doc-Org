@@ -231,8 +231,13 @@ def write_object_pages(
         "Flow": flow_pages or {},
     }
     
-    for item in snapshot.objects:
+    total = len(snapshot.objects)
+    for index, item in enumerate(snapshot.objects):
         path = objects_dir / f"{item.api_name}.html"
+        
+        if index % 20 == 0:
+            log(f"Generation HTML : objet {index + 1}/{total} ({item.api_name})")
+            
         vr_findings_for_object: list[Finding] = []
         for vr in item.validation_rules:
             key = f"{item.api_name}.{vr.full_name}"

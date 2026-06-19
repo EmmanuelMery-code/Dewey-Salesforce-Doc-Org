@@ -17,6 +17,7 @@ from src.core.models import (
     DuplicateRuleInfo,
     FieldInfo,
     FieldPermission,
+    FlowConnector,
     FlowElementInfo,
     FlowInfo,
     GenAiPromptInfo,
@@ -858,48 +859,68 @@ class SalesforceMetadataParser:
                         adjacency.setdefault(name, [])
 
                     target = ""
+                    element_targets = []
+                    element_connectors = []
                     connector = node.find("sf:connector/sf:targetReference", SF_NS)
                     if connector is not None and connector.text:
                         target = connector.text.strip()
+                        element_targets.append(target)
+                        element_connectors.append(FlowConnector(target=target))
                         if name:
                             adjacency[name].append(target)
 
                     if tag == "decisions":
                         for rule in node.findall("sf:rules", SF_NS):
+                            rule_label = child_text(rule, "label")
                             rule_connector = rule.find("sf:connector", SF_NS)
                             rule_target = (
                                 child_text(rule_connector, "targetReference") if rule_connector is not None else ""
                             )
-                            if name and rule_target:
-                                adjacency[name].append(rule_target)
+                            if rule_target:
+                                element_targets.append(rule_target)
+                                element_connectors.append(FlowConnector(target=rule_target, label=rule_label))
+                                if name:
+                                    adjacency[name].append(rule_target)
                         default_connector = node.find("sf:defaultConnector", SF_NS)
                         default_target = (
                             child_text(default_connector, "targetReference")
                             if default_connector is not None
                             else ""
                         )
-                        if name and default_target:
-                            adjacency[name].append(default_target)
+                        if default_target:
+                            element_targets.append(default_target)
+                            element_connectors.append(FlowConnector(target=default_target, label="Default Outcome"))
+                            if name:
+                                adjacency[name].append(default_target)
                     elif tag == "loops":
                         next_connector = node.find("sf:nextValueConnector", SF_NS)
                         next_target = (
                             child_text(next_connector, "targetReference") if next_connector is not None else ""
                         )
-                        if name and next_target:
-                            adjacency[name].append(next_target)
+                        if next_target:
+                            element_targets.append(next_target)
+                            element_connectors.append(FlowConnector(target=next_target, label="Next Item"))
+                            if name:
+                                adjacency[name].append(next_target)
                         end_connector = node.find("sf:noMoreValuesConnector", SF_NS)
                         end_target = (
                             child_text(end_connector, "targetReference") if end_connector is not None else ""
                         )
-                        if name and end_target:
-                            adjacency[name].append(end_target)
+                        if end_target:
+                            element_targets.append(end_target)
+                            element_connectors.append(FlowConnector(target=end_target, label="End Loop"))
+                            if name:
+                                adjacency[name].append(end_target)
 
                     fault_connector = node.find("sf:faultConnector", SF_NS)
                     fault_target = (
                         child_text(fault_connector, "targetReference") if fault_connector is not None else ""
                     )
-                    if name and fault_target:
-                        adjacency[name].append(fault_target)
+                    if fault_target:
+                        element_targets.append(fault_target)
+                        element_connectors.append(FlowConnector(target=fault_target, label="Fault"))
+                        if name:
+                            adjacency[name].append(fault_target)
 
                     elements.append(
                         FlowElementInfo(
@@ -907,6 +928,8 @@ class SalesforceMetadataParser:
                             name=name,
                             label=child_text(node, "label"),
                             description=description,
+                            connectors=element_connectors,
+                            targets=element_targets,
                             target=target,
                         )
                     )
@@ -984,6 +1007,7 @@ class SalesforceMetadataParser:
                 start_object=child_text(root.find("sf:start", SF_NS), "object")
                 if root.find("sf:start", SF_NS) is not None
                 else "",
+                start_node=start_node,
                 source_path=flow_file,
                 element_counts=dict(element_counts),
                 described_elements=described,
@@ -1518,6 +1542,8 @@ class SalesforceMetadataParser:
                 action_on_insert=child_text(root, "actionOnInsert"),
                 action_on_update=child_text(root, "actionOnUpdate"),
                 active=to_bool(child_text(root, "isActive")),
+                description=child_text(root, "description"),
+                security_enforcement=child_text(root, "securityEnforcementConfiguration"),
             ))
         return rules
 
@@ -1600,7 +1626,42 @@ class SalesforceMetadataParser:
             except Exception:
                 pass
 
-        # 3. Scan Reports for Object dependencies
+        # 3. Scan LWC for Apex dependencies
+        for lwc in snapshot.lwc:
+            js_file = lwc.source_path / f"{lwc.name}.js"
+            if js_file.exists():
+                try:
+                    content = js_file.read_text(encoding="utf-8")
+                    for apex_name in apex_names:
+                        if f"@{apex_name}" in content or f"'{apex_name}'" in content or f'"{apex_name}"' in content:
+                            snapshot.dependencies.append(Dependency(
+                                source_name=lwc.name,
+                                source_kind="LWC",
+                                target_name=apex_name,
+                                target_kind="Apex"
+                            ))
+                except OSError:
+                    pass
+
+        # 4. Scan Aura for Apex dependencies
+        for aura in snapshot.aura:
+            for js_suffix in ("Controller.js", "Helper.js"):
+                js_file = aura.source_path / f"{aura.name}{js_suffix}"
+                if js_file.exists():
+                    try:
+                        content = js_file.read_text(encoding="utf-8")
+                        for apex_name in apex_names:
+                            if f"c.{apex_name}" in content or f"'{apex_name}'" in content or f'"{apex_name}"' in content:
+                                snapshot.dependencies.append(Dependency(
+                                    source_name=aura.name,
+                                    source_kind="Aura",
+                                    target_name=apex_name,
+                                    target_kind="Apex"
+                                ))
+                    except OSError:
+                        pass
+
+        # 5. Scan Reports for Object dependencies
         for row in snapshot.inventory.get("reports", []):
             source = str(row.get("Source") or "")
             if not source:

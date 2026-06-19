@@ -51,6 +51,30 @@
     <remediation>Externaliser l'identifiant dans une Custom Metadata, un Custom Setting ou un label, et le resoudre a l'execution.</remediation>
   </rule>
 
+  <rule id="APEX-SEC-003" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
+        severity="Critical" source="PMD ApexSOQLInjection + Salesforce Security Guide"
+        reference="https://developer.salesforce.com/docs/atlas.en-us.secure_coding_guide.meta/secure_coding_guide/secure_coding_sql_injection.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>Risque d'injection SOQL detecte</title>
+    <description>Detecte l'utilisation de Database.query() avec une chaine de caractere construite dynamiquement sans echappement visible.</description>
+    <rationale>
+      L'injection SOQL permet a un attaquant de manipuler les requetes pour acceder a des donnees non autorisees.
+      L'utilisation de variables de liaison (:var) ou de String.escapeSingleQuotes() est indispensable pour les requetes dynamiques.
+    </rationale>
+    <remediation>Utiliser des variables de liaison (bind variables) ou appliquer String.escapeSingleQuotes() sur les variables concatenees dans la requete.</remediation>
+  </rule>
+
+  <rule id="APEX-SEC-004" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
+        severity="Major" source="Well-Architected Data Security + Salesforce Security Guide"
+        reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_with_security_enforced.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>Absence de controle CRUD/FLS explicite</title>
+    <description>Detecte des operations DML ou SOQL sans clause de securite explicite (WITH USER_MODE, Security.stripInaccessible, etc.).</description>
+    <rationale>
+      Par defaut, l'Apex s'execute en mode systeme. Sans controle explicite, un utilisateur peut modifier ou lire des champs auxquels il n'a pas droit via l'interface standard.
+      Le Well-Architected Framework (Trusted > Secure) recommande d'appliquer les permissions de l'utilisateur.
+    </rationale>
+    <remediation>Ajouter 'WITH USER_MODE' aux requetes SOQL ou utiliser 'Security.stripInaccessible()' pour les operations DML, ou encore verifier explicitement les droits via Schema.SObjectType.</remediation>
+  </rule>
+
   <rule id="APEX-REL-001" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
         severity="Major" source="Well-Architected Reliable + PMD ExceptionHandling"
         reference="https://architect.salesforce.com/docs/architect/well-architected/guide/reliable" min_api_version="10.0" max_api_version="100.0">
@@ -334,6 +358,28 @@
     <remediation>Verifier que la classe Apex appelee respecte les regles de securite et n'expose pas de donnees sensibles.</remediation>
   </rule>
 
+  <rule id="LWC-MAINT-003" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Info" source="LWC Coding Guidelines"
+        reference="https://developer.salesforce.com/docs/component-library/guide/lwc-coding-guidelines.html" min_api_version="10.0" max_api_version="100.0">
+    <title>Presence de console.log dans le code LWC</title>
+    <description>Le code JS contient des appels a console.log ou console.error.</description>
+    <rationale>
+      Les logs console doivent etre reserves au developpement et ne pas etre presents dans le code de production pour des raisons de performance et de proprete des logs.
+    </rationale>
+    <remediation>Supprimer les appels console.log ou utiliser un service de logging dedie.</remediation>
+  </rule>
+
+  <rule id="LWC-READ-001" enabled="true" scope="lwc" category="Easy" subcategory="Readability"
+        severity="Minor" source="Well-Architected Easy Readability"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
+    <title>Composant LWC sans label ou description</title>
+    <description>Le composant n'a pas de masterLabel ou de description dans son fichier de configuration.</description>
+    <rationale>
+      Un composant sans description est plus difficile a identifier et a reutiliser dans l'App Builder.
+    </rationale>
+    <remediation>Renseigner le masterLabel et la description dans le fichier .js-meta.xml.</remediation>
+  </rule>
+
   <rule id="AURA-MAINT-001" enabled="true" scope="aura" category="Easy" subcategory="Maintainability"
         severity="Major" source="Salesforce Modernization Guide"
         reference="https://developer.salesforce.com/docs/component-library/guide/lwc-migration.html" min_api_version="10.0" max_api_version="100.0">
@@ -432,6 +478,30 @@
       factorisee dans des formules intermediaires ou Custom Metadata.
     </rationale>
     <remediation>Decomposer en champs formules intermediaires, en Custom Metadata ou deplacer la regle dans un Flow / Apex si elle porte de la logique complexe.</remediation>
+  </rule>
+
+  <!-- ==================== DUPLICATE RULES ==================== -->
+
+  <rule id="DR-READ-001" enabled="true" scope="duplicate_rule" category="Easy" subcategory="Readability"
+        severity="Minor" source="Well-Architected Easy Readability"
+        reference="https://architect.salesforce.com/docs/architect/well-architected/guide/intentional" min_api_version="10.0" max_api_version="100.0">
+    <title>Duplicate rule sans description</title>
+    <description>La duplicate rule ne fournit pas de description.</description>
+    <rationale>
+      Une duplicate rule sans description est difficile a maintenir, surtout quand plusieurs regles s'appliquent au meme objet.
+    </rationale>
+    <remediation>Ajouter une description expliquant le cas d'usage et la strategie de deduplication.</remediation>
+  </rule>
+
+  <rule id="DR-SEC-001" enabled="true" scope="duplicate_rule" category="Trusted" subcategory="Secure"
+        severity="Major" source="Salesforce Security Guide"
+        reference="https://help.salesforce.com/s/articleView?id=sf.duplicate_rules_overview.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>Duplicate rule avec application des Sharing Rules</title>
+    <description>La regle est configuree pour respecter les regles de partage (EnforceSharingRules).</description>
+    <rationale>
+      Si une duplicate rule respecte les sharing rules, elle ne detectera que les doublons parmi les enregistrements auxquels l'utilisateur a acces. Cela peut laisser passer des doublons reels presents dans l'org mais invisibles pour l'utilisateur.
+    </rationale>
+    <remediation>Evaluer si 'BypassSharingRules' est plus approprie pour garantir l'unicite globale des donnees.</remediation>
   </rule>
 
   <!-- ==================== OMNISTUDIO ==================== -->

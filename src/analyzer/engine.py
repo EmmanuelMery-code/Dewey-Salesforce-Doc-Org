@@ -12,7 +12,7 @@ from src.analyzer.flow_analyzer import analyze_flow
 from src.analyzer.lwc_analyzer import analyze_lwc
 from src.analyzer.aura_analyzer import analyze_aura
 from src.analyzer.models import Finding, Rule, SEVERITY_ORDER
-from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule
+from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule, analyze_duplicate_rule
 from src.analyzer.omni_analyzer import analyze_data_transform
 from src.analyzer.rule_catalog import RuleCatalog
 from src.analyzer.security_analyzer import (
@@ -25,6 +25,7 @@ from src.core.models import (
     ApexArtifact,
     AuraInfo,
     DEFAULT_PROFILES_PS_RATIO_THRESHOLDS,
+    DuplicateRuleInfo,
     FlowInfo,
     GenAiPromptInfo,
     LwcInfo,
@@ -165,6 +166,18 @@ class AnalyzerEngine:
         ]
         return _sorted(filtered)
 
+    def analyze_duplicate_rule(
+        self, dr: DuplicateRuleInfo, object_name: str
+    ) -> list[Finding]:
+        findings = analyze_duplicate_rule(dr, object_name, self.catalog)
+        dr_full_name = f"{object_name}.{dr.full_name}"
+        filtered = [
+            f for f in findings 
+            if self._is_rule_applicable(f.rule, dr_full_name)
+            and self._is_rule_applicable(f.rule, dr.full_name)
+        ]
+        return _sorted(filtered)
+
     def analyze_data_transform(
         self, name: str, xml_content: str
     ) -> list[Finding]:
@@ -238,12 +251,17 @@ class AnalyzerEngine:
 
         object_findings: dict[str, list[Finding]] = {}
         validation_findings: dict[str, list[Finding]] = {}
+        duplicate_findings: dict[str, list[Finding]] = {}
         for obj in snapshot.objects:
             findings = self.analyze_object(obj)
             object_findings[obj.api_name] = findings
             for vr in obj.validation_rules:
                 vr_key = f"{obj.api_name}.{vr.full_name}"
                 validation_findings[vr_key] = self.analyze_validation_rule(vr, obj.api_name)
+        
+        for dr in snapshot.duplicate_rules:
+            dr_key = f"{dr.object_name}.{dr.full_name}"
+            duplicate_findings[dr_key] = self.analyze_duplicate_rule(dr, dr.object_name)
 
         omni_findings: dict[str, list[Finding]] = {}
         for row in snapshot.inventory.get("omnistudio", []):
@@ -306,6 +324,7 @@ class AnalyzerEngine:
             flows=flow_findings,
             objects=object_findings,
             validation_rules=validation_findings,
+            duplicate_rules=duplicate_findings,
             data_transforms=omni_findings,
             agents=agent_findings,
             prompts=prompt_findings,
@@ -325,6 +344,7 @@ class AnalyzerReport:
         flows: dict[str, list[Finding]] | None = None,
         objects: dict[str, list[Finding]] | None = None,
         validation_rules: dict[str, list[Finding]] | None = None,
+        duplicate_rules: dict[str, list[Finding]] | None = None,
         data_transforms: dict[str, list[Finding]] | None = None,
         agents: dict[str, list[Finding]] | None = None,
         prompts: dict[str, list[Finding]] | None = None,
@@ -337,6 +357,7 @@ class AnalyzerReport:
         self.flows = flows or {}
         self.objects = objects or {}
         self.validation_rules = validation_rules or {}
+        self.duplicate_rules = duplicate_rules or {}
         self.data_transforms = data_transforms or {}
         self.agents = agents or {}
         self.prompts = prompts or {}
@@ -352,6 +373,7 @@ class AnalyzerReport:
             self.flows,
             self.objects,
             self.validation_rules,
+            self.duplicate_rules,
             self.data_transforms,
             self.agents,
             self.prompts,
