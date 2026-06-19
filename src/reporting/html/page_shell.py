@@ -12,7 +12,7 @@ from pathlib import Path
 
 from src.core.utils import html_value, safe_slug
 
-from src.reporting.html.assets import MERMAID_RUNTIME_SCRIPT, TABS_SCRIPT, SEARCH_AND_DARK_MODE_SCRIPT
+from src.reporting.html.assets import MERMAID_RUNTIME_SCRIPT, TABS_SCRIPT, SEARCH_SCRIPT
 
 
 def href_relative(from_path: Path, to_path: Path) -> str:
@@ -144,13 +144,12 @@ def render_page(
       <div style="flex: 1;">
         <input type="text" id="global-search" placeholder="Recherche globale..." style="width: 100%; max-width: 400px; padding: 6px 12px; border-radius: 4px; border: none;">
       </div>
-      <button id="dark-mode-toggle" style="background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Mode Sombre</button>
     </header>
     <div class="page">
       {body}
     </div>
     {TABS_SCRIPT}
-    {SEARCH_AND_DARK_MODE_SCRIPT}
+    {SEARCH_SCRIPT}
   </body>
 </html>
 """

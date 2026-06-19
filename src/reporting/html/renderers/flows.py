@@ -23,6 +23,7 @@ from src.reporting.html.findings import (
 )
 from src.reporting.html.page_shell import (
     complexity_badge_class,
+    href_relative,
     index_back_link,
     list_or_empty,
     render_page,
@@ -31,6 +32,123 @@ from src.reporting.html.page_shell import (
 
 
 LogCallback = Callable[[str], None]
+
+
+def render_flow_graph(flow: FlowInfo, findings: list[Finding], improvements: list[str]) -> str:
+    """Render a Mermaid.js graph for the flow with zoom, drag and tooltips."""
+    if not flow.elements:
+        return ""
+
+    lines = ["graph TD"]
+    
+    # Define styles
+    lines.append("classDef critical fill:#fee2e2,stroke:#ef4444,stroke-width:2px")
+    lines.append("classDef major fill:#ffedd5,stroke:#f97316,stroke-width:2px")
+    lines.append("classDef info fill:#eff6ff,stroke:#3b82f6,stroke-width:1px")
+    lines.append("classDef start fill:#f0fdf4,stroke:#22c55e,stroke-width:2px")
+
+    # Collect messages per element
+    element_issues = {}
+    critical_elements = set()
+    major_elements = set()
+    
+    for element in flow.elements:
+        msgs = []
+        is_critical = False
+        is_major = False
+        
+        # Check findings
+        for f in findings:
+            # Match by name or label in message or details
+            match = False
+            if element.name.lower() in f.message.lower(): match = True
+            elif element.label and element.label.lower() in f.message.lower(): match = True
+            elif any(element.name.lower() in d.lower() for d in f.details): match = True
+            elif element.label and any(element.label.lower() in d.lower() for d in f.details): match = True
+            
+            if match:
+                msgs.append(f"[{f.rule.severity}] {f.message}")
+                if f.rule.severity == "Critical":
+                    is_critical = True
+                else:
+                    is_major = True
+        
+        # Check improvements (heuristics)
+        for imp in improvements:
+            match = False
+            if element.name.lower() in imp.lower(): match = True
+            elif element.label and element.label.lower() in imp.lower(): match = True
+            
+            if match:
+                msgs.append(f"[Amélioration] {imp}")
+                is_major = True
+        
+        if msgs:
+            element_issues[element.name] = " | ".join(msgs).replace('"', "'")
+            if is_critical:
+                critical_elements.add(element.name)
+            elif is_major:
+                major_elements.add(element.name)
+
+    # Map element types to Mermaid shapes
+    for element in flow.elements:
+        shape_start, shape_end = "[", "]"
+        if element.element_type == "decisions":
+            shape_start, shape_end = "{", "}"
+        elif element.element_type == "loops":
+            shape_start, shape_end = "([", "])"
+        elif element.element_type == "screens":
+            shape_start, shape_end = "[[", "]]"
+
+        clean_label = (element.label or element.name).replace('"', "'")
+        label = f"{clean_label}<br/><small>({element.element_type})</small>"
+        lines.append(f"{element.name}{shape_start}\"{label}\"{shape_end}")
+        
+        # Add tooltip if there are issues
+        if element.name in element_issues:
+            lines.append(f"click {element.name} \"{element_issues[element.name]}\"")
+
+        # Connect to targets with labels
+        for conn in element.connectors:
+            if conn.label:
+                lines.append(f"{element.name} -- \"{conn.label}\" --> {conn.target}")
+            else:
+                lines.append(f"{element.name} --> {conn.target}")
+
+    # Start node
+    if flow.start_node:
+        lines.insert(1, f"START((Début)) --> {flow.start_node}")
+        lines.append("class START start")
+
+    # Apply classes
+    if critical_elements:
+        lines.append(f"class {','.join(critical_elements)} critical")
+    if major_elements:
+        lines.append(f"class {','.join(major_elements)} major")
+
+    mermaid_code = "\n".join(lines)
+    
+    return f"""
+<div class="section">
+    <h3>Représentation graphique</h3>
+    <div class="mermaid-container">
+        <div class="mermaid-toolbar">
+            <button class="mm-btn" data-mermaid-action="zoom-in" title="Zoom avant">+</button>
+            <button class="mm-btn" data-mermaid-action="zoom-out" title="Zoom arrière">-</button>
+            <button class="mm-btn" data-mermaid-action="reset" title="Réinitialiser">Reset</button>
+            <span class="mm-hint">Utilisez la molette pour zoomer, glissez pour déplacer le graphique ou les nœuds. Survolez les éléments colorés pour voir les alertes.</span>
+        </div>
+        <div class="mermaid">
+{mermaid_code}
+        </div>
+    </div>
+    <div class="legend" style="margin-top: 10px; font-size: 0.9rem;">
+        <span style="display: inline-block; width: 15px; height: 15px; background: #fee2e2; border: 1px solid #ef4444; margin-right: 5px;"></span> Critique (Analyseur)
+        <span style="display: inline-block; width: 15px; height: 15px; background: #ffedd5; border: 1px solid #f97316; margin-left: 15px; margin-right: 5px;"></span> Majeur / Amélioration (Heuristique)
+        <span style="display: inline-block; width: 15px; height: 15px; background: #f0fdf4; border: 1px solid #22c55e; margin-left: 15px; margin-right: 5px;"></span> Début
+    </div>
+</div>
+"""
 
 
 def render_flow_page(
@@ -80,6 +198,9 @@ def render_flow_page(
     analyzer_tab = render_analyzer_tab(findings)
     analyzer_inline_summary = render_findings_summary(findings)
     improvements_augmented = list(review.improvements) + findings_to_review_improvements(findings)
+    
+    flow_graph = render_flow_graph(flow, findings, improvements_augmented)
+    
     summary_html = (
         f"<p>{html_value(review.summary)}</p>"
         "<div class='section'><h3>Alertes analyseur</h3>"
@@ -90,6 +211,7 @@ def render_flow_page(
         f"flow-{safe_slug(flow.name)}",
         [
             ("Resume", summary_html),
+            ("Graphique", flow_graph),
             ("Metriques", f"<ul>{metrics}</ul>"),
             ("Repartition", f"<table><thead><tr><th>Type</th><th>Nombre</th></tr></thead><tbody>{count_rows}</tbody></table>"),
             ("Points forts", list_or_empty(review.positives, "Aucun point fort automatique detecte.")),
@@ -118,7 +240,7 @@ def render_flow_page(
 </div>
 {tabs}
 """
-    return render_page(flow.name, body, current_path, assets_dir)
+    return render_page(flow.name, body, current_path, assets_dir, include_mermaid=True)
 
 
 def write_flow_pages(
@@ -150,8 +272,13 @@ def write_flow_pages(
     apex_names = [item.name for item in snapshot.apex_artifacts]
     flow_findings = getattr(analyzer_report, "flows", {}) if analyzer_report else {}
 
-    for flow in flows:
+    total = len(flows)
+    for index, flow in enumerate(flows):
         path = output[flow.name]
+        
+        if index % 20 == 0:
+            log(f"Generation HTML : Flow {index + 1}/{total} ({flow.name})")
+            
         dependencies = flow_dependencies(
             flow,
             flow_ref_index,

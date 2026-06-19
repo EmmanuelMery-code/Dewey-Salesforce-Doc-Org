@@ -404,58 +404,13 @@ code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
 .tab-button.active { background: #dbeafe; color: #1e3a8a; border-color: #93c5fd; }
 .tab-panel { display: none; padding: 14px; }
 .tab-panel.active { display: block; }
-
-/* Dark Mode */
-body.dark-mode { background: #0f172a; color: #f1f5f9; }
-body.dark-mode .page { background: #0f172a; }
-body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 { color: #f8fafc; }
-body.dark-mode .card { background: #1e293b; border-color: #334155; }
-body.dark-mode table { background: #1e293b; color: #f1f5f9; }
-body.dark-mode th { background: #334155; border-color: #475569; color: #f8fafc; }
-body.dark-mode td { border-color: #334155; }
-body.dark-mode tr:nth-child(even) td { background: #0f172a; }
-body.dark-mode ul { background: #1e293b; border-color: #334155; }
-body.dark-mode code { background: #334155; color: #f8fafc; }
-body.dark-mode .tabs { background: #1e293b; border-color: #334155; }
-body.dark-mode .tab-buttons { background: #0f172a; border-color: #334155; }
-body.dark-mode .tab-button { background: #1e293b; border-color: #334155; color: #cbd5e1; }
-body.dark-mode .tab-button.active { background: #1e3a8a; color: #f8fafc; border-color: #3b82f6; }
-body.dark-mode .analyzer-summary-card { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border-color: #334155; }
-body.dark-mode .findings-list { background: #1e293b; border-color: #334155; }
-body.dark-mode .findings-list li.finding { border-color: #334155; }
-body.dark-mode .findings-list li.finding .title { color: #f8fafc; }
-body.dark-mode .findings-list li.finding .message { color: #cbd5e1; }
-body.dark-mode .findings-list li.finding .metadata dt { color: #f8fafc; }
-body.dark-mode .findings-list li.finding .metadata dd { color: #94a3b8; }
-body.dark-mode .ai-usage-stat { background: #1e293b; border-color: #334155; }
-body.dark-mode .ai-usage-stat .value { color: #f8fafc; }
-body.dark-mode .adopt-stat { background: #1e293b; border-color: #334155; }
-body.dark-mode .adopt-stat .value { color: #f8fafc; }
-body.dark-mode .mermaid-container { background: #1e293b; border-color: #334155; }
-body.dark-mode .mermaid-toolbar { background: #0f172a; border-color: #334155; }
-body.dark-mode .mermaid-toolbar button.mm-btn { background: #1e293b; border-color: #475569; color: #f1f5f9; }
-body.dark-mode .mermaid { background: #1e293b; border-color: #334155; }
         """.strip()
 
 
-SEARCH_AND_DARK_MODE_SCRIPT = """
+SEARCH_SCRIPT = """
 <script>
 (() => {
-  // Dark Mode
-  const toggleDarkMode = () => {
-    document.body.classList.toggle('dark-mode');
-    localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
-  };
-  
-  const savedDarkMode = localStorage.getItem('dark-mode');
-  if (savedDarkMode === 'true') {
-    document.body.classList.add('dark-mode');
-  }
-  
   window.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('dark-mode-toggle');
-    if (btn) btn.addEventListener('click', toggleDarkMode);
-    
     // Global Search (simple version: filter tables and lists)
     const searchInput = document.getElementById('global-search');
     if (searchInput) {

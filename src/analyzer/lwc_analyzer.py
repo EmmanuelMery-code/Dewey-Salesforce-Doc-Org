@@ -49,4 +49,37 @@ def analyze_lwc(lwc: LwcInfo, catalog: RuleCatalog) -> list[Finding]:
             )
         )
 
+    # LWC-MAINT-003 : console.log usage
+    rule = catalog.get("LWC-MAINT-003")
+    if rule and rule.enabled:
+        js_file = lwc.source_path / f"{lwc.name}.js"
+        if js_file.exists():
+            try:
+                content = js_file.read_text(encoding="utf-8")
+                if "console.log" in content or "console.error" in content:
+                    findings.append(
+                        Finding(
+                            rule=rule,
+                            target_kind="LWC",
+                            target_name=lwc.name,
+                            message="Presence de console.log ou console.error detectee.",
+                            source_path=lwc.source_path,
+                        )
+                    )
+            except OSError:
+                pass
+
+    # LWC-READ-001 : missing label or description
+    rule = catalog.get("LWC-READ-001")
+    if rule and rule.enabled and (not lwc.label or not lwc.description):
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="LWC",
+                target_name=lwc.name,
+                message="Label ou description manquant dans les metadonnees.",
+                source_path=lwc.source_path,
+            )
+        )
+
     return findings

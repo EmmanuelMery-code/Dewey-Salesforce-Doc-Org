@@ -301,9 +301,14 @@ class WordReportWriter:
         if not documented_objects:
             document.add_paragraph(self._t("no_objects"))
         else:
+            total = len(documented_objects)
             for index, obj in enumerate(documented_objects):
                 if index > 0:
                     document.add_page_break()
+                
+                if index % 10 == 0:
+                    self.log(f"Generation Word : objet {index + 1}/{total} ({obj.api_name})")
+                
                 self._add_object_chapter(document, obj)
 
         document.save(output_path)
