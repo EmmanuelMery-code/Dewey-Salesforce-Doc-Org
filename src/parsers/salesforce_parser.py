@@ -246,6 +246,34 @@ class SalesforceMetadataParser:
                     if not self._is_excluded("omni", path.stem.replace(".os-meta", ""))
                 ]
             )
+            metrics.omni_integration_procedures += len(
+                [
+                    path
+                    for path in (package_root / "omniIntegrationProcedures").glob("*.ip-meta.xml")
+                    if not self._is_excluded("omni", path.stem.replace(".ip-meta", ""))
+                ]
+            )
+            metrics.omni_ui_cards += len(
+                [
+                    path
+                    for path in (package_root / "omniUiCards").glob("*.ouc-meta.xml")
+                    if not self._is_excluded("omni", path.stem.replace(".ouc-meta", ""))
+                ]
+            )
+            metrics.omni_ui_cards += len(
+                [
+                    path
+                    for path in (package_root / "omniUiCards").glob("*.card-meta.xml")
+                    if not self._is_excluded("omni", path.stem.replace(".card-meta", ""))
+                ]
+            )
+            metrics.omni_ui_cards += len(
+                [
+                    path
+                    for path in (package_root / "vlocityCards").glob("*.ouc-meta.xml")
+                    if not self._is_excluded("omni", path.stem.replace(".ouc-meta", ""))
+                ]
+            )
             metrics.omni_data_transforms += len(
                 [
                     path
@@ -253,6 +281,20 @@ class SalesforceMetadataParser:
                     if not self._is_excluded("omni", path.stem.replace(".rpt-meta", ""))
                 ]
             )
+            # Support for newer OmniStudio format (omniProcesses)
+            for path in (package_root / "omniProcesses").glob("*.omniProcess-meta.xml"):
+                name = path.stem.replace(".omniProcess-meta", "")
+                if self._is_excluded("omni", name):
+                    continue
+                try:
+                    root = parse_xml(path)
+                    process_type = child_text(root, "omniProcessType")
+                    if process_type == "Integration Procedure":
+                        metrics.omni_integration_procedures += 1
+                    elif process_type == "OmniScript":
+                        metrics.omni_scripts += 1
+                except Exception:
+                    pass
             metrics.einstein_predictions += len(
                 [
                     path
@@ -1261,8 +1303,10 @@ class SalesforceMetadataParser:
             known_folders = {
                 "omniscripts",
                 "omniuicards",
+                "vlocitycards",
                 "omnidatatransforms",
                 "omniprocesses",
+                "omniintegrationprocedures",
                 "omnistudio",
             }
             label = "OmniStudio"
@@ -1301,6 +1345,15 @@ class SalesforceMetadataParser:
                     continue
 
                 if folder_name in known_folders or any(token in file_name or token in stem for token in keywords):
+                    # For OmniProcesses, we try to determine the exact type
+                    sub_type = ""
+                    if folder_name == "omniprocesses" or file_name.endswith(".omniprocess-meta.xml"):
+                        try:
+                            root = parse_xml(meta_file)
+                            sub_type = child_text(root, "omniProcessType")
+                        except Exception:
+                            pass
+
                     rows.append(
                         {
                             "Nom": meta_file.stem.split(".")[0],
@@ -1308,6 +1361,7 @@ class SalesforceMetadataParser:
                             "Dossier": meta_file.parent.name,
                             "TypeFichier": "".join(meta_file.suffixes),
                             "Source": self._safe_relative_path(meta_file),
+                            "SubType": sub_type,
                         }
                     )
 

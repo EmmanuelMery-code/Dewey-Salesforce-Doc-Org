@@ -32,8 +32,10 @@ LogCallback = Callable[[str], None]
 OMNI_SCORING_FOLDERS: dict[str, str] = {
     "omniscripts": "OmniScripts",
     "omniintegrationprocedures": "Integration Procedures",
-    "omniuicard": "Omni UI Cards",
+    "omniuicards": "Omni UI Cards",
+    "vlocitycards": "Omni UI Cards",
     "omnidatatransforms": "Data Transforms",
+    "omniprocesses": "Omni Processes",
     # Business Rules Engine
     "decisionmatrices": "Decision Matrices",
     "decisionmatrixdefinitions": "Decision Matrix Definitions",
@@ -194,7 +196,19 @@ def write_omni_pages(
     grouped: dict[str, list[dict[str, object]]] = {}
     for row in rows:
         subcategory_raw = str(row.get("Dossier") or "").strip()
+        sub_type = str(row.get("SubType") or "").strip()
+        
         label = OMNI_SCORING_FOLDERS.get(subcategory_raw.lower())
+        
+        # Override label for Omni Processes based on SubType
+        if subcategory_raw.lower() == "omniprocesses":
+            if sub_type == "Integration Procedure":
+                label = "Integration Procedures"
+            elif sub_type == "OmniScript":
+                label = "OmniScripts"
+            else:
+                label = "Omni Processes"
+
         if not label:
             continue
         grouped.setdefault(label, []).append(row)
