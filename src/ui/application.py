@@ -385,6 +385,7 @@ class Application(
         self.data_model_thresholds = self._load_data_model_thresholds(self.settings)
         self.profiles_thresholds = self._load_profiles_thresholds(self.settings)
         self.profiles_ps_ratio_thresholds = self._load_profiles_ps_ratio_thresholds(self.settings)
+        self.innovation_colors = self._load_innovation_colors(self.settings)
 
         self.ai_usage_tags: list[str] = parse_ai_tags(self.settings)
         self._ai_tags_listbox: tk.Listbox | None = None

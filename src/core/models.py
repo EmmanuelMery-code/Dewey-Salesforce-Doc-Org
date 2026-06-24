@@ -599,6 +599,7 @@ class InnovationItem:
     description: str
     conclusion: str
     not_started: bool = False
+    color: str = ""  # "positive", "neutral", "negative" or empty
 
 
 @dataclass(slots=True)
@@ -700,6 +701,7 @@ class MetadataSnapshot:
     technical_debt: list[TechnicalDebtItem] = field(default_factory=list)
     deviations: list[DeviationItem] = field(default_factory=list)
     innovations: list[InnovationItem] = field(default_factory=list)
+    innovation_colors: dict[str, str] = field(default_factory=dict)
     metrics: CustomizationMetrics = field(default_factory=CustomizationMetrics)
     inventory: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     ai_usage_stats: Any | None = None

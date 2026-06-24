@@ -123,6 +123,7 @@ class SalesforceDocumentationGenerator:
         test_coverage_data: dict[str, float] | None = None,
         technical_debt_path: str | Path | None = None,
         innovation_path: str | Path | None = None,
+        innovation_colors: dict[str, str] | None = None,
         index_card_visibility: IndexCardVisibility | None = None,
         language: str = "fr",
         log_callback: LogCallback | None = None,
@@ -164,6 +165,7 @@ class SalesforceDocumentationGenerator:
         self.innovation_path = (
             Path(innovation_path).resolve() if innovation_path else None
         )
+        self.innovation_colors = innovation_colors or {}
         self.index_card_visibility: IndexCardVisibility = (
             index_card_visibility
             if index_card_visibility is not None
@@ -574,6 +576,7 @@ class SalesforceDocumentationGenerator:
             log_callback=self.log,
         )
         snapshot = parser.parse()
+        snapshot.innovation_colors = dict(self.innovation_colors)
         if self.scoring_weights:
             snapshot.metrics.weights = dict(self.scoring_weights)
         if self.adopt_adapt_weights:
@@ -744,7 +747,8 @@ class SalesforceDocumentationGenerator:
                                     date_presentation=item.get("date_presentation", ""),
                                     description=item.get("description", ""),
                                     conclusion=item.get("conclusion", ""),
-                                    not_started=item.get("not_started", False)
+                                    not_started=item.get("not_started", False),
+                                    color=item.get("color", ""),
                                 ))
                             self.log(f"Charge {len(snapshot.innovations)} element(s) d'innovation pour l'alias '{alias}'.")
                         else:
