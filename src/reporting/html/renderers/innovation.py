@@ -31,7 +31,7 @@ def render_innovation_page(
         for item in items:
             bg_color = ""
             if item.color and item.color in colors:
-                bg_color = f" style='background-color: {colors[item.color]};'"
+                bg_color = f" style='background-color: {colors[item.color]} !important;'"
             
             rows.append(
                 f"<tr{bg_color}>"
