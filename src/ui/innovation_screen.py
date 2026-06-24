@@ -76,7 +76,7 @@ class InnovationScreen:
         tree_frame = ttk.Frame(main_frame)
         tree_frame.pack(fill="both", expand=True)
 
-        columns = ("alias", "label", "theme", "not_started", "date_start", "date_end", "date_presentation", "description", "conclusion")
+        columns = ("alias", "label", "theme", "not_started", "color", "date_start", "date_end", "date_presentation", "description", "conclusion")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
         
         self.tree.heading("alias", text="Alias")
@@ -87,6 +87,7 @@ class InnovationScreen:
         self.tree.column("label", width=150, anchor="w")
         self.tree.column("theme", width=100, anchor="w")
         self.tree.column("not_started", width=100, anchor="center")
+        self.tree.column("color", width=100, anchor="center")
         self.tree.column("date_start", width=80, anchor="center")
         self.tree.column("date_end", width=80, anchor="center")
         self.tree.column("date_presentation", width=100, anchor="center")
@@ -180,24 +181,41 @@ class InnovationScreen:
         for alias, item in self.items:
             if filter_alias == all_aliases or alias == filter_alias:
                 not_started_val = "X" if item.get("not_started") else ""
+                color_key = item.get("color", "")
+                color_label = ""
+                if color_key:
+                    color_label = self.app._t(f"innovation_color_{color_key}")
+                
+                # Get hex color for background
+                bg_color = ""
+                if color_key and color_key in self.app.innovation_colors:
+                    bg_color = self.app.innovation_colors[color_key]
+                
+                tags = ()
+                if bg_color:
+                    tag_name = f"color_{color_key}"
+                    self.tree.tag_configure(tag_name, background=bg_color)
+                    tags = (tag_name,)
+
                 self.tree.insert("", "end", values=(
                     alias,
                     item.get("label", ""),
                     item.get("theme", ""),
                     not_started_val,
+                    color_label,
                     item.get("date_start", ""),
                     item.get("date_end", ""),
                     item.get("date_presentation", ""),
                     item.get("description", ""),
                     item.get("conclusion", "")
-                ))
+                ), tags=tags)
 
     def _on_add(self) -> None:
         filter_alias = self.filter_alias_var.get()
         all_aliases = self.app._t("innovation_all_aliases")
         default_alias = filter_alias if filter_alias != all_aliases else None
         
-        fields = ["alias", "label", "theme", "not_started", "date_start", "date_end", "date_presentation", "description", "conclusion"]
+        fields = ["alias", "label", "theme", "not_started", "color", "date_start", "date_end", "date_presentation", "description", "conclusion"]
         initial = {"alias": default_alias} if default_alias else None
         self._edit_dialog(fields, initial, self._add_item)
 
@@ -213,7 +231,7 @@ class InnovationScreen:
         item_id = selected[0]
         old_values = self.tree.item(item_id)["values"]
         
-        fields = ["alias", "label", "theme", "not_started", "date_start", "date_end", "date_presentation", "description", "conclusion"]
+        fields = ["alias", "label", "theme", "not_started", "color", "date_start", "date_end", "date_presentation", "description", "conclusion"]
         idx = -1
         for i, (al, item) in enumerate(self.items):
             # We compare alias, label and theme to find the item
@@ -235,6 +253,18 @@ class InnovationScreen:
             initial_values["not_started"] = True
         else:
             initial_values["not_started"] = False
+        
+        # Convert color label back to key
+        color_label = initial_values.get("color", "")
+        if color_label:
+            for key in ["positive", "neutral", "negative"]:
+                if color_label == self.app._t(f"innovation_color_{key}"):
+                    initial_values["color"] = key
+                    break
+            else:
+                initial_values["color"] = ""
+        else:
+            initial_values["color"] = ""
             
         self._edit_dialog(fields, initial_values, on_save)
 
@@ -279,6 +309,23 @@ class InnovationScreen:
                 chk = ttk.Checkbutton(dialog, variable=var)
                 chk.grid(row=i, column=1, padx=10, pady=10, sticky="w")
                 entries[field] = var
+            elif field == "color":
+                color_keys = ["", "positive", "neutral", "negative"]
+                color_labels = [self.app._t("innovation_color_none")] + [
+                    self.app._t(f"innovation_color_{k}") for k in color_keys[1:]
+                ]
+                var = tk.StringVar(value=val)
+                combo = ttk.Combobox(dialog, textvariable=var, values=color_labels, state="readonly", width=37)
+                
+                # Set initial selection
+                if val in color_keys:
+                    idx = color_keys.index(val)
+                    combo.current(idx)
+                else:
+                    combo.current(0)
+                    
+                combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                entries[field] = combo
             elif field in ("description", "conclusion"):
                 container = ttk.Frame(dialog)
                 container.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
@@ -310,6 +357,15 @@ class InnovationScreen:
                     result[f] = entries[f].get("1.0", "end-1c").strip()
                 elif f == "not_started":
                     result[f] = entries[f].get()
+                elif f == "color":
+                    label = entries[f].get()
+                    color_keys = ["", "positive", "neutral", "negative"]
+                    for k in color_keys:
+                        if label == (self.app._t("innovation_color_none") if not k else self.app._t(f"innovation_color_{k}")):
+                            result[f] = k
+                            break
+                    else:
+                        result[f] = ""
                 else:
                     result[f] = entries[f].get().strip()
             on_save(alias, result)

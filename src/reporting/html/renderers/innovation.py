@@ -27,9 +27,14 @@ def render_innovation_page(
 
     def _render_table(items: list[InnovationItem], empty_msg: str) -> str:
         rows = []
+        colors = snapshot.innovation_colors
         for item in items:
+            bg_color = ""
+            if item.color and item.color in colors:
+                bg_color = f" style='background-color: {colors[item.color]};'"
+            
             rows.append(
-                f"<tr>"
+                f"<tr{bg_color}>"
                 f"<td>{html_value(item.label)}</td>"
                 f"<td>{html_value(item.theme)}</td>"
                 f"<td>{html_value(item.date_start)}</td>"

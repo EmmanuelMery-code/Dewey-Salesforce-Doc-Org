@@ -138,6 +138,7 @@ class AppGenerationMixin:
                 test_coverage_data=test_coverage,
                 technical_debt_path=self.technical_debt_file_var.get().strip(),
                 innovation_path=self.innovation_file_var.get().strip(),
+                innovation_colors=dict(self.innovation_colors),
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,

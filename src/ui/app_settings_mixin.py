@@ -61,6 +61,14 @@ class AppSettingsMixin:
             settings, "profiles_ps_ratio_thresholds", DEFAULT_PROFILES_PS_RATIO_THRESHOLDS
         )
 
+    def _load_innovation_colors(self, settings: dict[str, Any]) -> dict[str, str]:
+        defaults = {
+            "positive": "#d4edda",
+            "neutral": "#fff3cd",
+            "negative": "#f8d7da"
+        }
+        return settings.get("innovation_colors", defaults)
+
     # ------------------------------------------------------------------ save
 
     def _save_settings(self) -> None:
@@ -106,6 +114,7 @@ class AppSettingsMixin:
             "data_model_thresholds": list(self.data_model_thresholds),
             "profiles_thresholds": list(self.profiles_thresholds),
             "profiles_ps_ratio_thresholds": list(self.profiles_ps_ratio_thresholds),
+            "innovation_colors": dict(self.innovation_colors),
             "ai_usage_tags": list(self.ai_usage_tags),
             "posture_adopt_adapt": serialize_posture_config(self.posture_config),
             "run_tests": bool(self.run_tests_var.get()),
