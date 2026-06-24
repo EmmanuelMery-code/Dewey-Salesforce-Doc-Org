@@ -178,6 +178,12 @@ class InnovationScreen:
         all_aliases = self.app._t("innovation_all_aliases")
         
         self.tree.delete(*self.tree.get_children())
+        
+        # Configure default alternating row colors (can be overridden by user colors)
+        self.tree.tag_configure("oddrow", background="#f2f2f2")
+        self.tree.tag_configure("evenrow", background="#ffffff")
+        
+        display_count = 0
         for alias, item in self.items:
             if filter_alias == all_aliases or alias == filter_alias:
                 not_started_val = "X" if item.get("not_started") else ""
@@ -191,11 +197,15 @@ class InnovationScreen:
                 if color_key and color_key in self.app.innovation_colors:
                     bg_color = self.app.innovation_colors[color_key]
                 
-                tags = ()
+                tags = []
                 if bg_color:
+                    # User-defined color tag
                     tag_name = f"color_{color_key}"
                     self.tree.tag_configure(tag_name, background=bg_color)
-                    tags = (tag_name,)
+                    tags.append(tag_name)
+                else:
+                    # Default alternating colors for rows without a specific color
+                    tags.append("evenrow" if display_count % 2 == 0 else "oddrow")
 
                 self.tree.insert("", "end", values=(
                     alias,
@@ -208,7 +218,8 @@ class InnovationScreen:
                     item.get("date_presentation", ""),
                     item.get("description", ""),
                     item.get("conclusion", "")
-                ), tags=tags)
+                ), tags=tuple(tags))
+                display_count += 1
 
     def _on_add(self) -> None:
         filter_alias = self.filter_alias_var.get()
@@ -231,7 +242,6 @@ class InnovationScreen:
         item_id = selected[0]
         old_values = self.tree.item(item_id)["values"]
         
-        fields = ["alias", "label", "theme", "not_started", "color", "date_start", "date_end", "date_presentation", "description", "conclusion"]
         idx = -1
         for i, (al, item) in enumerate(self.items):
             # We compare alias, label and theme to find the item
@@ -246,26 +256,12 @@ class InnovationScreen:
         def on_save(new_alias, new_vals):
             self.items[idx] = (new_alias, new_vals)
             self._refresh_tree()
-                
-        initial_values = {fields[i]: old_values[i] for i in range(len(fields))}
-        # Convert "X" back to True for the dialog
-        if initial_values.get("not_started") == "X":
-            initial_values["not_started"] = True
-        else:
-            initial_values["not_started"] = False
         
-        # Convert color label back to key
-        color_label = initial_values.get("color", "")
-        if color_label:
-            for key in ["positive", "neutral", "negative"]:
-                if color_label == self.app._t(f"innovation_color_{key}"):
-                    initial_values["color"] = key
-                    break
-            else:
-                initial_values["color"] = ""
-        else:
-            initial_values["color"] = ""
+        alias, item = self.items[idx]
+        initial_values = dict(item)
+        initial_values["alias"] = alias
             
+        fields = ["alias", "label", "theme", "not_started", "color", "date_start", "date_end", "date_presentation", "description", "conclusion"]
         self._edit_dialog(fields, initial_values, on_save)
 
     def _on_delete(self) -> None:
@@ -311,20 +307,29 @@ class InnovationScreen:
                 entries[field] = var
             elif field == "color":
                 color_keys = ["", "positive", "neutral", "negative"]
-                color_labels = [self.app._t("innovation_color_none")] + [
-                    self.app._t(f"innovation_color_{k}") for k in color_keys[1:]
-                ]
-                var = tk.StringVar(value=val)
-                combo = ttk.Combobox(dialog, textvariable=var, values=color_labels, state="readonly", width=37)
+                # Get translated labels with hardcoded fallbacks to ensure the list is never empty
+                c_none = self.app._t("innovation_color_none") or "Pas de couleur"
+                c_pos = self.app._t("innovation_color_positive") or "Positif (Vert)"
+                c_neu = self.app._t("innovation_color_neutral") or "Neutre (Orange)"
+                c_neg = self.app._t("innovation_color_negative") or "Négatif (Rouge)"
                 
-                # Set initial selection
-                if val in color_keys:
-                    idx = color_keys.index(val)
-                    combo.current(idx)
-                else:
-                    combo.current(0)
-                    
+                color_labels = [c_none, c_pos, c_neu, c_neg]
+                
+                combo = ttk.Combobox(dialog, values=color_labels, state="readonly", width=37)
                 combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                
+                # Set current selection based on the stored key
+                try:
+                    if val in color_keys:
+                        idx = color_keys.index(val)
+                        combo.current(idx)
+                    else:
+                        combo.current(0)
+                except Exception:
+                    # Fallback to first item if current() fails
+                    if color_labels:
+                        combo.current(0)
+                
                 entries[field] = combo
             elif field in ("description", "conclusion"):
                 container = ttk.Frame(dialog)
@@ -360,11 +365,17 @@ class InnovationScreen:
                 elif f == "color":
                     label = entries[f].get()
                     color_keys = ["", "positive", "neutral", "negative"]
-                    for k in color_keys:
-                        if label == (self.app._t("innovation_color_none") if not k else self.app._t(f"innovation_color_{k}")):
-                            result[f] = k
-                            break
-                    else:
+                    # Use the same labels as in the UI to ensure a match
+                    c_none = self.app._t("innovation_color_none") or "Pas de couleur"
+                    c_pos = self.app._t("innovation_color_positive") or "Positif (Vert)"
+                    c_neu = self.app._t("innovation_color_neutral") or "Neutre (Orange)"
+                    c_neg = self.app._t("innovation_color_negative") or "Négatif (Rouge)"
+                    color_labels = [c_none, c_pos, c_neu, c_neg]
+                    
+                    try:
+                        idx = color_labels.index(label)
+                        result[f] = color_keys[idx]
+                    except (ValueError, IndexError):
                         result[f] = ""
                 else:
                     result[f] = entries[f].get().strip()

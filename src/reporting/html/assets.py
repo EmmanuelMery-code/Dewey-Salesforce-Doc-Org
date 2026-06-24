@@ -303,7 +303,7 @@ h1, h2, h3 { color: #0f172a; }
 table { width: 100%; border-collapse: collapse; background: white; margin: 12px 0 24px; }
 th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
 th { background: #dbeafe; }
-tr:nth-child(even) td { background: #f8fbff; }
+tr:nth-child(even) { background: #f8fbff; }
 .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #dbeafe; color: #1e3a8a; }
 .badge.complexity-simple { background: #dcfce7; color: #166534; }
 .badge.complexity-medium { background: #fef3c7; color: #92400e; }
@@ -396,7 +396,7 @@ code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
 .analyzer-summary-card h3 { margin-top: 0; }
 .analyzer-summary-card table { width: 100%; border: none; background: transparent; border-collapse: collapse; }
 .analyzer-summary-card table th, .analyzer-summary-card table td { border: none; background: transparent; padding: 6px 10px; }
-.analyzer-summary-card table tbody tr:nth-child(even) td { background: #f1f5f9; }
+.analyzer-summary-card table tbody tr:nth-child(even) { background: #f1f5f9; }
 .graph-legend .dot { width: 12px; height: 12px; border-radius: 999px; border: 1px solid #64748b; display: inline-block; }
 .tabs { background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
 .tab-buttons { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid #cbd5e1; background: #f8fafc; }
