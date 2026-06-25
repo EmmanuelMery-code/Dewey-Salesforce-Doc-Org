@@ -30,7 +30,7 @@
         severity="Critical" source="PMD ApexSharingViolations + Well-Architected Data Security"
         reference="https://architect.salesforce.com/docs/architect/well-architected/guide/secure" min_api_version="10.0" max_api_version="66.0">
     <title>Classe Apex sans declaration de partage explicite</title>
-    <description>Detecte une classe non-test qui ne declare ni 'with sharing', ni 'without sharing', ni 'inherited sharing'.</description>
+    <description>Detecte une classe (hors test et interface) qui ne declare ni 'with sharing', ni 'without sharing', ni 'inherited sharing'.</description>
     <rationale>
       Une classe sans declaration de partage herite par defaut des regles de l'appelant,
       ce qui introduit un risque d'exposition de donnees. Le pilier Trusted du Well-Architected

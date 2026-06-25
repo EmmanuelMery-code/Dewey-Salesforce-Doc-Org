@@ -68,7 +68,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
     findings: list[Finding] = []
 
     # APEX-SEC-001 : sharing declaration
-    if not artifact.is_test:
+    if not artifact.is_test and not artifact.is_interface:
         rule = catalog.get("APEX-SEC-001")
         if rule and rule.enabled and not artifact.sharing_declaration:
             findings.append(
