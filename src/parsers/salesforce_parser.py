@@ -844,6 +844,7 @@ class SalesforceMetadataParser:
             )
             artifact.sharing_declaration = sharing_match.group(1) if sharing_match else ""
             artifact.is_test = bool(re.search(r"(?i)@isTest\b|\btestMethod\b", body))
+            artifact.is_interface = kind == "class" and bool(re.search(r"(?i)\binterface\b", body))
             _soql_loop_line = _detect_pattern_in_loop(body, _SOQL_IN_LOOP_RE)
             artifact.query_in_loop = _soql_loop_line is not None
             artifact.query_in_loop_line = _soql_loop_line

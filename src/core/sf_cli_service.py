@@ -138,6 +138,7 @@ class SalesforceCliService:
             str(effective_manifest.relative_to(project_root)),
             "--wait",
             "33",
+            "--ignore-conflicts"
         ]
         self._emit_log(f"Debut du retrieve depuis l'org `{target_org}` vers `{source_path}`.")
         self._run_streaming(command, cwd=project_root)

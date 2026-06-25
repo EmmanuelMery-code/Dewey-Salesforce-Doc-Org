@@ -156,6 +156,7 @@ class ApexArtifact:
     has_try_catch: bool = False
     sharing_declaration: str = ""
     is_test: bool = False
+    is_interface: bool = False
     query_in_loop: bool = False
     query_in_loop_line: int | None = None
     dml_in_loop: bool = False
