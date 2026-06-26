@@ -1,14 +1,57 @@
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
-.env
+*.pyd
+.python-version
+
+# Virtual environments
 .venv/
 venv/
-*.egg-info/
-dist/
-build/
-.DS_Store
-/tmp/
-*.log
+env/
+ENV/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Local app settings
+app_settings.json
+history.db
+technical_debt.json
+innovations.json
+config/
+
+# Exclusion files (org-specific, not committed)
+exclusion.json
+exclusion_PV.xlsx
+
+# Local Salesforce CLI / SFDX state
+.sf_cli_project/
 .sfdx/
-.sf/
+
+# Generated outputs
+output_test/
+excel/
+objects/
+apex/
+flows/
+assets/
+index.html
+
+# Local project backups and retrieved Salesforce metadata (never committed)
+# Any top-level folder ending with an 8-digit date suffix (YYYYMMDD) is treated
+# as a per-org retrieve and is excluded from version control.
+backup/
+/*[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]/
+
+# Reference CSV imported from external tooling (not used at runtime)
+static_code_analysis_rules.csv
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Local user manual (generated separately, not committed)
+Salesforce Manuel utilisateur.rtf
