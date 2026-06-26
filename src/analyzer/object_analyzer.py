@@ -1,0 +1,161 @@
+from __future__ import annotations
+
+import re
+
+from src.analyzer.models import Finding
+from src.analyzer.rule_catalog import RuleCatalog
+from src.core.models import ObjectInfo, ValidationRuleInfo, DuplicateRuleInfo
+
+
+def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
+    findings: list[Finding] = []
+
+    rule = catalog.get("OBJ-READ-001")
+    if rule and rule.enabled and obj.custom and not obj.description:
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="Object",
+                target_name=obj.api_name,
+                message="Objet personnalise sans description metadata.",
+                source_path=obj.source_path,
+            )
+        )
+
+    rule = catalog.get("OBJ-ADAPT-001")
+    if rule and rule.enabled:
+        custom_fields = [f for f in obj.fields if f.custom]
+        if len(custom_fields) > 50:
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="Object",
+                    target_name=obj.api_name,
+                    message=f"{len(custom_fields)} champs personnalises sur l'objet (seuil recommande : 50).",
+                    source_path=obj.source_path,
+                )
+            )
+
+    rule = catalog.get("OBJ-MAINT-001")
+    if rule and rule.enabled:
+        active_vrs = [vr for vr in obj.validation_rules if vr.active]
+        if len(active_vrs) > 10:
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="Object",
+                    target_name=obj.api_name,
+                    message=f"{len(active_vrs)} validation rules actives sur l'objet (seuil recommande : 10).",
+                    source_path=obj.source_path,
+                )
+            )
+
+    rule = catalog.get("OBJ-MAINT-002")
+    if rule and rule.enabled:
+        active_rts = [rt for rt in obj.record_types if rt.active]
+        if len(active_rts) > 3:
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="Object",
+                    target_name=obj.api_name,
+                    message=f"{len(active_rts)} record types actifs (seuil recommande : 3).",
+                    source_path=obj.source_path,
+                )
+            )
+
+    # FIELD-READ-001 : champs custom sans description (agrege au niveau de l'objet)
+    rule = catalog.get("FIELD-READ-001")
+    if rule and rule.enabled:
+        undocumented = [
+            field.api_name
+            for field in obj.fields
+            if field.custom and not field.description
+        ]
+        if undocumented:
+            details: list[str] = []
+            preview = ", ".join(undocumented[:10])
+            if len(undocumented) > 10:
+                preview += f", ... (+{len(undocumented) - 10})"
+            details.append(f"Champs concernes : {preview}.")
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="Field",
+                    target_name=obj.api_name,
+                    message=f"{len(undocumented)} champ(s) personnalise(s) sans description.",
+                    details=details,
+                    source_path=obj.source_path,
+                )
+            )
+
+    return findings
+
+
+def analyze_validation_rule(
+    vr: ValidationRuleInfo, object_name: str, catalog: RuleCatalog
+) -> list[Finding]:
+    findings: list[Finding] = []
+    target_name = f"{object_name}.{vr.full_name}"
+
+    rule = catalog.get("VR-READ-001")
+    if rule and rule.enabled and not vr.description:
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="ValidationRule",
+                target_name=target_name,
+                message="La validation rule ne fournit pas de description.",
+            )
+        )
+
+    rule = catalog.get("VR-MAINT-001")
+    if rule and rule.enabled:
+        score = vr.complexity_score
+        if score > 15:
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="ValidationRule",
+                    target_name=target_name,
+                    message=f"Formule complexe (score={score}).",
+                    details=[
+                        f"Longueur: {len(vr.error_condition_formula or '')} caracteres.",
+                        "Considerez une simplification ou un passage en Apex si la logique devient trop lourde."
+                    ]
+                )
+            )
+
+    return findings
+
+
+def analyze_duplicate_rule(
+    dr: DuplicateRuleInfo, object_name: str, catalog: RuleCatalog
+) -> list[Finding]:
+    findings: list[Finding] = []
+    target_name = f"{object_name}.{dr.full_name}"
+
+    rule = catalog.get("DR-READ-001")
+    if rule and rule.enabled and not dr.description:
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="DuplicateRule",
+                target_name=target_name,
+                message="La duplicate rule ne fournit pas de description.",
+            )
+        )
+
+    rule = catalog.get("DR-SEC-001")
+    if rule and rule.enabled and dr.security_enforcement == "EnforceSharingRules":
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="DuplicateRule",
+                target_name=target_name,
+                message="La duplicate rule applique les regles de partage (Sharing Rules).",
+                details=["Cela peut limiter la detection de doublons si l'utilisateur n'a pas acces aux enregistrements existants."],
+            )
+        )
+
+    return findings

@@ -1,0 +1,32 @@
+1. Objets et Champs
+	object (alias : objet, objets, objects) : Pour exclure un objet entier.
+	field (alias : champ, champs, fields) : Pour exclure un champ spécifique (format Objet.Champ__c).
+	record_type (alias : rt, record_types) : Pour exclure un Record Type (format Objet.NomRT).
+	validation_rule (alias : vr, validation rule, validation rules) : Pour exclure une règle de validation.
+2. Code et Automatisation
+	apex (alias : classe, classes, trigger, triggers) : Pour exclure des classes ou triggers Apex.
+	flow (alias : flows) : Pour exclure des Flows.
+	lwc : Pour exclure des composants Lightning Web Components.
+3. Sécurité et Accès
+	profile (alias : profiles) : Pour exclure des Profils.
+	permission_set (alias : permission sets, permset, permsets) : Pour exclure des Permission Sets.
+4. Interface et Configuration
+	layout (alias : layouts) : Pour exclure des Page Layouts.
+	flexipage (alias : flexipages, lightning page, lightning pages) : Pour exclure des pages Lightning.
+	tab (alias : tabs) : Pour exclure des onglets personnalisés.
+	application (alias : app, apps, applications) : Pour exclure des applications.
+5. Analytics
+	report (alias : reports) : Pour exclure des rapports.
+	dashboard (alias : dashboards) : Pour exclure des tableaux de bord.
+6. OmniStudio et IA
+	omni (alias : omnistudio) : Pour exclure des composants OmniStudio (OmniScripts, DataRaptors, etc.).
+	agent (alias : agents) : Pour exclure des agents IA.
+	prompt (alias : prompts) : Pour exclure des templates de prompts IA.
+	ai_prediction (alias : ai_predictions) : Pour exclure des prédictions Einstein.
+7. Global
+	all (alias : global) : Pour appliquer un pattern d'exclusion à tous les types de métadonnées sans distinction.
+	Note sur le format du Pattern (colonne B) :
+
+Vous pouvez utiliser des jokers comme * (ex: Test_*).
+Pour les éléments liés à un objet (champs, VR, RT), utilisez le format Objet.NomElement pour être précis, ou juste NomElement pour exclure partout où ce nom apparaît.
+La recherche est insensible à la casse et ignore les espaces/underscores (ex: My_Field__c est identique à my field c).
