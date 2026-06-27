@@ -7,6 +7,7 @@ full pipeline, org-check Excel export, and related UI helpers.
 from __future__ import annotations
 
 from pathlib import Path
+from threading import Thread
 from tkinter import messagebox
 
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
@@ -39,6 +40,28 @@ class AppSfCliMixin:
             on_success=self._on_orgs_loaded,
             notify=not initial,
         )
+
+    def _load_orgs_in_background(self) -> None:
+        """Load the org list without blocking the UI buttons.
+
+        Used at startup so the user can immediately generate documentation
+        for the last used alias even when listing the Salesforce orgs is very
+        slow. Runs in its own daemon thread (outside the single-task worker)
+        and only refreshes the combo box once finished.
+        """
+        if getattr(self, "_orgs_bg_loading", False):
+            return
+        self._orgs_bg_loading = True
+        self._append_log(self._t("loading_orgs_background"))
+
+        def worker() -> None:
+            try:
+                orgs = self.cli_service.list_orgs()
+                self.task_manager.queue.put(("orgs_loaded_bg", orgs))
+            except Exception as exc:  # noqa: BLE001 - reported to the UI log
+                self.task_manager.queue.put(("orgs_load_error_bg", str(exc)))
+
+        Thread(target=worker, daemon=True).start()
 
     def _on_orgs_loaded(self, orgs: list[OrgSummary]) -> None:
         current = self.selected_org_var.get()

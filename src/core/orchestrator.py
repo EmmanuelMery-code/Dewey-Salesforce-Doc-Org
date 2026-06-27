@@ -125,6 +125,8 @@ class SalesforceDocumentationGenerator:
         innovation_path: str | Path | None = None,
         innovation_colors: dict[str, str] | None = None,
         index_card_visibility: IndexCardVisibility | None = None,
+        one_page_max_depth: int | None = None,
+        one_page_hub_threshold: int | None = None,
         language: str = "fr",
         log_callback: LogCallback | None = None,
     ) -> None:
@@ -166,6 +168,8 @@ class SalesforceDocumentationGenerator:
             Path(innovation_path).resolve() if innovation_path else None
         )
         self.innovation_colors = innovation_colors or {}
+        self.one_page_max_depth = one_page_max_depth
+        self.one_page_hub_threshold = one_page_hub_threshold
         self.index_card_visibility: IndexCardVisibility = (
             index_card_visibility
             if index_card_visibility is not None
@@ -446,6 +450,48 @@ class SalesforceDocumentationGenerator:
         result: GenerationResult,
     ) -> None:
         self.log("Generation des pages HTML.")
+        from src.reporting.html.one_page import (
+            configure_one_page,
+            set_one_page_inactive_flow_names,
+            set_one_page_node_descriptions,
+            set_one_page_test_names,
+        )
+        configure_one_page(self.one_page_max_depth, self.one_page_hub_threshold)
+        set_one_page_test_names(
+            {art.name for art in snapshot.apex_artifacts if art.is_test}
+        )
+        set_one_page_inactive_flow_names(
+            {
+                flow.name
+                for flow in snapshot.flows
+                if (flow.status or "").strip()
+                and (flow.status or "").strip().lower() != "active"
+            }
+        )
+        node_descriptions: dict[str, str] = {}
+        for obj in snapshot.objects:
+            if obj.description:
+                node_descriptions[obj.api_name] = obj.description
+            for field in obj.fields:
+                if field.description:
+                    node_descriptions[f"{obj.api_name}.{field.api_name}"] = field.description
+        for flow in snapshot.flows:
+            if flow.description:
+                node_descriptions[flow.name] = flow.description
+        for component in (
+            list(snapshot.lwc)
+            + list(snapshot.aura)
+            + list(snapshot.inventory.get("reports", []))
+        ):
+            if isinstance(component, dict):
+                name = str(component.get("Nom") or component.get("Name") or "")
+                description = str(component.get("Description") or "")
+            else:
+                name = getattr(component, "name", "")
+                description = getattr(component, "description", "")
+            if name and description:
+                node_descriptions[name] = description
+        set_one_page_node_descriptions(node_descriptions)
         html_writer = HtmlReportWriter(self.output_dir, log_callback=self.log)
         html_writer.write_assets()
 

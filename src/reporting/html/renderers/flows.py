@@ -21,6 +21,7 @@ from src.reporting.html.findings import (
     render_analyzer_tab,
     render_findings_summary,
 )
+from src.reporting.html.one_page import render_one_page_graph
 from src.reporting.html.page_shell import (
     complexity_badge_class,
     href_relative,
@@ -195,14 +196,23 @@ def render_flow_page(
         {"Flow": flow_pages, "Objet": object_pages, "Apex": apex_pages},
     )
     relation_graph = render_component_dependency_graph(flow.name, "Flow", dependencies, safe_slug(flow.name))
+    one_page_graph = render_one_page_graph(
+        flow.name, "Flow", all_dependencies, safe_slug(flow.name)
+    )
     analyzer_tab = render_analyzer_tab(findings)
     analyzer_inline_summary = render_findings_summary(findings)
     improvements_augmented = list(review.improvements) + findings_to_review_improvements(findings)
     
     flow_graph = render_flow_graph(flow, findings, improvements_augmented)
     
+    description_html = (
+        f"<div class='section'><h3>Description</h3><p>{html_value(flow.description)}</p></div>"
+        if (flow.description or "").strip()
+        else ""
+    )
     summary_html = (
-        f"<p>{html_value(review.summary)}</p>"
+        description_html
+        + f"<p>{html_value(review.summary)}</p>"
         "<div class='section'><h3>Alertes analyseur</h3>"
         + analyzer_inline_summary
         + "</div>"
@@ -221,6 +231,7 @@ def render_flow_page(
                 "Relations",
                 f"<table><thead><tr><th>Composant lie</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{relation_rows}</tbody></table>{relation_graph}",
             ),
+            ("One Page", one_page_graph),
             ("Elements", f"<table><thead><tr><th>Type</th><th>Nom</th><th>Label</th><th>Description</th><th>Cible</th></tr></thead><tbody>{elements_rows}</tbody></table>"),
         ],
     )

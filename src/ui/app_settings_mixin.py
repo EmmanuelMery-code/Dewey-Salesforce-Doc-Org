@@ -115,6 +115,8 @@ class AppSettingsMixin:
             "profiles_thresholds": list(self.profiles_thresholds),
             "profiles_ps_ratio_thresholds": list(self.profiles_ps_ratio_thresholds),
             "innovation_colors": dict(self.innovation_colors),
+            "one_page_max_depth": int(self.one_page_max_depth_var.get()),
+            "one_page_hub_threshold": int(self.one_page_hub_threshold_var.get()),
             "ai_usage_tags": list(self.ai_usage_tags),
             "posture_adopt_adapt": serialize_posture_config(self.posture_config),
             "run_tests": bool(self.run_tests_var.get()),

@@ -81,6 +81,14 @@ class TaskManager:
                     self.app.status_var.set(self.app._t("operation_failed"))
                     self.app._set_buttons_state(True)
                     messagebox.showerror(self.app._t("error_title"), str(payload))
+                elif event_type == "orgs_loaded_bg":
+                    self.app._orgs_bg_loading = False
+                    self.app._on_orgs_loaded(payload)
+                elif event_type == "orgs_load_error_bg":
+                    self.app._orgs_bg_loading = False
+                    self.app._append_log(
+                        self.app._t("orgs_load_failed", error=str(payload))
+                    )
                 elif event_type == "discussion_reply":
                     self.app._handle_discussion_reply(payload)
                 elif event_type == "discussion_error":

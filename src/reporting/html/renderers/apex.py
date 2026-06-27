@@ -31,6 +31,7 @@ from src.reporting.html.findings import (
     render_findings_summary,
     render_pmd_rows,
 )
+from src.reporting.html.one_page import render_one_page_graph
 from src.reporting.html.page_shell import (
     index_back_link,
     list_or_empty,
@@ -168,6 +169,9 @@ def render_apex_page(
 """
     dependency_rows = render_apex_dependency_rows(dependencies, current_path, apex_pages)
     dependency_graph = render_apex_dependency_graph(artifact, dependencies)
+    one_page_graph = render_one_page_graph(
+        artifact.name, "Apex", all_dependencies, safe_slug(artifact.name)
+    )
     pmd_rows = render_pmd_rows(pmd_violations)
     summary_html = (
         f"<p>{html_value(review.summary)}</p>"
@@ -192,6 +196,7 @@ def render_apex_page(
                 f"<table><thead><tr><th>Composant lie</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{dependency_rows}</tbody></table>",
             ),
             ("Graphe", dependency_graph),
+            ("One Page", one_page_graph),
             (
                 "Code source",
                 code_tab_html,
