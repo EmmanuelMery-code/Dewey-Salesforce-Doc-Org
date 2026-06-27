@@ -6,7 +6,6 @@ from datetime import date
 from pathlib import Path
 from typing import Callable
 
-from src.analyzer.models import Finding
 from src.core.ai_usage import AIUsageEntry, AIUsageStats
 from src.core.customization_metrics import (
     AdoptionStats,
@@ -14,339 +13,46 @@ from src.core.customization_metrics import (
 )
 from src.core.index_card_visibility import IndexCardVisibility
 from src.core.models import (
-    AuraInfo,
-    LwcInfo,
     MetadataSnapshot,
     PmdViolation,
     ReviewResult,
 )
 from src.core.utils import html_value, write_text
 
-from src.reporting.html.assets import SEVERITY_CSS_CLASS, SEVERITY_LABEL
-from src.reporting.html.findings import render_findings_summary
 from src.reporting.html.page_shell import (
     href_relative,
     render_page,
     tabbed_sections,
 )
+from src.reporting.html.renderers.index_panels import (
+    render_excel_exports,
+    render_index_analyzer_panel,
+    render_index_dependencies_panel,
+    render_index_improvements,
+    render_index_omni_panel,
+    render_index_pmd_panel,
+)
+from src.reporting.html.renderers.index_cards import (
+    render_adoption_card,
+    render_ai_usage_card,
+    render_data_model_card,
+    render_debt_card,
+    render_innovation_card,
+    render_summary_tabs,
+)
+from src.reporting.html.renderers.index_tables import (
+    render_agent_rows,
+    render_apex_rows,
+    render_flow_panel,
+    render_health_panel,
+    render_object_rows,
+    render_prompt_rows,
+    render_security_dashboard_tab,
+    render_sharing_rule_rows,
+)
 
 
 LogCallback = Callable[[str], None]
-
-
-def render_index_omni_panel(
-    omni_pages: dict[str, list[dict[str, object]]],
-    current_path: Path,
-) -> str:
-    if not omni_pages:
-        return "<p class='empty'>Aucun composant OmniStudio detecte.</p>"
-
-    sections: list[tuple[str, str]] = []
-    for subcategory in sorted(omni_pages.keys(), key=lambda value: value.lower()):
-        entries = omni_pages[subcategory]
-        if not entries:
-            rows = "<tr><td colspan='3' class='empty'>Aucun composant dans cette categorie.</td></tr>"
-        else:
-            rendered_rows: list[str] = []
-            for entry in entries:
-                name = str(entry.get("name") or "")
-                page_path = entry.get("page")
-                source = str(entry.get("source") or "")
-                file_type = str(entry.get("type") or "")
-                if isinstance(page_path, Path):
-                    link = f"<a href='{href_relative(current_path, page_path)}'>{html_value(name)}</a>"
-                else:
-                    link = html_value(name)
-                rendered_rows.append(
-                    f"<tr><td>{link}</td><td>{html_value(file_type)}</td><td>{html_value(source)}</td></tr>"
-                )
-            rows = "".join(rendered_rows)
-
-        label = f"{subcategory} ({len(entries)})"
-        table = (
-            "<table><thead><tr><th>Composant</th><th>Type</th><th>Source</th></tr></thead>"
-            f"<tbody>{rows}</tbody></table>"
-        )
-        sections.append((label, table))
-
-    return tabbed_sections("index-omni", sections)
-
-
-def render_index_analyzer_panel(
-    analyzer_report,
-    current_path: Path,
-    object_pages: dict[str, Path],
-    apex_pages: dict[str, Path],
-    flow_pages: dict[str, Path],
-    agent_pages: dict[str, Path] | None = None,
-    prompt_pages: dict[str, Path] | None = None,
-) -> str:
-    if analyzer_report is None:
-        return "<p class='empty'>Analyseur non execute.</p>"
-
-    findings = analyzer_report.all_findings()
-    summary = render_findings_summary(findings)
-    if not findings:
-        return summary + "<p class='empty'>Aucun finding : le projet respecte toutes les regles activees.</p>"
-
-    # 2. Group by severity
-    findings_by_sev: dict[str, list[Finding]] = {"Critical": [], "Major": [], "Minor": [], "Info": []}
-    for f in findings:
-        if f.rule.severity in findings_by_sev:
-            findings_by_sev[f.rule.severity].append(f)
-
-    def _render_severity_table(sev_findings: list[Finding]) -> str:
-        if not sev_findings:
-            return "<p class='empty'>Aucun finding pour cette severite.</p>"
-        
-        # Group by component for this severity
-        comp_findings: dict[tuple[str, str, str], list[Finding]] = {}
-        for f in sev_findings:
-            key = (f.target_kind, f.target_name, "") # href logic below
-            if key not in comp_findings:
-                comp_findings[key] = []
-            comp_findings[key].append(f)
-            
-        rows = []
-        for (kind, name, _), flist in sorted(comp_findings.items()):
-            # Find href
-            href = ""
-            if kind == "Objet": href = href_relative(current_path, object_pages.get(name)) if object_pages.get(name) else ""
-            elif kind == "Apex": href = href_relative(current_path, apex_pages.get(name)) if apex_pages.get(name) else ""
-            elif kind == "Flow": href = href_relative(current_path, flow_pages.get(name)) if flow_pages.get(name) else ""
-            elif kind == "Agent" and agent_pages: href = href_relative(current_path, agent_pages.get(name)) if agent_pages.get(name) else ""
-            elif kind == "Prompt" and prompt_pages: href = href_relative(current_path, prompt_pages.get(name)) if prompt_pages.get(name) else ""
-            
-            name_cell = f"<a href='{html_value(href)}'>{html_value(name)}</a>" if href else html_value(name)
-            
-            # List rules for this component
-            rules_list = "<ul>" + "".join(f"<li>{html_value(f.rule.title)}: {html_value(f.message)}</li>" for f in flist) + "</ul>"
-            
-            rows.append(f"<tr><td>{html_value(kind)}</td><td>{name_cell}</td><td>{rules_list}</td></tr>")
-            
-        return f"<table><thead><tr><th>Type</th><th>Composant</th><th>Regles impactees</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
-
-    sections = [
-        ("Critique", _render_severity_table(findings_by_sev["Critical"])),
-        ("Majeur", _render_severity_table(findings_by_sev["Major"])),
-        ("Mineur", _render_severity_table(findings_by_sev["Minor"])),
-        ("Info", _render_severity_table(findings_by_sev["Info"])),
-    ]
-    
-    note = (
-        "<p class='empty'>Analyseur inspire de "
-        "<a href='https://docs.pmd-code.org/latest/pmd_rules_apex.html' target='_blank' rel='noopener'>PMD Apex</a>, du "
-        "<a href='https://architect.salesforce.com/docs/architect/well-architected/guide/overview.html' target='_blank' rel='noopener'>Salesforce Well-Architected Framework</a>, "
-        "des <a href='https://architect.salesforce.com/decision-guides' target='_blank' rel='noopener'>Decision Guides Salesforce</a> et des bonnes pratiques "
-        "<a href='https://admin.salesforce.com/' target='_blank' rel='noopener'>Salesforce Admins</a>. "
-        "Les regles sont declarees dans <code>src/analyzer/rules.xml</code> et peuvent etre activees / desactivees via l'attribut <code>enabled</code>.</p>"
-    )
-
-    return summary + tabbed_sections("index-analyzer", sections) + note
-
-
-def render_excel_exports(root_dir: Path, current_path: Path) -> str:
-    excel_dir = root_dir / "excel"
-    html_excel_dir = root_dir / "html" / "excel"
-    
-    if not excel_dir.exists():
-        return "<p class='empty'>Aucun export Excel detecte.</p>"
-
-    files = sorted(excel_dir.glob("*.xlsx"), key=lambda path: path.name.lower())
-    if not files:
-        return "<p class='empty'>Aucun export Excel detecte.</p>"
-
-    rows: list[str] = []
-    for file_path in files:
-        xlsx_href = href_relative(current_path, file_path)
-        preview_path = html_excel_dir / f"{file_path.stem}.html"
-        
-        if preview_path.exists():
-            preview_href = href_relative(current_path, preview_path)
-            preview_cell = (
-                f"<a href='{preview_href}'>{html_value(file_path.stem)}</a>"
-            )
-        else:
-            preview_cell = (
-                f"<span class='empty'>{html_value(file_path.stem)}</span>"
-            )
-        rows.append(
-            f"<tr><td>{preview_cell}</td>"
-            f"<td><a href='{xlsx_href}'>{html_value(file_path.name)}</a></td></tr>"
-        )
-    return (
-        "<table><thead><tr><th>Apercu HTML</th><th>Fichier Excel</th></tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
-    )
-
-
-def render_index_improvements(
-    snapshot: MetadataSnapshot,
-    apex_reviews: dict[str, ReviewResult],
-    flow_reviews: dict[str, ReviewResult],
-    current_path: Path,
-    apex_pages: dict[str, Path],
-    flow_pages: dict[str, Path],
-) -> str:
-    # Group improvements by type
-    improvements_by_type: dict[str, list[str]] = {}
-
-    for artifact in snapshot.apex_artifacts:
-        review = apex_reviews.get(artifact.name)
-        if review is None:
-            continue
-        
-        kind = f"Apex/{artifact.kind}"
-        if kind not in improvements_by_type:
-            improvements_by_type[kind] = []
-            
-        page = apex_pages.get(artifact.name)
-        component = f"<a href='{href_relative(current_path, page)}'>{html_value(artifact.name)}</a>" if page else html_value(artifact.name)
-        
-        for improvement in review.improvements:
-            improvements_by_type[kind].append(
-                f"<tr><td>{component}</td><td>{html_value(improvement)}</td></tr>"
-            )
-
-    for flow in snapshot.flows:
-        review = flow_reviews.get(flow.name)
-        if review is None:
-            continue
-            
-        kind = "Flow"
-        if kind not in improvements_by_type:
-            improvements_by_type[kind] = []
-            
-        page = flow_pages.get(flow.name)
-        component = f"<a href='{href_relative(current_path, page)}'>{html_value(flow.name)}</a>" if page else html_value(flow.name)
-        
-        for improvement in review.improvements:
-            improvements_by_type[kind].append(
-                f"<tr><td>{component}</td><td>{html_value(improvement)}</td></tr>"
-            )
-
-    if not improvements_by_type:
-        return "<p class='empty'>Aucune amelioration detectee.</p>"
-
-    sections: list[tuple[str, str]] = []
-    for kind in sorted(improvements_by_type.keys()):
-        rows = improvements_by_type[kind]
-        label = f"{kind} ({len(rows)})"
-        table = (
-            "<table><thead><tr><th>Composant</th><th>Amelioration</th></tr></thead>"
-            f"<tbody>{''.join(rows)}</tbody></table>"
-        )
-        sections.append((label, table))
-
-    return tabbed_sections("index-improvements", sections)
-
-
-def render_index_pmd_panel(
-    snapshot: MetadataSnapshot,
-    pmd_results: dict[str, list[PmdViolation]],
-    current_path: Path,
-    apex_pages: dict[str, Path],
-) -> str:
-    # Group violations by rule
-    violations_by_rule: dict[str, list[str]] = {}
-    
-    for artifact in snapshot.apex_artifacts:
-        violations = pmd_results.get(artifact.name, [])
-        if not violations:
-            continue
-            
-        target = apex_pages.get(artifact.name)
-        component = f"<a href='{href_relative(current_path, target)}'>{html_value(artifact.name)}</a>" if target else html_value(artifact.name)
-        
-        for v in violations:
-            rule_name = v.rule
-            if rule_name not in violations_by_rule:
-                violations_by_rule[rule_name] = []
-                
-            line_value = v.begin_line or ""
-            violations_by_rule[rule_name].append(
-                f"<tr><td>{component}</td><td>{html_value(v.priority)}</td><td>{html_value(line_value)}</td><td>{html_value(v.message)}</td></tr>"
-            )
-
-    if not violations_by_rule:
-        return "<p class='empty'>Aucune violation PMD detectee.</p>"
-
-    sections: list[tuple[str, str]] = []
-    for rule in sorted(violations_by_rule.keys()):
-        rows = violations_by_rule[rule]
-        label = f"{rule} ({len(rows)})"
-        table = (
-            "<table><thead><tr><th>Composant</th><th>Priorite</th><th>Ligne</th><th>Message</th></tr></thead>"
-            f"<tbody>{''.join(rows)}</tbody></table>"
-        )
-        sections.append((label, table))
-
-    return tabbed_sections("index-pmd", sections)
-
-
-def render_index_dependencies_panel(
-    snapshot: MetadataSnapshot,
-    current_path: Path,
-    object_pages: dict[str, Path],
-    apex_pages: dict[str, Path],
-    flow_pages: dict[str, Path],
-    agent_pages: dict[str, Path] | None = None,
-    prompt_pages: dict[str, Path] | None = None,
-) -> str:
-    if not snapshot.dependencies:
-        return "<p class='empty'>Aucune dependance detectee.</p>"
-
-    def _get_link(name: str, kind: str) -> str:
-        href = ""
-        if kind == "Objet":
-            page = object_pages.get(name)
-            if page: href = href_relative(current_path, page)
-        elif kind == "Apex":
-            page = apex_pages.get(name)
-            if page: href = href_relative(current_path, page)
-        elif kind == "Flow":
-            page = flow_pages.get(name)
-            if page: href = href_relative(current_path, page)
-        elif kind == "Agent" and agent_pages:
-            page = agent_pages.get(name)
-            if page: href = href_relative(current_path, page)
-        elif kind == "Prompt" and prompt_pages:
-            page = prompt_pages.get(name)
-            if page: href = href_relative(current_path, page)
-        
-        if href:
-            return f"<a href='{html_value(href)}'>{html_value(name)}</a>"
-        return html_value(name)
-
-    # Group dependencies by source_kind
-    deps_by_kind: dict[str, list[str]] = {}
-    for dep in sorted(snapshot.dependencies, key=lambda d: (d.source_kind, d.source_name, d.target_name)):
-        kind = dep.source_kind or "Autre"
-        if kind not in deps_by_kind:
-            deps_by_kind[kind] = []
-        
-        source_link = _get_link(dep.source_name, dep.source_kind)
-        target_link = _get_link(dep.target_name, dep.target_kind)
-        
-        deps_by_kind[kind].append(
-            f"<tr>"
-            f"<td>{source_link}</td>"
-            f"<td>{target_link}</td>"
-            f"<td>{html_value(dep.target_kind)}</td>"
-            f"</tr>"
-        )
-
-    sections: list[tuple[str, str]] = []
-    for kind in sorted(deps_by_kind.keys()):
-        rows = deps_by_kind[kind]
-        label = f"{kind} ({len(rows)})"
-        table = (
-            "<table><thead><tr><th>Source</th><th>Cible</th><th>Type Cible</th></tr></thead>"
-            f"<tbody>{''.join(rows)}</tbody></table>"
-        )
-        sections.append((label, table))
-
-    return tabbed_sections("index-dependencies", sections)
 
 
 def render_index(
@@ -399,181 +105,23 @@ def render_index(
         else:
             root_dir = output_dir
 
-    object_rows = "".join(
-        f"<tr><td><a href='{href_relative(current_path, object_pages[item.api_name])}'>{html_value(item.api_name)}</a></td>"
-        f"<td>{html_value(item.label)}</td><td>{len(item.fields)}</td><td>{len(item.relationships)}</td>"
-        f"<td>{len(item.validation_rules)} (Σ={sum(vr.complexity_score for vr in item.validation_rules)})</td></tr>"
-        for item in snapshot.objects
-        if item.api_name in object_pages
-    ) or "<tr><td colspan='5' class='empty'>Aucun objet analyse.</td></tr>"
+    object_rows = render_object_rows(snapshot, object_pages, current_path)
 
-    _DANGER_PERMS = {"ModifyAllData", "ManageUsers"}
-    _PERM_COLORS = {"ModifyAllData": "#ff4444", "ManageUsers": "#ff8c00"}
-
-    def _profile_risk(item):
-        if any(up.enabled and up.name == "ModifyAllData" for up in item.user_permissions):
-            return "danger"
-        if any(up.enabled and up.name == "ManageUsers" for up in item.user_permissions):
-            return "major"
-        if any(op.modify_all_records for op in item.object_permissions):
-            return "minor"
-        return "ok"
-
-    _risk_style = {
-        "danger": "background:rgba(255,68,68,.08);color:#c00",
-        "major":  "background:rgba(255,140,0,.08);color:#a04000",
-        "minor":  "background:rgba(240,220,0,.08);color:#665500",
-        "ok":     "",
-    }
-    _risk_label = {"danger": "⚠ CRITIQUE", "major": "⚠ RISQUE", "minor": "⚠ ATTENTION", "ok": ""}
-
-    def _sec_findings_badge(name, report):
-        if report is None or name not in report.security:
-            return ""
-        fs = report.security[name]
-        if any(f.rule.severity == "Critical" for f in fs):
-            return " <span style='color:#ff4444;font-weight:bold'>● CRITIQUE</span>"
-        if any(f.rule.severity == "Major" for f in fs):
-            return " <span style='color:#ff8c00;font-weight:bold'>● MAJEUR</span>"
-        if fs:
-            return " <span style='color:#ccbb00;font-weight:bold'>●</span>"
-        return ""
-
-    def _profile_name_cell(item, pages):
-        name = html_value(item.name)
-        if item.name in pages:
-            name = f"<a href='{href_relative(current_path, pages[item.name])}'>{html_value(item.name)}</a>"
-        badge = _sec_findings_badge(item.name, analyzer_report)
-        return f"<td>{name}{badge}</td>"
-
-    def _security_artifact_row(item, pages, is_profile=True):
-        risk = _profile_risk(item)
-        row_style = _risk_style[risk]
-        risk_label = _risk_label[risk]
-        risk_color = '#ff4444' if risk in ('danger','major','minor') else ''
-        
-        kind_label = ('Custom' if item.is_custom else 'Standard') if is_profile else 'Permission Set'
-        
-        return (
-            f"<tr style='{row_style}'>"
-            + _profile_name_cell(item, pages)
-            + f"<td>{kind_label}</td>"
-            + f"<td style='color:{risk_color}'>{risk_label}</td>"
-            + f"<td>{len(item.object_permissions)}</td>"
-            + f"<td>{len(item.field_permissions)}</td></tr>"
-        )
-
-    profile_detail_pages = {k.split(":", 1)[1]: v for k, v in (security_pages or {}).items() if k.startswith("profile:")}
-    permset_detail_pages = {k.split(":", 1)[1]: v for k, v in (security_pages or {}).items() if k.startswith("permset:")}
-
-    profile_rows = "".join(
-        _security_artifact_row(item, profile_detail_pages, is_profile=True)
-        for item in snapshot.profiles
-    ) or "<tr><td colspan='5' class='empty'>Aucun profil analysé.</td></tr>"
-
-    permset_rows = "".join(
-        _security_artifact_row(item, permset_detail_pages, is_profile=False)
-        for item in snapshot.permission_sets
-    ) or "<tr><td colspan='5' class='empty'>Aucun permission set analysé.</td></tr>"
-
-    # Security dashboard summary
-    m = snapshot.metrics
-    ratio_pct = m.profiles_ps_ratio_score
-    ratio_level = m.profiles_ps_ratio_level
-    _ratio_colors = {"Bon": "#22aa66", "Attention": "#ccbb00", "Risque": "#ff8c00", "Critique": "#ff4444"}
-    ratio_color = _ratio_colors.get(ratio_level, "#888")
-    profiles_list_href = ""
-    permsets_list_href = ""
-    if security_pages:
-        if "profiles_list" in security_pages:
-            profiles_list_href = href_relative(current_path, security_pages["profiles_list"])
-        if "permsets_list" in security_pages:
-            permsets_list_href = href_relative(current_path, security_pages["permsets_list"])
-
-    _profiles_title = (
-        f"<a href='{profiles_list_href}'>Profiles</a>"
-        if profiles_list_href else "Profiles"
-    )
-    _permsets_title = (
-        f"<a href='{permsets_list_href}'>Permission Sets</a>"
-        if permsets_list_href else "Permission Sets"
+    security_dashboard_tab = render_security_dashboard_tab(
+        snapshot,
+        current_path,
+        security_pages,
+        analyzer_report,
     )
 
-    security_dashboard = f"""
-<div class='section'>
-    <div style='display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px'>
-      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
-        <div style='font-size:.8em;color:#64748b'>Profils custom</div>
-        <div style='font-size:1.5em;font-weight:bold'>{m.custom_profiles_count}</div>
-        <div style='font-size:.8em;color:#64748b'>sur {m.profiles_count} profils total</div>
-      </div>
-      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px'>
-        <div style='font-size:.8em;color:#64748b'>Permission Sets</div>
-        <div style='font-size:1.5em;font-weight:bold'>{m.permission_sets_count}</div>
-      </div>
-      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {ratio_color}33;border-radius:6px'>
-        <div style='font-size:.8em;color:#64748b'>Ratio Profils/PS</div>
-        <div style='font-size:1.5em;font-weight:bold;color:{ratio_color}'>{ratio_pct}%</div>
-        <div style='font-size:.8em;color:{ratio_color};font-weight:bold'>{ratio_level}</div>
-      </div>
-      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff444433" if m.dangerous_profiles_count else "#e2e8f0"};border-radius:6px'>
-        <div style='font-size:.8em;color:#64748b'>Profils dangereux</div>
-        <div style='font-size:1.5em;font-weight:bold;color:{"#ff4444" if m.dangerous_profiles_count else "#22aa66"}'>{m.dangerous_profiles_count}</div>
-        <div style='font-size:.8em;color:#64748b'>ModifyAllData / ManageUsers</div>
-      </div>
-      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ff8c0033" if m.profiles_with_modify_all else "#e2e8f0"};border-radius:6px'>
-        <div style='font-size:.8em;color:#64748b'>Profils avec ModifyAllRecords</div>
-        <div style='font-size:1.5em;font-weight:bold;color:{"#ff8c00" if m.profiles_with_modify_all else "#22aa66"}'>{m.profiles_with_modify_all}</div>
-      </div>
-      <div style='flex:1;min-width:200px;padding:10px 14px;border:1px solid {"#ccbb0033" if m.perm_sets_with_modify_all else "#e2e8f0"};border-radius:6px'>
-        <div style='font-size:.8em;color:#64748b'>PS avec ModifyAll (objets sensibles)</div>
-        <div style='font-size:1.5em;font-weight:bold;color:{"#ccbb00" if m.perm_sets_with_modify_all else "#22aa66"}'>{m.perm_sets_with_modify_all}</div>
-      </div>
-    </div>
-    <table><thead><tr><th>Profil / Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}{permset_rows}</tbody></table>
-</div>"""
-
-    TYPE_LABELS_SR = {"criteria": "Critères", "owner": "Propriétaire", "guest": "Utilisateur invité", "territory": "Territoire"}
-    sharing_rule_rows = "".join(
-        f"<tr><td>{html_value(r.object_name)}</td><td>{html_value(r.full_name)}</td>"
-        f"<td>{html_value(TYPE_LABELS_SR.get(r.rule_type, r.rule_type))}</td>"
-        f"<td>{html_value(r.label)}</td><td>{html_value(r.description)}</td></tr>"
-        for r in snapshot.sharing_rules
-    ) or "<tr><td colspan='5' class='empty'>Aucune sharing rule analysée.</td></tr>"
-
-    apex_rows = "".join(
-        f"<tr><td><a href='{href_relative(current_path, apex_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.kind)}</td><td>{item.line_count}</td><td>{item.method_count}</td>"
-        f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_lines_covered}/{item.test_coverage_lines_covered + item.test_coverage_lines_uncovered} lignes)') if item.test_coverage is not None else 'N/A'}</td></tr>"
-        for item in snapshot.apex_artifacts
-        if item.name in apex_pages
-    ) or "<tr><td colspan='5' class='empty'>Aucun artefact Apex analyse.</td></tr>"
-
-    flow_rows = "".join(
-        f"<tr><td><a href='{href_relative(current_path, flow_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.process_type)}</td><td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td>"
-        f"<td>{'⚠' if item.soql_in_loop or item.dml_in_loop else 'OK'}</td>"
-        f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_elements_covered}/{item.test_coverage_elements_covered + item.test_coverage_elements_uncovered} blocs)') if item.test_coverage is not None else 'N/A'}</td></tr>"
-        for item in snapshot.flows
-        if item.name in flow_pages
-    ) or "<tr><td colspan='7' class='empty'>Aucun flow analyse.</td></tr>"
+    sharing_rule_rows = render_sharing_rule_rows(snapshot)
+    apex_rows = render_apex_rows(snapshot, apex_pages, current_path)
+    flow_panel = render_flow_panel(snapshot, flow_pages, current_path)
 
     excel_links = render_excel_exports(root_dir, current_path)
     omni_panel = render_index_omni_panel(omni_pages, current_path)
-    
-    agent_rows = "".join(
-        f"<tr><td><a href='{href_relative(current_path, agent_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.label)}</td><td>{html_value(item.description)}</td></tr>"
-        for item in snapshot.agents
-        if item.name in agent_pages
-    ) or "<tr><td colspan='3' class='empty'>Aucun agent analyse.</td></tr>"
-
-    prompt_rows = "".join(
-        f"<tr><td><a href='{href_relative(current_path, prompt_pages[item.name])}'>{html_value(item.name)}</a></td>"
-        f"<td>{html_value(item.label)}</td><td>{html_value(item.description)}</td></tr>"
-        for item in snapshot.gen_ai_prompts
-        if item.name in prompt_pages
-    ) or "<tr><td colspan='3' class='empty'>Aucun prompt analyse.</td></tr>"
+    agent_rows = render_agent_rows(snapshot, agent_pages, current_path)
+    prompt_rows = render_prompt_rows(snapshot, prompt_pages, current_path)
 
     analyzer_panel = render_index_analyzer_panel(
         analyzer_report,
@@ -601,42 +149,15 @@ def render_index(
         'et le nombre d\'opérateurs logiques (IF, AND, OR, CASE, parenthèses).">'
         'VR (Complexité)</span>'
     )
-    # ── Security ─────────────────────────────────────────────────────
-    security_dashboard_tab = tabbed_sections("index-security", [
-        ("Synthese", security_dashboard),
-        ("Profiles", f"<h4>{_profiles_title} ({len(snapshot.profiles)})</h4><table><thead><tr><th>Profil</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}</tbody></table>"),
-        ("Permission Sets", f"<h4>{_permsets_title} ({len(snapshot.permission_sets)})</h4><table><thead><tr><th>Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>"),
-        ("CRUD", f"<p><a href='{href_relative(current_path, security_pages.get('security_matrix')) if security_pages else '#'}' target='_blank' rel='noopener'>Ouvrir la matrice de securite (CRUD) dans un nouvel onglet</a></p>"),
-        ("PS Group", f"<p><a href='{href_relative(current_path, security_pages.get('psg_list')) if security_pages else '#'}' target='_blank' rel='noopener'>Ouvrir les Permission Set Groups dans un nouvel onglet</a></p>"),
-    ])
-
-    # ── Org Health ───────────────────────────────────────────────────
-    orphans_by_kind: dict[str, list[str]] = {}
-    for o in snapshot.orphans:
-        kind = o.kind or "Autre"
-        if kind not in orphans_by_kind:
-            orphans_by_kind[kind] = []
-        
-        href = ""
-        if kind == "Objet": href = href_relative(current_path, object_pages.get(o.name)) if object_pages.get(o.name) else ""
-        elif kind == "Apex": href = href_relative(current_path, apex_pages.get(o.name)) if apex_pages.get(o.name) else ""
-        elif kind == "Flow": href = href_relative(current_path, flow_pages.get(o.name)) if flow_pages.get(o.name) else ""
-        elif kind == "Agent" and agent_pages: href = href_relative(current_path, agent_pages.get(o.name)) if agent_pages.get(o.name) else ""
-        elif kind == "Prompt" and prompt_pages: href = href_relative(current_path, prompt_pages.get(o.name)) if prompt_pages.get(o.name) else ""
-        
-        name_cell = f"<a href='{html_value(href)}'>{html_value(o.name)}</a>" if href else html_value(o.name)
-        orphans_by_kind[kind].append(f"<tr><td>{name_cell}</td></tr>")
-        
-    if not snapshot.orphans:
-        health_panel = "<p class='empty'>Aucun composant orphelin detecte.</p>"
-    else:
-        orphan_sections = []
-        for kind in sorted(orphans_by_kind.keys()):
-            rows = orphans_by_kind[kind]
-            label = f"{kind} ({len(rows)})"
-            table = f"<table><thead><tr><th>Nom</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
-            orphan_sections.append((label, table))
-        health_panel = tabbed_sections("index-orphans", orphan_sections)
+    health_panel = render_health_panel(
+        snapshot,
+        current_path,
+        object_pages,
+        apex_pages,
+        flow_pages,
+        agent_pages,
+        prompt_pages,
+    )
 
     # ── Improvements & PMD ───────────────────────────────────────────
     improvements_panel = render_index_improvements(
@@ -654,19 +175,6 @@ def render_index(
         apex_pages,
     )
 
-    # ── Flows ────────────────────────────────────────────────────────
-    redundant_flow_rows = "".join(
-        f"<tr><td>{html_value(g.object_name)}</td><td>{html_value(g.trigger_type)}</td><td>{', '.join(g.flows)}</td></tr>"
-        for g in snapshot.redundant_flows
-    ) or "<tr><td colspan='3' class='empty'>Aucune redondance de Flow detectee.</td></tr>"
-    
-    flow_list_table = f"<table><thead><tr><th>Nom</th><th>Type</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>"
-    flow_redundancy_table = f"<table><thead><tr><th>Objet</th><th>Evenement</th><th>Flows</th></tr></thead><tbody>{redundant_flow_rows}</tbody></table>"
-    flow_panel = tabbed_sections("index-flows", [
-        ("Liste", flow_list_table),
-        ("Redondance", flow_redundancy_table),
-    ])
-
     tabs = tabbed_sections(
         "index",
         [
@@ -676,7 +184,7 @@ def render_index(
             ),
             (
                 "Objets",
-                f"<table><thead><tr><th>Objet</th><th>Label</th><th>Nb champs</th><th>Nb relations</th><th>{vr_header}</th></tr></thead><tbody>{object_rows}</tbody></table>",
+                f"<table><thead><tr><th>Objet</th><th>Label</th><th>Nb champs</th><th>Nb relations</th><th>{vr_header}</th><th>Triggers Apex</th><th>Flows</th></tr></thead><tbody>{object_rows}</tbody></table>",
             ),
             (
                 "Profiles & PS",
@@ -781,27 +289,27 @@ def render_index(
         )
 
     ai_usage_card = (
-        _render_ai_usage_card(ai_usage_stats, ai_usage_page, current_path)
+        render_ai_usage_card(ai_usage_stats, ai_usage_page, current_path)
         if visibility.show_ai_usage
         else ""
     )
     data_model_card = (
-        _render_data_model_card(data_model_stats, customisation_page, current_path)
+        render_data_model_card(data_model_stats, customisation_page, current_path)
         if visibility.show_data_model_footprint
         else ""
     )
     adoption_card = (
-        _render_adoption_card(adoption_stats, adoption_page, current_path)
+        render_adoption_card(adoption_stats, adoption_page, current_path)
         if visibility.show_adopt_adapt_posture
         else ""
     )
     debt_card = (
-        _render_debt_card(snapshot, debt_page, current_path)
+        render_debt_card(snapshot, debt_page, current_path)
         if visibility.show_debt
         else ""
     )
     innovation_card = (
-        _render_innovation_card(snapshot, innovation_page, current_path)
+        render_innovation_card(snapshot, innovation_page, current_path)
         if visibility.show_innovation
         else ""
     )
@@ -943,46 +451,23 @@ def render_index(
         else ""
     )
 
-    # Build the 4 new tabs
-    summary_tabs_sections = []
-    
-    # 1. Description
-    desc_content = "".join([
-        custom_objects_card, custom_fields_card, flows_card, 
-        apex_classes_triggers_card, lwc_card, aura_card, omni_components_card, 
-        predictions_card, agents_card, prompts_card, sharing_rules_card, duplicate_rules_card
-    ])
-    if desc_content.strip():
-        summary_tabs_sections.append(("Description", f'<div class="cards">{desc_content}</div>'))
-
-    # 2. Scoring
-    scoring_content = "".join([
-        customization_level_card, score_card, adopt_vs_adapt_card, adopt_adapt_score_card, test_coverage_card
-    ])
-    if scoring_content.strip():
-        summary_tabs_sections.append(("Scoring", f'<div class="cards">{scoring_content}</div>'))
-        
-    # 3. Métriques
-    metrics_content = "".join([
-        findings_card, ai_usage_card, data_model_card, adoption_card, debt_card, innovation_card
-    ])
-    if metrics_content.strip():
-        summary_tabs_sections.append(("Metriques", f'<div class="cards">{metrics_content}</div>'))
-        
-    # 4. IA
-    ia_metier_content = "".join([predictions_card, agents_card, prompts_card])
-    ia_admin_content = ai_usage_card
-    
-    ia_tab_content = ""
-    if ia_metier_content.strip():
-        ia_tab_content += f'<h3>IA pour le metier</h3><div class="cards">{ia_metier_content}</div>'
-    if ia_admin_content.strip():
-        ia_tab_content += f'<h3>IA pour les Admin et dev</h3><div class="cards">{ia_admin_content}</div>'
-        
-    if ia_tab_content:
-        summary_tabs_sections.append(("IA", ia_tab_content))
-
-    summary_tabs = tabbed_sections("summary-tabs", summary_tabs_sections) if summary_tabs_sections else ""
+    summary_tabs = render_summary_tabs(
+        description_cards=[
+            custom_objects_card, custom_fields_card, flows_card, apex_classes_triggers_card,
+            lwc_card, aura_card, omni_components_card, predictions_card, agents_card,
+            prompts_card, sharing_rules_card, duplicate_rules_card,
+        ],
+        scoring_cards=[
+            customization_level_card, score_card, adopt_vs_adapt_card,
+            adopt_adapt_score_card, test_coverage_card,
+        ],
+        metric_cards=[
+            findings_card, ai_usage_card, data_model_card, adoption_card, debt_card,
+            innovation_card,
+        ],
+        ia_business_cards=[predictions_card, agents_card, prompts_card],
+        ia_admin_card=ai_usage_card,
+    )
 
     title_suffix = f" : {html_value(alias)}" if alias else ""
     source_rel = href_relative(current_path, snapshot.source_dir)
@@ -995,255 +480,6 @@ def render_index(
 {tabs}
 """
     return render_page("Index", body, current_path, assets_dir, include_mermaid=False)
-
-
-def _render_data_model_card(
-    stats: DataModelCustomisationStats | None,
-    page_path: Path | None,
-    current_path: Path,
-) -> str:
-    """Render the *Empreinte data model* card on the index.
-
-    Lays out custom vs standard objects+fields side by side with their
-    percentages. The "custom" figure is hyperlinked to the dedicated
-    page when available so a reader can drill down.
-    """
-
-    if stats is None or stats.total_objects + stats.total_fields == 0:
-        return (
-            '  <div class="card adopt-card"><span>Empreinte data model</span>'
-            '<span class="value">N/A</span>'
-            '<small class="adopt-hint">Mesure non disponible.</small></div>\n'
-        )
-
-    custom_count = stats.custom_objects + stats.custom_fields
-    standard_count = stats.standard_objects + stats.standard_fields
-    custom_pct = stats.percent_custom_global
-    standard_pct = stats.percent_standard_global
-    total = custom_count + standard_count
-
-    if page_path is not None:
-        href = html_value(href_relative(current_path, page_path))
-        title_html = f'<a href="{href}">Empreinte data model</a>'
-    else:
-        title_html = 'Empreinte data model'
-
-    return (
-        '  <div class="card adopt-card">\n'
-        f'    <span>{title_html}</span>\n'
-        '    <div class="adopt-grid">\n'
-        '      <div class="adopt-stat adopt-stat--adapt">\n'
-        '        <span class="adopt-label">Custom</span>\n'
-        f'        <span class="value">{custom_count}</span>\n'
-        f'        <span class="adopt-percent">{custom_pct:.1f} %</span>\n'
-        f'        <small class="adopt-hint">{stats.custom_objects} objets, {stats.custom_fields} champs</small>\n'
-        '      </div>\n'
-        '      <div class="adopt-stat adopt-stat--adopt">\n'
-        '        <span class="adopt-label">Standard</span>\n'
-        f'        <span class="value">{standard_count}</span>\n'
-        f'        <span class="adopt-percent">{standard_pct:.1f} %</span>\n'
-        f'        <small class="adopt-hint">{stats.standard_objects} objets, {stats.standard_fields} champs</small>\n'
-        '      </div>\n'
-        '    </div>\n'
-        f'    <span class="adopt-hint">Objets+champs analyses : {total}</span>\n'
-        '  </div>\n'
-    )
-
-
-def _render_adoption_card(
-    stats: AdoptionStats | None,
-    page_path: Path | None,
-    current_path: Path,
-) -> str:
-    """Render the *Posture Adopt vs Adapt* card on the index.
-
-    Adopt and Adapt counters are shown side by side with the weighted
-    percentage; the "Adapt" total aggregates both Adapt-Low (declarative)
-    and Adapt-High (code) so the summary stays compact, while the detail
-    page is the place to look at the low/high split.
-    """
-
-    if stats is None or stats.total_count == 0:
-        return (
-            '  <div class="card adopt-card"><span>Posture Adopt vs Adapt</span>'
-            '<span class="value">N/A</span>'
-            '<small class="adopt-hint">Mesure non disponible.</small></div>\n'
-        )
-
-    adopt_count = stats.adopt_count
-    adapt_total_count = stats.adapt_count
-    adapt_low_count = stats.adapt_low_count
-    adapt_high_count = stats.adapt_high_count
-    
-    adopt_pct = stats.percent_adoption
-    adapt_total_pct = stats.percent_adaptation
-    
-    adopt_weight = stats.adopt_weight
-    adapt_total_weight = stats.adapt_weight
-
-    if page_path is not None:
-        href = html_value(href_relative(current_path, page_path))
-        title_html = f'<a href="{href}">Posture Adopt vs Adapt</a>'
-    else:
-        title_html = 'Posture Adopt vs Adapt'
-
-    return (
-        '  <div class="card adopt-card">\n'
-        f'    <span>{title_html}</span>\n'
-        '    <div class="adopt-grid">\n'
-        '      <div class="adopt-stat adopt-stat--adopt">\n'
-        '        <span class="adopt-label">Adopt</span>\n'
-        f'        <span class="value">{adopt_count}</span>\n'
-        f'        <span class="adopt-percent">{adopt_pct:.1f} %</span>\n'
-        f'        <small class="adopt-hint">No-code (poids {adopt_weight})</small>\n'
-        '      </div>\n'
-        '      <div class="adopt-stat adopt-stat--adapt">\n'
-        '        <span class="adopt-label">Adapt</span>\n'
-        f'        <span class="value">{adapt_total_count}</span>\n'
-        f'        <span class="adopt-percent">{adapt_total_pct:.1f} %</span>\n'
-        f'        <small class="adopt-hint">Low: {adapt_low_count}, Pro: {adapt_high_count} (poids {adapt_total_weight})</small>\n'
-        '      </div>\n'
-        '    </div>\n'
-        '    <span class="adopt-hint">'
-        f'Capacites : {stats.total_count} / poids total {stats.total_weight}'
-        '</span>\n'
-        '  </div>\n'
-    )
-
-
-def _render_ai_usage_card(
-    stats: AIUsageStats | None,
-    page_path: Path | None,
-    current_path: Path,
-) -> str:
-    """Render the "Usage IA" card on the index page.
-
-    The card now exposes two figures side by side: how many customised
-    elements (custom objects, custom fields, validation rules, record
-    types, flows, Apex classes/triggers) carry one of the configured AI
-    tags and how many do not, with the matching percentages. The "with
-    tag" value links to ``ai_usage.html`` when available so reviewers can
-    drill down into the detailed list.
-    """
-
-    if stats is None:
-        return (
-            '  <div class="card ai-usage-card"><span>Usage IA</span>'
-            '<span class="value">N/A</span>'
-            '<small class="ai-usage-hint">Mesure non disponible.</small></div>\n'
-        )
-
-    total = stats.total
-    with_count = stats.with_tag_count
-    without_count = stats.without_tag_count
-    with_pct = stats.percent_with_tag
-    without_pct = stats.percent_without_tag
-
-    if page_path is not None:
-        href = html_value(href_relative(current_path, page_path))
-        title_html = f'<a href="{href}">Usage IA</a>'
-    else:
-        title_html = 'Usage IA'
-
-    return (
-        '  <div class="card ai-usage-card">\n'
-        f'    <span>{title_html}</span>\n'
-        '    <div class="ai-usage-grid">\n'
-        '      <div class="ai-usage-stat ai-usage-stat--with">\n'
-        '        <span class="ai-usage-label">Avec tag</span>\n'
-        f'        <span class="value">{with_count}</span>\n'
-        f'        <span class="ai-usage-percent">{with_pct:.1f} %</span>\n'
-        '      </div>\n'
-        '      <div class="ai-usage-stat ai-usage-stat--without">\n'
-        '        <span class="ai-usage-label">Sans tag</span>\n'
-        f'        <span class="value">{without_count}</span>\n'
-        f'        <span class="ai-usage-percent">{without_pct:.1f} %</span>\n'
-        '      </div>\n'
-        '    </div>\n'
-        f'    <span class="ai-usage-hint">Total customs : {total}</span>\n'
-        '  </div>\n'
-    )
-
-
-def _render_debt_card(
-    snapshot: MetadataSnapshot,
-    page_path: Path | None,
-    current_path: Path,
-) -> str:
-    """Render the "Dette technique & Entorse et PR" card on the index page."""
-    
-    debt_count = len(snapshot.technical_debt)
-    deviation_count = len(snapshot.deviations)
-
-    if page_path is not None:
-        href = html_value(href_relative(current_path, page_path))
-        title_html = f'<a href="{href}">Dette technique & Entorse et PR</a>'
-        debt_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{debt_count}</a>'
-        deviation_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{deviation_count}</a>'
-    else:
-        title_html = 'Dette technique & Entorse et PR'
-        debt_link = str(debt_count)
-        deviation_link = str(deviation_count)
-
-    return (
-        '  <div class="card adopt-card">\n'
-        f'    <span>{title_html}</span>\n'
-        '    <div class="adopt-grid">\n'
-        '      <div class="adopt-stat adopt-stat--adapt">\n'
-        '        <span class="adopt-label">Dette technique</span>\n'
-        f'        <span class="value">{debt_link}</span>\n'
-        '      </div>\n'
-        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
-        '        <span class="adopt-label">Entorses et PR</span>\n'
-        f'        <span class="value">{deviation_link}</span>\n'
-        '      </div>\n'
-        '    </div>\n'
-        '  </div>\n'
-    )
-
-
-def _render_innovation_card(
-    snapshot: MetadataSnapshot,
-    page_path: Path | None,
-    current_path: Path,
-) -> str:
-    """Render the "POC et Innovation" card on the index page."""
-    
-    total_count = len(snapshot.innovations)
-    not_started_count = len([item for item in snapshot.innovations if item.not_started])
-    started_count = total_count - not_started_count
-
-    if page_path is not None:
-        href = html_value(href_relative(current_path, page_path))
-        title_html = f'<a href="{href}">POC et Innovation</a>'
-        started_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{started_count}</a>'
-        not_started_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{not_started_count}</a>'
-        total_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{total_count}</a>'
-    else:
-        title_html = 'POC et Innovation'
-        started_link = str(started_count)
-        not_started_link = str(not_started_count)
-        total_link = str(total_count)
-
-    return (
-        '  <div class="card adopt-card">\n'
-        f'    <span>{title_html}</span>\n'
-        '    <div class="adopt-grid">\n'
-        '      <div class="adopt-stat adopt-stat--adapt">\n'
-        '        <span class="adopt-label">En cours ou Terminés</span>\n'
-        f'        <span class="value">{started_link}</span>\n'
-        '      </div>\n'
-        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
-        '        <span class="adopt-label">Non Commencé</span>\n'
-        f'        <span class="value">{not_started_link}</span>\n'
-        '      </div>\n'
-        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
-        '        <span class="adopt-label">Total</span>\n'
-        f'        <span class="value">{total_link}</span>\n'
-        '      </div>\n'
-        '    </div>\n'
-        '  </div>\n'
-    )
 
 
 def write_index(

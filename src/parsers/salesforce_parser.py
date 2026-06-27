@@ -1646,6 +1646,20 @@ class SalesforceMetadataParser:
                         target_kind="Field"
                     ))
 
+        # 1b. Object -> Object relationships (Lookup / Master-Detail)
+        for obj in snapshot.objects:
+            for rel in obj.relationships:
+                for target in rel.targets:
+                    target_name = (target or "").strip()
+                    if not target_name or target_name == obj.api_name:
+                        continue
+                    snapshot.dependencies.append(Dependency(
+                        source_name=obj.api_name,
+                        source_kind="Object",
+                        target_name=target_name,
+                        target_kind="Object"
+                    ))
+
         # 2. Scan Flows for Object dependencies
         for flow in snapshot.flows:
             if flow.start_object:

@@ -87,6 +87,8 @@ class AppGenerationMixin:
         org_check_choice = self.org_check_choice_var.get().strip()
         selected_org = self._selected_org()
         org_ref = selected_org.org_ref if selected_org else self.alias_var.get().strip()
+        if selected_org is None and org_ref:
+            self._append_log(self._t("generation_last_alias", alias=org_ref))
 
         def task() -> GenerationResult:
             test_coverage = None
@@ -141,6 +143,8 @@ class AppGenerationMixin:
                 innovation_colors=dict(self.innovation_colors),
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
+                one_page_max_depth=int(self.one_page_max_depth_var.get()),
+                one_page_hub_threshold=int(self.one_page_hub_threshold_var.get()),
                 language=self.language,
                 log_callback=self.task_manager.queue_log,
             )

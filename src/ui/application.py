@@ -386,6 +386,12 @@ class Application(
         self.profiles_thresholds = self._load_profiles_thresholds(self.settings)
         self.profiles_ps_ratio_thresholds = self._load_profiles_ps_ratio_thresholds(self.settings)
         self.innovation_colors = self._load_innovation_colors(self.settings)
+        self.one_page_max_depth_var = tk.IntVar(
+            value=int(self.settings.get("one_page_max_depth", 3))
+        )
+        self.one_page_hub_threshold_var = tk.IntVar(
+            value=int(self.settings.get("one_page_hub_threshold", 8))
+        )
 
         self.ai_usage_tags: list[str] = parse_ai_tags(self.settings)
         self._ai_tags_listbox: tk.Listbox | None = None
@@ -396,6 +402,7 @@ class Application(
         self.action_buttons: list[ttk.Button] = []
         self.orgs: list[OrgSummary] = []
         self.orgs_by_label: dict[str, OrgSummary] = {}
+        self._orgs_bg_loading: bool = False
         self.cli_service = SalesforceCliService(
             self.app_dir, log_callback=self.task_manager.queue_log
         )
@@ -414,4 +421,4 @@ class Application(
         self._load_branding()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.after(150, self.task_manager.poll_queue)
-        self.after(250, lambda: self._refresh_orgs(initial=True))
+        self.after(250, self._load_orgs_in_background)

@@ -77,12 +77,14 @@ def show_configuration_screen(app: Application) -> None:
     ai_tags_tab = ttk.Frame(notebook, padding=12)
     index_cards_tab = ttk.Frame(notebook, padding=12)
     posture_tab = ttk.Frame(notebook, padding=12)
+    parametrage_tab = ttk.Frame(notebook, padding=12)
     notebook.add(doc_tab, text=app._t("configuration_tab_documentation"))
     notebook.add(discussion_tab, text=app._t("configuration_tab_discussion"))
     notebook.add(rules_tab, text=app._t("configuration_tab_rules"))
     notebook.add(ai_tags_tab, text=app._t("configuration_tab_ai_tags"))
     notebook.add(index_cards_tab, text=app._t("configuration_tab_index_cards"))
     notebook.add(posture_tab, text=app._t("configuration_tab_posture"))
+    notebook.add(parametrage_tab, text=app._t("configuration_tab_parametrage"))
 
     edit_vars = {
         "language": tk.StringVar(value=app._language_display(app.language)),
@@ -195,6 +197,10 @@ def show_configuration_screen(app: Application) -> None:
         "show_card_dependencies": tk.BooleanVar(
             value=bool(app.show_card_dependencies_var.get())
         ),
+        "one_page_max_depth": tk.IntVar(value=int(app.one_page_max_depth_var.get())),
+        "one_page_hub_threshold": tk.IntVar(
+            value=int(app.one_page_hub_threshold_var.get())
+        ),
     }
 
     _build_documentation_tab(app, doc_tab, edit_vars)
@@ -203,6 +209,7 @@ def show_configuration_screen(app: Application) -> None:
     ai_tags_panel.build_panel(app, ai_tags_tab)
     _build_index_cards_tab(app, index_cards_tab, edit_vars)
     posture_capability_panel.build_panel(app, posture_tab)
+    _build_parametrage_tab(app, parametrage_tab, edit_vars)
 
     buttons_row = ttk.Frame(scrollable_frame)
     buttons_row.pack(fill="x", pady=(12, 0))
@@ -602,6 +609,71 @@ def _build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[
             ).pack(anchor="w", pady=(2, 2))
 
 
+def _build_parametrage_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
+    ttk.Label(
+        parent,
+        text=app._t("configuration_parametrage_title"),
+        font=("Segoe UI", 11, "bold"),
+    ).pack(anchor="w", pady=(0, 4))
+    ttk.Label(
+        parent,
+        text=app._t("configuration_parametrage_description"),
+        wraplength=640,
+        justify="left",
+        foreground="#475569",
+    ).pack(anchor="w", pady=(0, 10))
+
+    one_page = ttk.LabelFrame(
+        parent, text=app._t("configuration_parametrage_one_page_section"), padding=10
+    )
+    one_page.pack(fill="x", pady=(0, 8))
+
+    _config_spinbox_row(
+        one_page,
+        app._t("configuration_parametrage_max_depth"),
+        edit_vars["one_page_max_depth"],
+        from_=1,
+        to=6,
+    )
+    ttk.Label(
+        one_page,
+        text=app._t("configuration_parametrage_max_depth_hint"),
+        wraplength=620,
+        justify="left",
+        foreground="#475569",
+    ).pack(anchor="w", pady=(0, 8))
+
+    _config_spinbox_row(
+        one_page,
+        app._t("configuration_parametrage_hub_threshold"),
+        edit_vars["one_page_hub_threshold"],
+        from_=2,
+        to=100,
+    )
+    ttk.Label(
+        one_page,
+        text=app._t("configuration_parametrage_hub_threshold_hint"),
+        wraplength=620,
+        justify="left",
+        foreground="#475569",
+    ).pack(anchor="w", pady=(0, 2))
+
+
+def _config_spinbox_row(
+    parent: ttk.Frame,
+    label_text: str,
+    variable: tk.Variable,
+    from_: int,
+    to: int,
+) -> ttk.Frame:
+    row = ttk.Frame(parent)
+    row.pack(fill="x", pady=3)
+    ttk.Label(row, text=label_text, width=22).pack(side="left")
+    spin = ttk.Spinbox(row, from_=from_, to=to, textvariable=variable, width=8)
+    spin.pack(side="left")
+    return row
+
+
 def _config_entry_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, show: str | None = None) -> ttk.Frame:
     row = ttk.Frame(parent)
     row.pack(fill="x", pady=3)
@@ -753,6 +825,17 @@ def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Varia
     app.show_card_dependencies_var.set(
         bool(edit_vars["show_card_dependencies"].get())
     )
+
+    try:
+        max_depth = int(edit_vars["one_page_max_depth"].get())
+    except (tk.TclError, ValueError):
+        max_depth = 3
+    try:
+        hub_threshold = int(edit_vars["one_page_hub_threshold"].get())
+    except (tk.TclError, ValueError):
+        hub_threshold = 8
+    app.one_page_max_depth_var.set(max(1, min(6, max_depth)))
+    app.one_page_hub_threshold_var.set(max(2, hub_threshold))
 
     if app._config_system_prompt_widget is not None:
         prompt_text = app._config_system_prompt_widget.get("1.0", "end").strip()

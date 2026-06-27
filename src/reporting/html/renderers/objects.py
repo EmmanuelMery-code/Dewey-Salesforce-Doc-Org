@@ -24,6 +24,7 @@ from src.reporting.html.findings import (
     render_security_rows,
     security_rows,
 )
+from src.reporting.html.one_page import render_one_page_graph
 from src.reporting.html.page_shell import (
     index_back_link,
     render_page,
@@ -122,6 +123,10 @@ def render_object_body(
     profile_rows = render_security_rows(profiles, "Aucun profil avec acces detecte.")
     permset_rows = render_security_rows(permsets, "Aucun permission set avec acces detecte.")
 
+    one_page_graph = render_one_page_graph(
+        item.api_name, "Objet", all_dependencies, safe_slug(item.api_name)
+    )
+
     combined_findings = list(object_findings) + list(validation_findings)
     analyzer_summary_inline = render_findings_summary(combined_findings)
     analyzer_content = render_analyzer_tab(combined_findings)
@@ -143,6 +148,7 @@ def render_object_body(
             ("Record Types", f"<table><thead><tr><th>Nom</th><th>Label</th><th>Description</th><th>Actif</th></tr></thead><tbody>{record_type_rows}</tbody></table>"),
             ("Validation Rules", f"<table><thead><tr><th>Nom</th><th>Actif</th><th>Description</th><th>Champ d'erreur</th><th>Message d'erreur</th></tr></thead><tbody>{validation_rows}</tbody></table><hr/>{validation_content}"),
             ("Relations", f"{mermaid}<h4>Relations sortantes (Lookups)</h4><table><thead><tr><th>Champ</th><th>Type</th><th>Cible</th></tr></thead><tbody>{relation_table}</tbody></table><h4>Analyse d'impact (Ou est-il utilise ?)</h4><table><thead><tr><th>Composant</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{impact_table}</tbody></table>"),
+            ("One Page", one_page_graph),
             ("Analyseur", analyzer_content),
         ],
     )

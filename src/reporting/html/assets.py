@@ -361,6 +361,7 @@ code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
 .graph-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
 .graph-toolbar button { border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
 .graph-toolbar button:hover { background: #e2e8f0; }
+.graph-toolbar button.active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; font-weight: 600; }
 .graph-filters { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; }
 .graph-filters label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.92rem; color: #334155; }
 .dependency-graph { height: 440px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; }
@@ -398,6 +399,14 @@ code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
 .analyzer-summary-card table th, .analyzer-summary-card table td { border: none; background: transparent; padding: 6px 10px; }
 .analyzer-summary-card table tbody tr:nth-child(even) { background: #f1f5f9; }
 .graph-legend .dot { width: 12px; height: 12px; border-radius: 999px; border: 1px solid #64748b; display: inline-block; }
+.graph-legend .legend-toggle { cursor: pointer; user-select: none; padding: 2px 6px; border-radius: 6px; border: 1px solid transparent; }
+.graph-legend .legend-toggle:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.graph-legend .legend-toggle.disabled { opacity: 0.4; text-decoration: line-through; }
+.graph-context-menu { position: fixed; z-index: 9999; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 12px rgba(15,23,42,0.18); padding: 4px; min-width: 160px; }
+.graph-context-menu button { display: block; width: 100%; text-align: left; border: none; background: transparent; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; color: #1e293b; }
+.graph-context-menu button:hover { background: #f1f5f9; }
+.graph-node-tooltip { position: fixed; z-index: 9998; max-width: 360px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; box-shadow: 0 8px 20px rgba(15,23,42,0.28); padding: 9px 11px; font-size: 0.86rem; line-height: 1.35; pointer-events: none; }
+.graph-node-tooltip strong { color: #bfdbfe; }
 .tabs { background: white; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
 .tab-buttons { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid #cbd5e1; background: #f8fafc; }
 .tab-button { border: 1px solid #cbd5e1; border-radius: 999px; background: white; color: #334155; padding: 6px 12px; cursor: pointer; }
