@@ -50,27 +50,31 @@ class PmdService:
 
         last_error = ""
         for command in commands:
-            completed = subprocess.run(
-                command,
-                cwd=self.workspace_dir,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            )
-            output = (completed.stdout or "").strip()
-            if not output:
-                last_error = (completed.stderr or "").strip() or f"retour={completed.returncode}"
-                continue
-            parsed = self._parse_json_output(output, artifact_paths)
-            if parsed is not None:
-                command_str = " ".join(command)
-                self.log(
-                    f"PMD execute ({len(parsed)} violation(s)) via `{command_str}`."
+            try:
+                completed = subprocess.run(
+                    command,
+                    cwd=self.workspace_dir,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
                 )
-                return PmdRunResult(violations=parsed, command_used=command_str)
-            last_error = "Sortie PMD non exploitable (JSON invalide)."
+                output = (completed.stdout or "").strip()
+                if not output:
+                    last_error = (completed.stderr or "").strip() or f"retour={completed.returncode}"
+                    continue
+                parsed = self._parse_json_output(output, artifact_paths)
+                if parsed is not None:
+                    command_str = " ".join(command)
+                    self.log(
+                        f"PMD execute ({len(parsed)} violation(s)) via `{command_str}`."
+                    )
+                    return PmdRunResult(violations=parsed, command_used=command_str)
+                last_error = "Sortie PMD non exploitable (JSON invalide)."
+            except (FileNotFoundError, OSError) as exc:
+                last_error = f"Impossible de lancer PMD ({exc})"
+                continue
 
         if last_error:
             self.log(f"Analyse PMD ignoree: {last_error}")

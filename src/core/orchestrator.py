@@ -616,12 +616,21 @@ class SalesforceDocumentationGenerator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.log("Debut de l'analyse Salesforce.")
 
-        parser = SalesforceMetadataParser(
-            self.source_dir,
-            exclusion_config_path=self.exclusion_config_path,
-            log_callback=self.log,
-        )
-        snapshot = parser.parse()
+        try:
+            parser = SalesforceMetadataParser(
+                self.source_dir,
+                exclusion_config_path=self.exclusion_config_path,
+                log_callback=self.log,
+            )
+            snapshot = parser.parse()
+        except (FileNotFoundError, OSError) as exc:
+            self.log(f"Erreur critique lors de la lecture des metadata : {exc}")
+            # On retourne un résultat vide mais on ne bloque pas totalement si possible
+            return GenerationResult()
+        except Exception as exc:
+            self.log(f"Erreur inattendue lors de l'analyse : {exc}")
+            return GenerationResult()
+
         snapshot.innovation_colors = dict(self.innovation_colors)
         if self.scoring_weights:
             snapshot.metrics.weights = dict(self.scoring_weights)
