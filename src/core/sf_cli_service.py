@@ -43,6 +43,8 @@ class SalesforceCliService:
         self.log: LogCallback = log_callback or (lambda message: None)
         self.project_dir = self.workspace_dir / ".sf_cli_project"
         self.sf_executable = self._resolve_sf_executable()
+        if not self.sf_executable:
+            self._emit_log("Avertissement : Salesforce CLI est introuvable. Les fonctionnalites liees a l'org (retrieve, login, query, etc.) seront indisponibles.")
         self._ensure_project()
 
     def list_orgs(self) -> list[OrgSummary]:
@@ -263,7 +265,7 @@ class SalesforceCliService:
             if candidate.exists():
                 return str(candidate)
 
-        raise FileNotFoundError("Salesforce CLI est introuvable. Installez `sf` ou ajoutez-le au PATH.")
+        return ""
 
     def _emit_log(self, message: str) -> None:
         try:
@@ -272,33 +274,48 @@ class SalesforceCliService:
             self.log(message.encode("ascii", errors="replace").decode("ascii"))
 
     def _run_json(self, command: list[str]) -> dict:
-        completed = subprocess.run(
-            command,
-            cwd=self.project_dir,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=self.project_dir,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except (FileNotFoundError, OSError) as exc:
+            self._emit_log(f"Erreur lors de l'execution de la commande Salesforce CLI : {exc}")
+            return {}
+
         if completed.returncode != 0:
             raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "Commande Salesforce CLI en echec.")
 
-        payload = json.loads(completed.stdout)
+        try:
+            payload = json.loads(completed.stdout)
+        except json.JSONDecodeError:
+            self._emit_log("Erreur : la sortie de la commande Salesforce CLI n'est pas un JSON valide.")
+            return {}
+
         if payload.get("status", 0) != 0:
             message = payload.get("message") or completed.stderr.strip() or "Commande Salesforce CLI en echec."
             raise RuntimeError(message)
         return payload.get("result", {})
 
     def _run_streaming(self, command: list[str], cwd: Path | None = None) -> None:
-        process = subprocess.Popen(
-            command,
-            cwd=(cwd or self.project_dir),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
+        try:
+            process = subprocess.Popen(
+                command,
+                cwd=(cwd or self.project_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except (FileNotFoundError, OSError) as exc:
+            self._emit_log(f"Erreur lors du lancement de la commande Salesforce CLI : {exc}")
+            return
+
         assert process.stdout is not None
         for line in process.stdout:
             stripped = line.rstrip()
