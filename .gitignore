@@ -40,6 +40,10 @@ flows/
 assets/
 index.html
 
+# ...but keep the source HTML assets package (not a generated output dir)
+!src/reporting/html/assets/
+!src/reporting/html/assets/*.py
+
 # Local project backups and retrieved Salesforce metadata (never committed)
 # Any top-level folder ending with an 8-digit date suffix (YYYYMMDD) is treated
 # as a per-org retrieve and is excluded from version control.
