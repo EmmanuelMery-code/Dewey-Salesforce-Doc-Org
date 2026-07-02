@@ -13,14 +13,18 @@ def to_bool(value: str | None) -> bool:
     return str(value).strip().lower() == "true"
 
 
-def child_text(node: ET.Element, tag: str, default: str = "") -> str:
+def child_text(node: ET.Element | None, tag: str, default: str = "") -> str:
+    if node is None:
+        return default
     child = node.find(f"sf:{tag}", SF_NS)
     if child is None or child.text is None:
         return default
     return child.text.strip()
 
 
-def child_texts(node: ET.Element, tag: str) -> list[str]:
+def child_texts(node: ET.Element | None, tag: str) -> list[str]:
+    if node is None:
+        return []
     values: list[str] = []
     for child in node.findall(f"sf:{tag}", SF_NS):
         if child.text:
