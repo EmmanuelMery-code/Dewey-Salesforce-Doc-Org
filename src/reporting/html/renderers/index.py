@@ -484,7 +484,7 @@ def render_index(
             f'<div style="border-left:6px solid {border}; background:{bg}; '
             f'padding:12px 16px; border-radius:6px; margin:12px 0; display:flex; '
             f'align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">'
-            f'<span><b>Comparaison avec la génération précédente</b> — '
+            f'<span><b>Comparaison avec une génération précédente</b> — '
             f'<span style="color:{fg}; font-weight:600;">{status_txt}</span></span>'
             f'<a href="{cmp_rel}" style="color:{fg}; font-weight:600; text-decoration:none;">'
             f'Voir la comparaison détaillée \u2192</a>'
