@@ -248,6 +248,8 @@ class AppSfCliMixin:
                 analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
                 index_card_visibility=self._current_index_card_visibility(),
                 language=self.language,
+                include_comparison=bool(self.include_comparison_var.get()),
+                comparison_target=self.comparison_target_var.get().strip() or "auto",
                 log_callback=self.task_manager.queue_log,
             )
             generator.alias = self.alias_var.get().strip() or org_ref

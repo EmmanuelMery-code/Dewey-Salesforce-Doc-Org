@@ -59,6 +59,8 @@ class SalesforceDocumentationGenerator(
         one_page_max_depth: int | None = None,
         one_page_hub_threshold: int | None = None,
         language: str = "fr",
+        include_comparison: bool = False,
+        comparison_target: str = "auto",
         log_callback: LogCallback | None = None,
     ) -> None:
         self.source_dir = Path(source_dir).resolve()
@@ -110,6 +112,8 @@ class SalesforceDocumentationGenerator(
         # (data dictionary + summary). Falls back to French if the value is
         # not one of the supported codes.
         self.language = language if language in {"fr", "en"} else "fr"
+        self.include_comparison = include_comparison
+        self.comparison_target = comparison_target or "auto"
         self.log = log_callback or (lambda message: None)
         self.alias = ""  # Will be set by the caller if needed for history
 

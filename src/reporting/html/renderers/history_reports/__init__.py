@@ -14,7 +14,10 @@ from src.core.history_service import HistoryEntry
 from src.core.utils import write_text
 from src.reporting.html.assets import write_assets
 
-from src.reporting.html.renderers.history_reports.comparison import render_comparison
+from src.reporting.html.renderers.history_reports.comparison import (
+    comparison_regression_count,
+    render_comparison,
+)
 from src.reporting.html.renderers.history_reports.dashboard import render_dashboard
 
 
@@ -42,6 +45,7 @@ def write_history_report(
 
 
 __all__ = [
+    "comparison_regression_count",
     "render_comparison",
     "render_dashboard",
     "write_history_report",

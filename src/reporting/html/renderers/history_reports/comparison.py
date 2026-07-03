@@ -164,6 +164,16 @@ def _build_quality_section(old: HistoryEntry, new: HistoryEntry):
     return html, regressions, improvements
 
 
+def comparison_regression_count(old: HistoryEntry, new: HistoryEntry) -> int:
+    """Return the number of quality regressions between two generations.
+
+    Used by callers (e.g. the index page) that want the regression count
+    without rendering the whole comparison page.
+    """
+    _html, regressions, _improvements = _build_quality_section(old, new)
+    return len(regressions)
+
+
 def _build_complexity_section(old: HistoryEntry, new: HistoryEntry) -> str:
     rows = ""
     for label, old_v, new_v, is_pct in _complexity_specs(old, new):

@@ -146,6 +146,8 @@ class AppGenerationMixin:
                 one_page_max_depth=int(self.one_page_max_depth_var.get()),
                 one_page_hub_threshold=int(self.one_page_hub_threshold_var.get()),
                 language=self.language,
+                include_comparison=bool(self.include_comparison_var.get()),
+                comparison_target=self.comparison_target_var.get().strip() or "auto",
                 log_callback=self.task_manager.queue_log,
             )
             generator.alias = self.alias_var.get().strip() or org_ref

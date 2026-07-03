@@ -275,6 +275,9 @@ class _StepsMixin(_OrchestratorState):
             snapshot,
             analyzer_report=analyzer_report,
         )
+        comparison_page, comparison_regressions = self._generate_comparison_page(
+            snapshot, result, analyzer_report
+        )
         result.index = html_writer.write_index(
             snapshot,
             result.object_pages,
@@ -301,4 +304,6 @@ class _StepsMixin(_OrchestratorState):
             findings_report_page=result.findings_report_page,
             card_visibility=self.index_card_visibility,
             alias=self.alias,
+            comparison_page=comparison_page,
+            comparison_regressions=comparison_regressions,
         )
