@@ -229,6 +229,10 @@ def write_apex_list_page(
         [a for a in apex if a.kind == "trigger"],
         key=lambda a: a.name.lower(),
     )
+    # Split classes into test classes and "business" classes (neither a
+    # trigger nor a test class) so each population can be counted separately.
+    test_classes = [a for a in classes if getattr(a, "is_test", False)]
+    business_classes = [a for a in classes if not getattr(a, "is_test", False)]
 
     def _rows(artifacts):
         result = []
@@ -251,11 +255,34 @@ def write_apex_list_page(
         return result
 
     headers = ["Nom", "Lignes", "Méthodes", "API Version", "Statut"]
-    parts: list[str] = []
-    if classes:
+
+    def _summary_card(count: int, label: str) -> str:
+        return (
+            "<div style='flex:1;min-width:160px;padding:12px 16px;border:1px solid #d0d7de;"
+            "border-radius:8px;background:#f6f8fa;text-align:center'>"
+            f"<div style='font-size:1.8em;font-weight:700'>{count}</div>"
+            f"<div style='color:#57606a'>{label}</div>"
+            "</div>"
+        )
+
+    summary = (
+        "<div style='display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 20px 0'>"
+        + _summary_card(len(triggers), "Triggers")
+        + _summary_card(len(test_classes), "Classes de test")
+        + _summary_card(len(business_classes), "Classes hors test / hors trigger")
+        + "</div>"
+    )
+
+    parts: list[str] = [summary]
+    if business_classes:
         parts.append(
-            f"<h2>Classes Apex ({len(classes)})</h2>"
-            f"{_table(headers, _rows(classes))}"
+            f"<h2>Classes hors test / hors trigger ({len(business_classes)})</h2>"
+            f"{_table(headers, _rows(business_classes))}"
+        )
+    if test_classes:
+        parts.append(
+            f"<h2>Classes de test ({len(test_classes)})</h2>"
+            f"{_table(headers, _rows(test_classes))}"
         )
     if triggers:
         parts.append(

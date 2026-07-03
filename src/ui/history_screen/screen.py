@@ -34,39 +34,11 @@ def show_history_screen(app: Application) -> None:
     window.geometry("1100x600")
     app._configure_secondary_window(window)
 
-    # Main container with scrollbars for the whole window
-    main_container = ttk.Frame(window)
-    main_container.pack(fill="both", expand=True)
-
-    canvas = tk.Canvas(main_container, highlightthickness=0)
-    v_scroll = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
-    h_scroll = ttk.Scrollbar(main_container, orient="horizontal", command=canvas.xview)
-
-    scrollable_frame = ttk.Frame(canvas)
-    scrollable_frame.bind(
-        "<Configure>",
-        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-    )
-
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    canvas.configure(yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
-
-    v_scroll.pack(side="right", fill="y")
-    h_scroll.pack(side="bottom", fill="x")
-    canvas.pack(side="left", fill="both", expand=True)
-
-    # Mouse wheel support for the main canvas
-    def _on_mousewheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-    canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
-    # PanedWindow for left (aliases) and right (entries) inside the scrollable frame
-    paned = ttk.PanedWindow(scrollable_frame, orient="horizontal")
+    # The paned window fills the whole window so its content (alias list and
+    # entry table) resizes together with the window. Each tree keeps its own
+    # scrollbars to handle overflow when the window is too small.
+    paned = ttk.PanedWindow(window, orient="horizontal")
     paned.pack(fill="both", expand=True, padx=10, pady=10)
-
-    # Force a minimum size for the paned window to ensure scrollbars appear if window is too small
-    scrollable_frame.update_idletasks()
-    paned.configure(width=1050, height=550)
 
     # Left side: Alias list
     left_frame = ttk.Frame(paned)
@@ -125,7 +97,11 @@ def show_history_screen(app: Application) -> None:
                     app._t("adopt_adapt_overall_score"), "Couverture Apex", "Couverture Flows",
                     app._t("scoring_component_custom_objects"),
                     app._t("scoring_component_custom_fields"), app._t("scoring_component_flows"),
-                    app._t("configuration_card_apex_classes_triggers"), "LWC", "Aura", app._t("configuration_card_omni_components"),
+                    app._t("configuration_card_apex_classes_triggers"),
+                    app._t("history_col_apex_triggers"),
+                    app._t("history_col_apex_test_classes"),
+                    app._t("history_col_apex_business_classes"),
+                    "LWC", "Aura", app._t("configuration_card_omni_components"),
                     "Sharing Rules", "Duplicate Rules",
                     app._t("configuration_card_findings"),
                     app._t("configuration_rules_severity_critical"),
@@ -143,6 +119,7 @@ def show_history_screen(app: Application) -> None:
                         f"{e.test_coverage_apex:.1f}%" if e.test_coverage_apex is not None else "N/A",
                         f"{e.test_coverage_flows:.1f}%" if e.test_coverage_flows is not None else "N/A",
                         e.custom_objects, e.custom_fields, e.flows, e.apex_classes_triggers,
+                        e.apex_triggers, e.apex_test_classes, e.apex_business_classes,
                         e.lwc_count, e.aura_count,
                         e.omni_components, e.sharing_rules, e.duplicate_rules, e.findings_total,
                         e.findings_critical, e.findings_major, e.findings_minor, e.findings_info,
@@ -255,7 +232,7 @@ def show_history_screen(app: Application) -> None:
 
     columns = (
         "num", "timestamp", "score", "adopt_adapt", "coverage_apex", "coverage_flows", "objects", "fields",
-        "flows", "apex", "lwc", "aura", "omni", "sharing_rules", "duplicate_rules", "findings", "crit", "maj", "min", "inf", "ai", "dm_custom", "dm_standard",
+        "flows", "apex", "apex_triggers", "apex_test_classes", "apex_business_classes", "lwc", "aura", "omni", "sharing_rules", "duplicate_rules", "findings", "crit", "maj", "min", "inf", "ai", "dm_custom", "dm_standard",
         "adoption", "adaptation", "comment"
     )
     entry_tree = ttk.Treeview(entry_container, columns=columns, show="headings", selectmode="extended")
@@ -272,6 +249,9 @@ def show_history_screen(app: Application) -> None:
         "fields": (app._t("scoring_component_custom_fields"), 70),
         "flows": (app._t("scoring_component_flows"), 60),
         "apex": (app._t("configuration_card_apex_classes_triggers"), 80),
+        "apex_triggers": (app._t("history_col_apex_triggers"), 70),
+        "apex_test_classes": (app._t("history_col_apex_test_classes"), 90),
+        "apex_business_classes": (app._t("history_col_apex_business_classes"), 90),
         "lwc": ("LWC", 60),
         "aura": ("Aura", 60),
         "omni": (app._t("configuration_card_omni_components"), 80),
@@ -454,11 +434,30 @@ def show_history_screen(app: Application) -> None:
         if entry:
             show_edit_dialog(app, window, entry, service, refresh_entries)
 
+    def on_export_csv():
+        selected = alias_tree.selection()
+        if not selected:
+            messagebox.showwarning(
+                app._t("info_title"), app._t("history_select_alias_to_export")
+            )
+            return
+        item = alias_tree.item(selected[0])
+        # If a report node is selected, fall back to its parent alias so the
+        # export button works regardless of which node is highlighted.
+        if item.get("tags") and "report" in item["tags"]:
+            parent_id = alias_tree.parent(selected[0])
+            if parent_id:
+                alias_tree.selection_set(parent_id)
+        export_alias_csv()
+
     delete_btn = ttk.Button(button_row, text=app._t("delete"), command=on_delete)
     delete_btn.pack(side="right", padx=5)
 
     edit_btn = ttk.Button(button_row, text=app._t("configuration_ai_tags_edit"), command=on_edit)
     edit_btn.pack(side="right", padx=5)
+
+    export_btn = ttk.Button(button_row, text=app._t("history_export_csv"), command=on_export_csv)
+    export_btn.pack(side="left", padx=5)
 
     # Data loading
     def refresh_aliases():
@@ -499,6 +498,9 @@ def show_history_screen(app: Application) -> None:
                 e.custom_fields,
                 e.flows,
                 e.apex_classes_triggers,
+                e.apex_triggers,
+                e.apex_test_classes,
+                e.apex_business_classes,
                 e.lwc_count,
                 e.aura_count,
                 e.omni_components,

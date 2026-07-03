@@ -41,6 +41,9 @@ class HistoryEntry:
     adapt_low_count: int = 0
     adapt_high_count: int = 0
     apex_classes_triggers: int = 0
+    apex_triggers: int = 0
+    apex_test_classes: int = 0
+    apex_business_classes: int = 0
     omni_components: int = 0
     agents: int = 0
     gen_ai_prompts: int = 0
@@ -124,6 +127,9 @@ class HistoryService:
                     adapt_low_count INTEGER,
                     adapt_high_count INTEGER,
                     apex_classes_triggers INTEGER,
+                    apex_triggers INTEGER DEFAULT 0,
+                    apex_test_classes INTEGER DEFAULT 0,
+                    apex_business_classes INTEGER DEFAULT 0,
                     omni_components INTEGER,
                     agents INTEGER,
                     gen_ai_prompts INTEGER,
@@ -183,6 +189,9 @@ class HistoryService:
                 ("duplicate_rules", "INTEGER DEFAULT 0"),
                 ("lwc_count", "INTEGER DEFAULT 0"),
                 ("aura_count", "INTEGER DEFAULT 0"),
+                ("apex_triggers", "INTEGER DEFAULT 0"),
+                ("apex_test_classes", "INTEGER DEFAULT 0"),
+                ("apex_business_classes", "INTEGER DEFAULT 0"),
                 ("comment", "TEXT DEFAULT ''"),
             ]
             for col_name, col_type in new_cols:
@@ -223,12 +232,12 @@ class HistoryService:
                     flows, record_types, validation_rules, page_layouts, custom_tabs, custom_apps,
                     total_custom_components, total_standard_components,
                     adopt_ootb_count, adopt_decl_count, adapt_low_count, adapt_high_count,
-                    apex_classes_triggers,
+                    apex_classes_triggers, apex_triggers, apex_test_classes, apex_business_classes,
                     omni_components, agents, gen_ai_prompts, einstein_predictions, sharing_rules, duplicate_rules, lwc_count, aura_count, findings_total, findings_critical,
                     findings_major, findings_minor, findings_info,
                     ai_usage_pct, data_model_custom_pct, data_model_standard_pct,
                     adoption_pct, adaptation_pct, test_coverage, test_coverage_apex, test_coverage_flows, timestamp, generation_number, comment
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.alias, entry.source_dir, entry.output_dir, entry.score,
                 entry.score_no_code, entry.score_low_code, entry.score_pro_code,
@@ -239,7 +248,7 @@ class HistoryService:
                 entry.flows, entry.record_types, entry.validation_rules, entry.page_layouts, entry.custom_tabs, entry.custom_apps,
                 entry.total_custom_components, entry.total_standard_components,
                 entry.adopt_ootb_count, entry.adopt_decl_count, entry.adapt_low_count, entry.adapt_high_count,
-                entry.apex_classes_triggers, entry.omni_components,
+                entry.apex_classes_triggers, entry.apex_triggers, entry.apex_test_classes, entry.apex_business_classes, entry.omni_components,
                 entry.agents, entry.gen_ai_prompts, entry.einstein_predictions, entry.sharing_rules, entry.duplicate_rules, entry.lwc_count, entry.aura_count,
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
@@ -340,7 +349,7 @@ class HistoryService:
                     flows = ?, record_types = ?, validation_rules = ?, page_layouts = ?, custom_tabs = ?, custom_apps = ?,
                     total_custom_components = ?, total_standard_components = ?,
                     adopt_ootb_count = ?, adopt_decl_count = ?, adapt_low_count = ?, adapt_high_count = ?,
-                    apex_classes_triggers = ?, omni_components = ?,
+                    apex_classes_triggers = ?, apex_triggers = ?, apex_test_classes = ?, apex_business_classes = ?, omni_components = ?,
                     agents = ?, gen_ai_prompts = ?, einstein_predictions = ?, sharing_rules = ?, duplicate_rules = ?, lwc_count = ?, aura_count = ?,
                     findings_total = ?, findings_critical = ?, findings_major = ?,
                     findings_minor = ?, findings_info = ?, ai_usage_pct = ?,
@@ -358,7 +367,7 @@ class HistoryService:
                 entry.flows, entry.record_types, entry.validation_rules, entry.page_layouts, entry.custom_tabs, entry.custom_apps,
                 entry.total_custom_components, entry.total_standard_components,
                 entry.adopt_ootb_count, entry.adopt_decl_count, entry.adapt_low_count, entry.adapt_high_count,
-                entry.apex_classes_triggers, entry.omni_components,
+                entry.apex_classes_triggers, entry.apex_triggers, entry.apex_test_classes, entry.apex_business_classes, entry.omni_components,
                 entry.agents, entry.gen_ai_prompts, entry.einstein_predictions, entry.sharing_rules, entry.duplicate_rules, entry.lwc_count, entry.aura_count,
                 entry.findings_total, entry.findings_critical, entry.findings_major,
                 entry.findings_minor, entry.findings_info, entry.ai_usage_pct,
@@ -413,6 +422,9 @@ class HistoryService:
             adapt_low_count=get_val("adapt_low_count"),
             adapt_high_count=get_val("adapt_high_count"),
             apex_classes_triggers=get_val("apex_classes_triggers"),
+            apex_triggers=get_val("apex_triggers"),
+            apex_test_classes=get_val("apex_test_classes"),
+            apex_business_classes=get_val("apex_business_classes"),
             omni_components=get_val("omni_components"),
             agents=get_val("agents"),
             gen_ai_prompts=get_val("gen_ai_prompts"),

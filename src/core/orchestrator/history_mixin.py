@@ -56,6 +56,17 @@ class _HistoryMixin(_OrchestratorState):
             service = HistoryService(db_path)
 
             metrics = snapshot.metrics
+            apex_triggers = sum(
+                1 for a in snapshot.apex_artifacts if a.kind == "trigger"
+            )
+            apex_test_classes = sum(
+                1 for a in snapshot.apex_artifacts
+                if a.kind == "class" and a.is_test
+            )
+            apex_business_classes = sum(
+                1 for a in snapshot.apex_artifacts
+                if a.kind == "class" and not a.is_test
+            )
             ai_stats = result.ai_usage_stats
             dm_stats = result.data_model_stats
             adoption_stats = result.adoption_stats
@@ -110,6 +121,9 @@ class _HistoryMixin(_OrchestratorState):
                 adapt_low_count=adoption_stats.adapt_low_count if adoption_stats else 0,
                 adapt_high_count=adoption_stats.adapt_high_count if adoption_stats else 0,
                 apex_classes_triggers=metrics.apex_classes + metrics.apex_triggers,
+                apex_triggers=apex_triggers,
+                apex_test_classes=apex_test_classes,
+                apex_business_classes=apex_business_classes,
                 omni_components=(
                     metrics.omni_scripts +
                     metrics.omni_integration_procedures +
