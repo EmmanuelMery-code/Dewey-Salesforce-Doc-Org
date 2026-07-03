@@ -85,6 +85,8 @@ def render_index(
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
     alias: str = "",
+    comparison_page: Path | None = None,
+    comparison_regressions: int | None = None,
 ) -> str:
     metrics = snapshot.metrics
     visibility = card_visibility or IndexCardVisibility()
@@ -469,6 +471,26 @@ def render_index(
         ia_admin_card=ai_usage_card,
     )
 
+    comparison_banner = ""
+    if comparison_page is not None:
+        cmp_rel = href_relative(current_path, comparison_page)
+        if comparison_regressions and comparison_regressions > 0:
+            border, bg, fg = "#d1242f", "#ffebe9", "#d1242f"
+            status_txt = f"\u26a0 {comparison_regressions} régression(s) détectée(s)"
+        else:
+            border, bg, fg = "#1a7f37", "#dafbe1", "#1a7f37"
+            status_txt = "\u2713 Aucune régression détectée"
+        comparison_banner = (
+            f'<div style="border-left:6px solid {border}; background:{bg}; '
+            f'padding:12px 16px; border-radius:6px; margin:12px 0; display:flex; '
+            f'align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">'
+            f'<span><b>Comparaison avec la génération précédente</b> — '
+            f'<span style="color:{fg}; font-weight:600;">{status_txt}</span></span>'
+            f'<a href="{cmp_rel}" style="color:{fg}; font-weight:600; text-decoration:none;">'
+            f'Voir la comparaison détaillée \u2192</a>'
+            f'</div>\n'
+        )
+
     title_suffix = f" : {html_value(alias)}" if alias else ""
     source_rel = href_relative(current_path, snapshot.source_dir)
     output_rel = href_relative(current_path, root_dir)
@@ -476,6 +498,7 @@ def render_index(
 <h1>Documentation Salesforce{title_suffix} ({date.today().isoformat()})</h1>
 <p>Source analysee: <code>{html_value(source_rel)}</code></p>
 <p>Dossier de sortie: <code>{html_value(output_rel)}</code></p>
+{comparison_banner}
 {summary_tabs}
 {tabs}
 """
@@ -513,6 +536,8 @@ def write_index(
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
     alias: str = "",
+    comparison_page: Path | None = None,
+    comparison_regressions: int | None = None,
 ) -> Path:
     path = output_dir / "index.html"
     write_text(
@@ -547,6 +572,8 @@ def write_index(
             card_visibility=card_visibility,
             root_output_dir=root_output_dir,
             alias=alias,
+            comparison_page=comparison_page,
+            comparison_regressions=comparison_regressions,
         ),
     )
     log(f"Index genere: {path}")

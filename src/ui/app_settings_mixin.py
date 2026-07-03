@@ -121,6 +121,8 @@ class AppSettingsMixin:
             "posture_adopt_adapt": serialize_posture_config(self.posture_config),
             "run_tests": bool(self.run_tests_var.get()),
             "calculate_coverage": bool(self.calculate_coverage_var.get()),
+            "include_comparison": bool(self.include_comparison_var.get()),
+            "comparison_target": self.comparison_target_var.get().strip() or "auto",
             "dd_html": self.settings.get("dd_html", True),
             "dd_word": self.settings.get("dd_word", True),
             "dd_excel": self.settings.get("dd_excel", True),

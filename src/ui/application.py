@@ -328,6 +328,12 @@ class Application(
         self.calculate_coverage_var = tk.BooleanVar(
             value=bool(self.settings.get("calculate_coverage", True))
         )
+        self.include_comparison_var = tk.BooleanVar(
+            value=bool(self.settings.get("include_comparison", False))
+        )
+        self.comparison_target_var = tk.StringVar(
+            value=str(self.settings.get("comparison_target", "auto") or "auto")
+        )
 
         # Index card visibility flags
         icv = parse_index_card_visibility(self.settings)

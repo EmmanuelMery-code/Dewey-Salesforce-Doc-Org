@@ -374,6 +374,8 @@ class HtmlReportWriter:
         findings_report_page: Path | None = None,
         card_visibility: IndexCardVisibility | None = None,
         alias: str = "",
+        comparison_page: Path | None = None,
+        comparison_regressions: int | None = None,
     ) -> Path:
         return index_renderer.write_index(
             snapshot,
@@ -405,4 +407,6 @@ class HtmlReportWriter:
             card_visibility=card_visibility,
             root_output_dir=self.root_output_dir,
             alias=alias,
+            comparison_page=comparison_page,
+            comparison_regressions=comparison_regressions,
         )

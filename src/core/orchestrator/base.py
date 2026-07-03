@@ -56,3 +56,5 @@ class _OrchestratorState:
     language: str
     log: LogCallback
     alias: str
+    include_comparison: bool
+    comparison_target: str

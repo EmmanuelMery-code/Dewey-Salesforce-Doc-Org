@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from pathlib import Path
 from tkinter import scrolledtext, ttk
 from typing import TYPE_CHECKING
 
@@ -15,6 +16,34 @@ from src.ui.config_window.widgets import (
 
 if TYPE_CHECKING:
     from src.ui.application import Application
+
+
+def _comparison_target_choices(app: Application) -> tuple[list[str], str]:
+    """Build the combo values for the comparison target and the current label.
+
+    Returns ``(values, selected_label)`` where ``values`` starts with the
+    "automatic previous generation" option followed by every existing
+    generation of the current alias.
+    """
+    auto_label = app._t("comparison_target_auto")
+    values = [auto_label]
+    selected = auto_label
+    canonical = (app.comparison_target_var.get() or "auto").strip()
+    try:
+        from src.core.history_service import HistoryService
+
+        alias = (app.alias_var.get() or "").strip()
+        if alias:
+            service = HistoryService(app.app_dir / "history.db")
+            for entry in service.list_entries_for_alias(alias):
+                src_name = Path(entry.source_dir).parent.name or entry.source_dir
+                label = f"#{entry.generation_number} \u2014 {entry.timestamp} \u2014 {src_name}"
+                values.append(label)
+                if canonical != "auto" and str(entry.generation_number) == canonical:
+                    selected = label
+    except Exception:
+        pass
+    return values, selected
 
 
 def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
@@ -91,6 +120,24 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
         text=app._t("configuration_generate_audit_summary_rtf"),
         variable=edit_vars["generate_audit_summary_rtf"],
     ).pack(anchor="w", pady=(2, 2))
+
+    comparison = ttk.LabelFrame(
+        parent, text=app._t("configuration_section_comparison"), padding=10
+    )
+    comparison.pack(fill="x", pady=(0, 8))
+    ttk.Checkbutton(
+        comparison,
+        text=app._t("configuration_include_comparison"),
+        variable=edit_vars["include_comparison"],
+    ).pack(anchor="w", pady=(2, 4))
+    cmp_values, cmp_selected = _comparison_target_choices(app)
+    edit_vars["comparison_target"].set(cmp_selected)
+    config_combo_row(
+        comparison,
+        app._t("configuration_comparison_target"),
+        edit_vars["comparison_target"],
+        cmp_values,
+    )
 
     tests = ttk.LabelFrame(parent, text=app._t("configuration_section_tests"), padding=10)
     tests.pack(fill="x", pady=(0, 8))

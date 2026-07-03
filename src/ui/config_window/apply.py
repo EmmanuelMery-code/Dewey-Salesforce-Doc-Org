@@ -18,6 +18,19 @@ if TYPE_CHECKING:
     from src.ui.application import Application
 
 
+def _canonical_comparison_target(display: str) -> str:
+    """Convert a combo display string to a stored value ("auto" or a number).
+
+    Accepts both display labels ("#16 — 2026-... — retrieve") and already
+    canonical values ("auto", "16").
+    """
+    text = (display or "").strip()
+    if text.startswith("#"):
+        text = text[1:]
+    token = text.split()[0] if text.split() else ""
+    return token if token.isdigit() else "auto"
+
+
 def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variable], window: tk.Toplevel) -> None:
     new_language = app._language_code_from_display(edit_vars["language"].get())
     language_changed = new_language != app.language
@@ -77,6 +90,10 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     )
     app.run_tests_var.set(bool(edit_vars["run_tests"].get()))
     app.calculate_coverage_var.set(bool(edit_vars["calculate_coverage"].get()))
+    app.include_comparison_var.set(bool(edit_vars["include_comparison"].get()))
+    app.comparison_target_var.set(
+        _canonical_comparison_target(edit_vars["comparison_target"].get())
+    )
     app.show_card_customization_level_var.set(
         bool(edit_vars["show_card_customization_level"].get())
     )
