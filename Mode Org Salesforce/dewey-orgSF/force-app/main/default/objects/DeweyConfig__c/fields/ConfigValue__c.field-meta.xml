@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ConfigValue__c</fullName>
+    <label>Config Value</label>
+    <type>Text</type>
+    <length>255</length>
+    <required>true</required>
+    <description>Value for this configuration key. Always stored as text; cast to the appropriate type in Python.</description>
+</CustomField>

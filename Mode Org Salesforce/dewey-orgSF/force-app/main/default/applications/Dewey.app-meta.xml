@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <defaultLandingTab>DeweyAnalysis__c</defaultLandingTab>
+    <description>Dewey — Salesforce Org Assessment Tool. View analysis runs, findings, rules and exclusions.</description>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <label>Dewey — Org Assessment</label>
+    <navType>Standard</navType>
+    <tabs>standard-home</tabs>
+    <tabs>DeweyAnalysis__c</tabs>
+    <tabs>DeweyFinding__c</tabs>
+    <tabs>DeweyRule__c</tabs>
+    <tabs>DeweyExclusion__c</tabs>
+    <tabs>DeweyConfig__c</tabs>
+    <tabs>standard-Report</tabs>
+    <tabs>standard-Dashboard</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

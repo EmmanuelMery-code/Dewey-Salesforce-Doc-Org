@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>DeweyFinding__c</fullName>
+    <label>Dewey Finding</label>
+    <type>Lookup</type>
+    <referenceTo>DeweyFinding__c</referenceTo>
+    <relationshipLabel>Analysis Links</relationshipLabel>
+    <relationshipName>AnalysisLinks</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The unique finding record linked to this analysis run.</description>
+</CustomField>

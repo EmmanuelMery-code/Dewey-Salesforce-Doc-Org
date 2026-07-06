@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>IsNewInRun__c</fullName>
+    <label>New in This Run</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>True if this finding was first discovered in this specific analysis run (did not exist in any previous run for this org).</description>
+</CustomField>

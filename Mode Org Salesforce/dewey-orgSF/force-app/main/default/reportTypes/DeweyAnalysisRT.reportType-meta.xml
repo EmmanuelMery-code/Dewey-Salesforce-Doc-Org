@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReportType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <baseObject>DeweyAnalysis__c</baseObject>
+    <category>other</category>
+    <deployed>true</deployed>
+    <description>Org analysis runs from Dewey assessments.</description>
+    <label>Dewey Analysis Report</label>
+    <sections>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Name</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>OrgAlias__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>AnalysisDate__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>ScoreGlobal__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>FindingCritical__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>FindingTotal__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Status__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <masterLabel>Analysis Information</masterLabel>
+    </sections>
+</ReportType>

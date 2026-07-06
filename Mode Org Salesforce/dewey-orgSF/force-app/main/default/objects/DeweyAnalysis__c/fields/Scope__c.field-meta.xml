@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Scope__c</fullName>
+    <label>Scope</label>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>all</fullName>
+                <default>true</default>
+                <label>All</label>
+            </value>
+            <value>
+                <fullName>apex</fullName>
+                <default>false</default>
+                <label>Apex only</label>
+            </value>
+            <value>
+                <fullName>flows</fullName>
+                <default>false</default>
+                <label>Flows only</label>
+            </value>
+            <value>
+                <fullName>security</fullName>
+                <default>false</default>
+                <label>Security only</label>
+            </value>
+            <value>
+                <fullName>omni</fullName>
+                <default>false</default>
+                <label>OmniStudio only</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>WellArchitectedRef__c</fullName>
+    <label>Well-Architected Reference</label>
+    <type>Url</type>
+    <description>Link to the relevant Salesforce Well-Architected Framework section.</description>
+</CustomField>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>RuleId__c</fullName>
+    <label>Rule ID</label>
+    <type>Text</type>
+    <length>50</length>
+    <required>true</required>
+    <unique>true</unique>
+    <externalId>true</externalId>
+    <caseSensitive>false</caseSensitive>
+    <description>Unique rule identifier. Format: CATEGORY-SUBCATEGORY-NNN (ex: APEX-SEC-001). Used as join key with analyzer output.</description>
+</CustomField>

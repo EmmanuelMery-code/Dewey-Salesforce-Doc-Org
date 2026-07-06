@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Read-only access to all Dewey org assessment objects and fields. Assign to architects and stakeholders who review analysis results without running assessments.</description>
+    <label>Dewey Reader</label>
+    <hasActivationRequired>false</hasActivationRequired>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         OBJECT PERMISSIONS — read-only on all Dewey objects
+         OWD = Public Read-Only : viewAllRecords not strictly required
+         but added for explicit clarity and future-proofing.
+    ═══════════════════════════════════════════════════════════ -->
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyRule__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyConfig__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyExclusion__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyAnalysis__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyFinding__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyAnalysisFinding__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>DeweyPosture__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyRule__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.Severity__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.Category__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.Subcategory__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.IsEnabled__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.Source__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.PmdRuleRef__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.Message__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.Remediation__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyRule__c.WellArchitectedRef__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyConfig__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyConfig__c.Description__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyExclusion__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyExclusion__c.Reason__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyExclusion__c.ExpiryDate__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — OrgAnalysis__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.Project__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.Source__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.SourceBranch__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.Scope__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.ScoreGlobal__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.ScoreAdopt__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.ScoreAdapt__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.ApexCount__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.FlowCount__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.LwcCount__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.FindingCritical__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.FindingMajor__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.FindingMinor__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.FindingInfo__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.FindingTotal__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.Status__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.ErrorMessage__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyFinding__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.Severity__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.ComponentType__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.ComponentName__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.FilePath__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.LineNumber__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.Message__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.Remediation__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.Status__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.FirstSeenDate__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyFinding__c.DeweyAnalysis__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyAnalysisFinding__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysisFinding__c.DeweyFinding__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysisFinding__c.IsNewInRun__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysisFinding__c.IsDisparuInRun__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyAnalysis__c delta fields
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.PreviousAnalysis__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.ScoreDelta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.NewFindings__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.DisparuFindings__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.CriticalDelta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.MajorDelta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FIELD PERMISSIONS — DeweyPosture__c
+    ═══════════════════════════════════════════════════════════ -->
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.DeweyAnalysis__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.ComponentType__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.ComponentName__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.CapabilityId__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.CapabilityLabel__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.Level__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.Weight__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.Evidence__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.PreviousLevel__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyPosture__c.LevelChange__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TAB VISIBILITY
+    ═══════════════════════════════════════════════════════════ -->
+    <tabSettings>
+        <tab>DeweyAnalysis__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>DeweyFinding__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>DeweyPosture__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>DeweyRule__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>DeweyExclusion__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>DeweyConfig__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         APP VISIBILITY
+    ═══════════════════════════════════════════════════════════ -->
+    <applicationVisibilities>
+        <application>Dewey</application>
+        <visible>true</visible>
+    </applicationVisibilities>
+</PermissionSet>

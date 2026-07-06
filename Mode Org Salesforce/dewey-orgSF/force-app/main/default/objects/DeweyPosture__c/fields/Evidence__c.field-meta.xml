@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Evidence__c</fullName>
+    <label>Evidence</label>
+    <type>LongTextArea</type>
+    <length>32768</length>
+    <visibleLines>5</visibleLines>
+    <required>false</required>
+    <description>Audit trail explaining why this level was assigned (e.g. "15 custom objects", "3 Apex triggers detected").</description>
+</CustomField>
