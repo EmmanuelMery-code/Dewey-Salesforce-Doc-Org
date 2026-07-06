@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ConfigKey__c</fullName>
+    <label>Config Key</label>
+    <type>Text</type>
+    <length>100</length>
+    <required>true</required>
+    <unique>true</unique>
+    <externalId>true</externalId>
+    <caseSensitive>false</caseSensitive>
+    <description>Unique configuration key. Used as join key by sf_config_service. Format: snake_case (e.g. threshold_apex_complexity).</description>
+</CustomField>

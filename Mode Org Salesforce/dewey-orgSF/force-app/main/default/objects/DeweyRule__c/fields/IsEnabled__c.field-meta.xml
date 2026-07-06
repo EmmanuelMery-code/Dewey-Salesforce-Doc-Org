@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>IsEnabled__c</fullName>
+    <label>Enabled</label>
+    <type>Checkbox</type>
+    <defaultValue>true</defaultValue>
+    <description>When unchecked, this rule is skipped during analysis without requiring a deployment.</description>
+</CustomField>

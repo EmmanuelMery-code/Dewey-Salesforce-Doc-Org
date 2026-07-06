@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Dewey Exclusion</label>
+    <pluralLabel>Dewey Exclusions</pluralLabel>
+    <nameField>
+        <displayFormat>EXC-{0000}</displayFormat>
+        <label>Exclusion</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+    <description>Per-component rule exclusions. A matching exclusion suppresses a finding during analysis.</description>
+</CustomObject>

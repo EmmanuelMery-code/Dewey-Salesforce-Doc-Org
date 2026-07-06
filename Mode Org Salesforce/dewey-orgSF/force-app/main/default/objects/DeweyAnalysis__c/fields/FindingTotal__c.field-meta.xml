@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>FindingTotal__c</fullName>
+    <label>Total Findings</label>
+    <type>Number</type>
+    <formula>FindingCritical__c + FindingMajor__c + FindingMinor__c + FindingInfo__c</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <precision>8</precision>
+    <scale>0</scale>
+</CustomField>

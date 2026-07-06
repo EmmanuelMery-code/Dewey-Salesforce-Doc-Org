@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>DeweyAnalysis__c</fullName>
+    <label>Dewey Analysis</label>
+    <type>MasterDetail</type>
+    <referenceTo>DeweyAnalysis__c</referenceTo>
+    <relationshipLabel>Analysis Findings</relationshipLabel>
+    <relationshipName>AnalysisFindings</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+    <description>The analysis run in which this finding was detected.</description>
+</CustomField>
