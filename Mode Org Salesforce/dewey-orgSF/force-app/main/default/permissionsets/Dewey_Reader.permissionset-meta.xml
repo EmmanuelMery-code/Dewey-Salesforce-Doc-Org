@@ -392,6 +392,10 @@
         <viewAllFields>false</viewAllFields>
         <viewAllRecords>true</viewAllRecords>
     </objectPermissions>
+    <recordTypeVisibilities>
+        <recordType>DeweyPosture__c.Standard</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
     <tabSettings>
         <tab>DeweyAnalysis__c</tab>
         <visibility>Visible</visibility>

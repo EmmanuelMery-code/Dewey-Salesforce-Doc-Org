@@ -3,7 +3,7 @@
     <fullName>DisparuFindings__c</fullName>
     <description>Number of findings that were active (Découvert or Pris en charge) in a previous run but not detected in this run. Marked Disparu and tracked via IsDisparuInRun__c junction. Null on first run.</description>
     <externalId>false</externalId>
-    <label>Disparu Findings</label>
+    <label>Disappear</label>
     <precision>8</precision>
     <required>false</required>
     <scale>0</scale>

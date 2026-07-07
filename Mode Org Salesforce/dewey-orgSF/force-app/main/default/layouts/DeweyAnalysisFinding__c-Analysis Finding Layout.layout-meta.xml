@@ -18,6 +18,10 @@
                 <behavior>Edit</behavior>
                 <field>IsDisparuInRun__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>Component__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

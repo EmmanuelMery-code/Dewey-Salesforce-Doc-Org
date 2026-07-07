@@ -1,0 +1,2573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>2e50b06e-f74c-4635-b08c-a8d0d0babd7b</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-a7d3d145-b166-4308-958b-0d87345d7968</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;header&quot;&gt;
+&lt;div class=&quot;headerimage&quot;&gt;
+    &lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/exercices.png&quot; alt=&quot;Exercices&quot; &gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;headertext&quot;&gt;
+        &lt;h1&gt;Exercices en autonomie &lt;/h1&gt;
+         &lt;h3&gt;&lt;a href=&quot;#cachierdexercices&quot;&gt; Prérequis &lt;/a&gt;
+        &lt;h3&gt;&lt;a href=&quot;#exo1&quot;&gt; Exercice 1  &lt;/a&gt;
+        &lt;br&gt;&lt;a href=&quot;#exo2&quot;&gt; Exercice 2&lt;/a&gt;
+        &lt;br&gt;&lt;a href=&quot;#exo3&quot;&gt; Exercice 3 &lt;/a&gt;
+        &lt;br&gt;&lt;a href=&quot;#articleslies&quot;&gt; Articles liés &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;cahierdexercices&quot;/&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+    Prérequis
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>2e50b06e-f74c-4635-b08c-a8d0d0babd7b</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>33914a90-3f27-4fa8-8833-fb24bab7e887</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>7d768ff0-0597-4704-84f9-3f4c78d1144e</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>94096</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>6e0878cc-0bee-4edd-9096-ffb9a8f75ac5</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>2c247</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab4</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-8dfe8c8e-6374-45e8-ac0f-99823caed2ce</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;img width=70% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/persocolette.png&quot; alt=&quot;colette&quot;&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>33914a90-3f27-4fa8-8833-fb24bab7e887</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;Ce qui va changer&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;Les règles &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt; &lt;br&gt;
+&lt;div&gt; Bonjour, c’est encore moi, Colette ! 
+    
+J&apos;ai 30 ans, et je suis Architecte.
+Aujourd’hui, je vous propose des exercices pour vous entrainer sur xRM :  &lt;br&gt;
+      &lt;br&gt; &lt;ol&gt; &lt;li&gt; Je recherche de l’information sur xRM (30mn)&lt;/li&gt; &lt;br&gt;
+        &lt;li&gt; J&apos;initie une démarche commerciale avec des clients (30mn) &lt;/li&gt;&lt;br&gt;
+        &lt;li&gt; Je crée un prospect et initie une démarche commerciale (30mn) &lt;/li&gt;&lt;br&gt;
+    &lt;/ol&gt;
+    &lt;strong&gt;Nous repasserons ensemble ces exercices lors de votre session &quot;Pratiquer&quot;.&lt;/strong&gt;
+    &lt;/div&gt;&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock4</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>7d768ff0-0597-4704-84f9-3f4c78d1144e</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/eclair.png&quot; alt=&quot;Ce qui va changer&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt; Connectez-vous à l&apos;environnement de formation &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt; 
+      &lt;br&gt; &lt;ol&gt; &lt;li&gt; Ouvrez ce lien : &lt;a href=&quot; https://digitalm--pprd401.my.salesforce.com/&quot; target=&quot;_blank&quot;&gt; &lt;span class=&quot;bluebold&quot; &gt;  https://digitalm--pprd401.my.salesforce.com&lt;/span&gt; &lt;/a&gt; &lt;/li&gt; &lt;br&gt;  
+        &lt;li&gt; Cliquez sur le bouton &lt;img width=40% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/SSOrelay.jpg&quot; alt=&quot;SSO relay&quot;&gt; &lt;/li&gt;&lt;br&gt;
+        &lt;li&gt; Puis sur&lt;img width=40% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/SSOprod.jpg&quot; alt=&quot;SSO prod&quot; &gt; &lt;/li&gt;
+ 
+    &lt;/ol&gt;&lt;/div&gt;&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock5</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/ampoule.png&quot; alt=&quot;ampoule&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;A noter &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt; &lt;br&gt;
+    Pour vous aider dans ces exercices : &lt;br&gt; 
+   &lt;br&gt; &lt;li&gt; Guide pas à pas   &lt;img width=8% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/iconelemon.png&quot; alt=&quot;lemon&quot;/&gt; &lt;/li&gt;
+    &lt;li&gt; Vidéos de vos cas d&apos;usage   &lt;img width=8% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/iconecamera.PNG&quot; alt=&quot;camera&quot;/&gt; &lt;/li&gt; 
+&lt;/div&gt;&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock6</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>6e0878cc-0bee-4edd-9096-ffb9a8f75ac5</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>adc625fe-df4d-4ea8-b541-222619eb7474</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab5</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-bce3500b-208a-409a-991d-e627efc2758d</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;Ce qui va changer&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt; Pensez à fermer le volet de gauche avant de commencer les exercices &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt; &lt;br&gt;
+   &lt;center&gt; &lt;img width=70% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/FORMATION/giffermerfenetre.gif&quot; ALT= &quot;fermer fenêtre&quot;&gt; &lt;/center&gt; 
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock7</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>adc625fe-df4d-4ea8-b541-222619eb7474</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>bd728ab6-52b4-4d34-8526-da328414d303</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab6</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-b2ccfc44-dacd-4b9d-942d-d0927e7296e7</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;concept&quot;/&gt;&lt;div class=&quot;bandeausoustitre&quot;&gt;
+   Tout d’abord : Se (re)familiariser avec xRM
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock8</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=3% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Prendre en main xRM &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock9</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>bd728ab6-52b4-4d34-8526-da328414d303</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>f43eb283-9920-495a-af49-71e4503d6dda</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab7</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>6207ff8b-a504-4327-addb-cd168f0e749e</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>cef6e</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab8</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-dc3eaaf9-801f-4974-9a49-8a673094f2d0</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;Ce qui va changer&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;Guide pas à pas  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt; &lt;br&gt;
+&lt;div&gt; 
+    Effectuez ces &lt;span class=&quot;bluebold&quot;&gt; guides pas-à-pas &lt;/span&gt;, pour découvrir :  &lt;br&gt;
+      &lt;br&gt;  &lt;li&gt; &lt;span class=&quot;bluebold&quot;&gt;Guide 5 &lt;/span&gt;: la fiche Compte&lt;/li&gt; &lt;br&gt;
+        &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt; Guide 13 &lt;/span&gt;: votre page d’accueil &lt;/li&gt;&lt;br&gt;
+        &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt; Guide 2 &lt;/span&gt;: la navigation et la recherche d’informations sur xRM &lt;/li&gt;&lt;br&gt;
+    &lt;/div&gt;&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock10</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>f43eb283-9920-495a-af49-71e4503d6dda</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/eclair.png&quot; alt=&quot;Ce qui va changer&quot;/&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt; Ouvrir un Guide  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt; 
+      &lt;br&gt; &lt;ol&gt; &lt;li&gt; Cliquez sur le citron en bas à droite de l&apos;écran &lt;img width=5% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/iconelemon.png&quot; alt=&quot;lemon&quot;/&gt; &lt;br&gt;  &lt;/li&gt; 
+    &lt;br&gt;&lt;li&gt; Cliquez sur &quot;Connexion&quot;, une page s&apos;ouvre et se referme automatiquement &lt;/li&gt;
+        &lt;li&gt; Ouvrez le guide de votre choix et laissez vous guider &lt;img width=30% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/menulemon.png&quot; alt=&quot;lemon&quot;/&gt;&lt;/li&gt;
+    &lt;/ol&gt;&lt;/div&gt;&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock11</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>6207ff8b-a504-4327-addb-cd168f0e749e</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>7d36a09c-7cf9-46fa-8b3c-90d8a7ed1532</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab9</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-1971ea07-1193-4243-a636-aa948e2fe01c</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;exo1&quot;&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+    Exercice 1 : Je recherche de l’information sur xRM - 30mn
+    &lt;/div&gt;&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock12</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>7d36a09c-7cf9-46fa-8b3c-90d8a7ed1532</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>93c96be3-452a-4fbf-b80e-20fc8cc48c0b</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab10</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-a54146a2-c379-4abd-96b7-a041588e5a00</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;exo1&quot;/&gt;&lt;div class=&quot;bandeausoustitre&quot;&gt;
+ Je recherche de l&apos;information 1/3 : 10mn
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock13</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=3% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Rechercher de l&apos;information sur une fiche compte d&apos;une PP &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock14</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>93c96be3-452a-4fbf-b80e-20fc8cc48c0b</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>0c0fb5d4-d3a4-41cc-b288-515c4a3c0f70</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab11</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>457b7df8-c199-46ab-b3c5-94adb12b27b8</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>cf856</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab12</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-de10505d-dd20-4172-a1c6-7b3b65126f7a</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+      &lt;div class=&quot;question&quot;&gt;
+         
+              &lt;h2&gt;Accédez au compte &quot;Colette Labarre&quot;&lt;/h2&gt;
+    &lt;/div&gt;&lt;br&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;truth&quot; tabindex=&quot;2&quot;&gt;
+            &lt;ol&gt;
+                &lt;li&gt; Anthony Niess&lt;/li&gt;
+                 &lt;li&gt; Personne physique &lt;/li&gt;
+                  &lt;li&gt; Architecte &lt;/li&gt;
+                   &lt;li&gt; 135 000 euros &lt;/li&gt;
+                &lt;li&gt; 1 seule personne &lt;/li&gt;
+                &lt;li&gt; Jacques Tilleul &lt;/li&gt;
+                &lt;li&gt; Lama Architectes &lt;/li&gt; 
+                &lt;li&gt; Tâche d&apos;appel &lt;/li&gt;
+                &lt;/ol&gt; 
+        &lt;br&gt;&lt;br&gt;&lt;div class=&quot;button&quot;&gt; ← Retour
+          &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;div class=&quot;possibilities&quot; tabindex=&quot;1&quot;&gt;
+            &lt;ol&gt;
+              &lt;li&gt;A quel portefeuille appartient ce compte ?&lt;/li&gt;
+                &lt;li&gt;Est-ce une Personne Physique ou une Personne Morale ?&lt;/li&gt;
+                &lt;li&gt;Quelle est la profession de Colette ? &lt;/li&gt;
+                 &lt;li&gt;A combien s’élève son patrimoine financier ?&lt;/li&gt;
+                &lt;li&gt; Combien de personnes font parties de l&apos;équipe du compte ? 
+              &lt;li&gt;Quel est le nom de son Expert-Comptable ?&lt;/li&gt;
+                &lt;li&gt; A quelle personne morale est reliée Colette ? &lt;/li&gt;
+                &lt;li&gt;Y-a-t-il une prochaine activité programmée avec ce Compte ?&lt;/li&gt;
+            &lt;/ol&gt;
+                &lt;br&gt;&lt;div class=&quot;button&quot;&gt; Réponse
+          &lt;/div&gt; 
+          &lt;/div&gt; 
+    &lt;/div&gt;
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock15</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>0c0fb5d4-d3a4-41cc-b288-515c4a3c0f70</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/guide5lemon.PNG&quot; alt=&quot;lemon&quot;/&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock16</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;/xrmformation/s/reseau-parcours/reseau-fiche-compte&quot; target=&quot;_blank&quot; &gt; 
+     Article &lt;u&gt; &lt;strong&gt; Fiche compte en détails &lt;/strong&gt; &lt;/u&gt; 
+      
+    &lt;/a&gt;
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock17</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>457b7df8-c199-46ab-b3c5-94adb12b27b8</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>fa458590-67f0-4a0e-9c7d-fe9763d54a5e</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab13</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-f84cb6ba-81d7-4eec-a318-e02f670781dc</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;img src =&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/Fiche%20compte%201%20sur%202.png&quot; alt=&quot;fichecompte&quot;/&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock18</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>fa458590-67f0-4a0e-9c7d-fe9763d54a5e</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>ad10509e-3dd6-4266-b15a-460dab50d3a0</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab14</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-5d066b90-8b01-4585-b330-298105df7d17</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;exo1&quot;/&gt;&lt;div class=&quot;bandeausoustitre&quot;&gt;
+ Je recherche de l&apos;information 2/3 : 10mn
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock19</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=3% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Rechercher de l&apos;information sur une fiche compte d&apos;une PM &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock20</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>ad10509e-3dd6-4266-b15a-460dab50d3a0</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>44fc1721-d133-465e-bc2b-fd9e9da65921</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab15</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>78c4feac-faab-43c0-a690-cc8b605a6013</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>67f36</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab16</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-45e6b81c-70b8-4556-ba3b-35bb51d5f2e8</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+      &lt;div class=&quot;question&quot;&gt;
+         
+              &lt;h2&gt;Accédez au compte &quot;SASU MADEMOISELLE BILOBA&quot;&lt;/h2&gt;
+    &lt;/div&gt;&lt;br&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;truth&quot; tabindex=&quot;2&quot;&gt;
+            &lt;ol&gt;
+                &lt;li&gt;Personne Morale &lt;/li&gt;
+                 &lt;li&gt; Oui &lt;/li&gt;
+                &lt;li&gt; 104 rue Saint André, 59800 Lille &lt;/li&gt;
+                &lt;li&gt; Formation cosmétique, enseignement culturel&lt;/li&gt;
+                &lt;li&gt; Il y a 6 employés au total &lt;/li&gt;
+                &lt;li&gt; 45 700€ &lt;/li&gt; 
+                &lt;li&gt; Il s&apos;agit de Pauline Deheck et elle est dirigeante &lt;/li&gt; 
+                
+                &lt;/ol&gt; 
+        &lt;br&gt;&lt;br&gt;&lt;div class=&quot;button&quot;&gt; ← Retour
+          &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;div class=&quot;possibilities&quot; tabindex=&quot;1&quot;&gt;
+            &lt;ol&gt;
+              &lt;li&gt; Est-ce une Personne Physique ou une Personne Morale ? &lt;/li&gt;
+              &lt;li&gt;Est-il déjà client ALM ?&lt;/li&gt;
+                &lt;li&gt; Quelle est l&apos;adresse de ce compte  ?&lt;/li&gt;
+                &lt;li&gt;Quelle est l’activité de ce compte ?&lt;/li&gt;
+                &lt;li&gt;Combien y&apos;a t-il d&apos;employés ?&lt;/li&gt;
+                &lt;li&gt; Quel est le chiffre d&apos;affaires annuel ? &lt;/li&gt; 
+                &lt;li&gt; Quelle est la fonction de la Personne Physique associée à ce compte ? &lt;/li&gt; 
+              
+            &lt;/ol&gt;
+                &lt;br&gt;&lt;div class=&quot;button&quot;&gt; Réponse
+          &lt;/div&gt; 
+          &lt;/div&gt; 
+    &lt;/div&gt;
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock21</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>44fc1721-d133-465e-bc2b-fd9e9da65921</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <name>78c4feac-faab-43c0-a690-cc8b605a6013</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>2933836b-af4a-4312-b542-8bea86d7d739</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab17</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-85a3d41d-6ff0-4c0d-845f-239b25af2e6d</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;exo1&quot;/&gt;&lt;div class=&quot;bandeausoustitre&quot;&gt;
+ Je recherche de l&apos;information 3/3 : 10mn
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock22</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>2933836b-af4a-4312-b542-8bea86d7d739</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>78f22411-7153-4eb0-9f11-650cb68a7772</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab18</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>2618c88d-480e-485c-b0af-7b08d985e2a8</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>5ac27</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab19</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-1a5cfd96-d2b7-4d61-965d-d65544113074</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+     &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Retrouvez vos opportunités  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock23</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>78f22411-7153-4eb0-9f11-650cb68a7772</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+     &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Retrouvez les informations liées à vos contrats  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock24</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>2618c88d-480e-485c-b0af-7b08d985e2a8</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>86c86968-5f6b-4351-b0bd-a946521795f8</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab20</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>51777c20-459f-4102-b5ee-64200f327c94</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>02182</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab21</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-f457e922-99c1-45a8-a753-6694074b8e5d</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+      &lt;div class=&quot;question&quot;&gt;
+         
+              &lt;h2&gt;Accédez au compte &quot;Solenn Dugue&quot; &lt;/h2&gt;
+    &lt;/div&gt;&lt;br&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;truth&quot; tabindex=&quot;2&quot;&gt;
+            &lt;ol&gt;
+          &lt;li&gt; Dans l&apos;onglet &quot;Associé&quot; de la fiche compte de Solenn &lt;/li&gt;
+             
+                &lt;li&gt; 3&lt;/li&gt;
+                &lt;li&gt; 01/10/2019 &lt;/li&gt;
+                &lt;li&gt; Retraite sup individuelle &lt;/li&gt;
+                &lt;li&gt; Ouvrez le contrat dans xRM, puis cliquez sur FCW pour avoir plus de détails &lt;/li&gt;
+                
+                &lt;/ol&gt; 
+        &lt;br&gt;&lt;br&gt;&lt;div class=&quot;button&quot;&gt; ← Retour
+          &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;div class=&quot;possibilities&quot; tabindex=&quot;1&quot;&gt;
+            &lt;ol&gt;
+               &lt;li&gt; Comment retrouver les Opportunités liées au compte de Solenn ? &lt;/li&gt;
+              &lt;li&gt;Combien d&apos;Opportunités au total sont présentes sur ce compte ? &lt;/li&gt;
+              &lt;li&gt; Quelle est la date d&apos;effet du contrat RA206096967000?&lt;/li&gt;
+                &lt;li&gt; Quel est le type de produit du contrat RA206096967000 ? &lt;/li&gt;
+                 &lt;li&gt; Comment accéder aux détails du contrat RA206094445000 ? &lt;/li&gt;
+           
+                
+            &lt;/ol&gt;
+                &lt;br&gt;&lt;div class=&quot;button&quot;&gt; Réponse
+          &lt;/div&gt; 
+          &lt;/div&gt; 
+    &lt;/div&gt;
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock25</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>86c86968-5f6b-4351-b0bd-a946521795f8</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;h2&gt;&lt;b&gt;J&apos;ai besoin d&apos;un coup de main&lt;/b&gt;&lt;/h2&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:richTextInline</componentName>
+                <identifier>forceCommunity_richTextInline</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;/xrmformation/s/reseau-parcours/reseau-fiche-compte&quot; target=&quot;_blank&quot; &gt; 
+     Article &lt;u&gt; &lt;strong&gt; Fiche compte en détails &lt;/strong&gt; &lt;/u&gt; 
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock26</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;/xrmformation/s/reseau-parcours/reseau-opportunit&quot; target=&quot;_blank&quot; &gt; 
+     Article &lt;u&gt; &lt;strong&gt; L&apos;opportunité et l&apos;offre commerciale &lt;/strong&gt; &lt;/u&gt; 
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock27</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>51777c20-459f-4102-b5ee-64200f327c94</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>9d640264-4051-47b6-9c78-bef1b0a63374</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab22</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-2e7b5e62-15ba-40de-b11c-fe6d2a4fa872</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;img src =&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/OPP.png&quot; ALT=&quot;fichecompte&quot;/&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock28</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>9d640264-4051-47b6-9c78-bef1b0a63374</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>93fac460-ddb7-47df-acc5-be4369d64614</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab23</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-bf8a5ffb-9f2f-46e1-b258-5f432272ba5e</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;exo2&quot;&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+    Exercice 2 : J&apos;initie une démarche commerciale avec des clients - 30mn 
+&lt;/div&gt;
+&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock29</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>93fac460-ddb7-47df-acc5-be4369d64614</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>5a8bcaeb-b8bb-4bbf-92c3-91c18f7e4f07</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab24</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>1a961109-1d3a-4db8-bb7d-262883e1d6d6</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>155a3</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab25</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>64245a61-a741-4c8b-a9c9-edd03b123916</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>226dc</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab26</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-f49dd8e1-a55b-4338-bc1f-da829851fdd5</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+     &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Comprendre dans quel cas créer une tâche d&apos;appel  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock30</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>5a8bcaeb-b8bb-4bbf-92c3-91c18f7e4f07</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+   &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Comprendre dans quel cas créer une opportunité directement &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock31</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>1a961109-1d3a-4db8-bb7d-262883e1d6d6</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Naviguer sur xRM pour retrouver ses démarches en cours  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock32</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>64245a61-a741-4c8b-a9c9-edd03b123916</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>f20dd792-5148-4306-8c81-0f22395cc982</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab27</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>e5dd8c7a-f10e-4898-8250-1d31c463589c</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>32ded</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab28</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-ac33f6d9-ad4a-421f-b28a-7bf4f00ff7c7</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;&lt;h2&gt;Les étapes à suivre&lt;/h2&gt;
+      &lt;br&gt; &lt;ol&gt; &lt;li&gt; &lt;span class=&quot;bluebold&quot;&gt; Je dois appeler un client pour convenir d&apos;un RDV &lt;/span&gt; 
+        &lt;br&gt; - Je crée une tâche d&apos;appel sur le client de mon choix, en positionnant l&apos;échéance à demain
+        &lt;br&gt; - Je vérifie que ma tâche est bien présente sur la page d&apos;accueil &lt;br&gt; - J&apos;ouvre la tâche depuis la page d&apos;accueil &lt;br&gt; - Je planifie le RDV de découverte &lt;br&gt;   &lt;/li&gt; &lt;br&gt;
+       
+       &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt; Un autre client m&apos;appelle et souhaite me rencontrer demain  &lt;/span&gt; 
+           &lt;br&gt; - Je crée l&apos;opportunité sur le compte du &lt;strong&gt; client de mon choix&lt;/strong&gt;
+           &lt;br&gt; - Je planifie le RDV  &lt;/li&gt;&lt;br&gt;
+    &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Je retrouve mes démarches :&lt;/span&gt; 
+        &lt;br&gt;- Je me rends sur ma &lt;span class=&quot;bluebold&quot;&gt;page d&apos;accueil &lt;/span&gt; : je retrouve les 2 opportunités en cours
+    &lt;br&gt;- Je me rends sur mon &lt;span class=&quot;bluebold&quot;&gt;calendrier &lt;/span&gt;: je retrouve mes RDV  &lt;/li&gt;
+   &lt;/ol&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock33</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>f20dd792-5148-4306-8c81-0f22395cc982</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;h2&gt;&lt;b&gt;J&apos;ai besoin d&apos;un coup de main&lt;/b&gt;&lt;/h2&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:richTextInline</componentName>
+                <identifier>forceCommunity_richTextInline2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;/xrmformation/s/reseau-parcours/reseau-opportunit&quot; target=&quot;_blank&quot; &gt; 
+     Article &lt;u&gt; &lt;strong&gt; L&apos;opportunité et l&apos;offre commerciale &lt;/strong&gt; &lt;/u&gt; 
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock34</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href =&quot;https://youtu.be/dLsnQOz3oJ4&quot; target=&quot;_blank&quot; &gt; 
+     Vidéo Colette &lt;u&gt; &lt;strong&gt; Episode 2 &lt;/strong&gt; &lt;/u&gt; -  Noé programme un RDV avec Colette 
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock35</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+    &lt;a href  =&quot;/xrmformation/s/reseau-parcours/reseau-focus-appui&quot; target=&quot;_blank&quot; &gt; 
+     Article &lt;u&gt; &lt;strong&gt; La collaboration avec les appuis &lt;/strong&gt; &lt;/u&gt; 
+    &lt;/a&gt;
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock36</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;br&gt;&lt;br&gt;
+&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;h4&gt;Astuce :&lt;/h4&gt; 
+    Je peux consulter mes opportunités de façon visuelle depuis la vue kanban : 
+    &lt;br&gt;- Depuis l&apos;object &lt;span class=&quot;bluebold&quot;&gt;&quot;Opportunité&lt;/span&gt;, je sélectionne la vue de liste &quot;1.5 Opportunités DP en cours&quot;
+        &lt;br&gt;- A droite, je passe de l&apos;affichage &quot;tableau&quot; à l&apos;affichage &quot;kanban&quot;
+&lt;center&gt; &lt;img width=85% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/guide10lemon.PNG&quot; alt=&quot;lemon&quot;/&gt;&lt;/center&gt;
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock37</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>e5dd8c7a-f10e-4898-8250-1d31c463589c</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>0e0f2f61-1f2a-459b-b892-60fc11018666</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab29</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-4366e609-842e-4cc7-b720-a1a016316d8e</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;exo3&quot;&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+   Exercice 3 : Je crée un prospect et initie une démarche commerciale - 30mn 
+    &lt;/div&gt;&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock38</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>0e0f2f61-1f2a-459b-b892-60fc11018666</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>70d2969c-408b-4193-851e-c8a1d37194df</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab30</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>00689d06-737f-419a-9a3d-082b3e764fcd</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>31341</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab31</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>84939543-0fdc-412d-8269-9e55a5961cc7</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>c96e7</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab32</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-495ac738-ae54-4cdb-8b4a-f967fa18aca7</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Créer la fiche de mon prospect et l&apos;enrichir &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock39</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>70d2969c-408b-4193-851e-c8a1d37194df</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Créer des liens avec PP, PM ou Partenaire Conseil sur une fiche  &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock40</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>00689d06-737f-419a-9a3d-082b3e764fcd</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+    &lt;img width=6% class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/like.png&quot; ALT=&quot;pouce&quot;/&gt;
+    &lt;h3&gt; &lt;span style=&quot;margin-left:10px&quot;&gt; Initier une offre commerciale &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock41</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>84939543-0fdc-412d-8269-9e55a5961cc7</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>0ab63b8c-9fb9-492c-bebc-2142d41562e6</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab33</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>b0ed63b9-e09a-4d02-a534-6c5a6ab4b258</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>186db</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab34</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-5d522884-48e0-4636-a2db-95232eaa49ec</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;&lt;h2&gt;Les étapes à suivre&lt;/h2&gt;
+&lt;div&gt; 
+      &lt;br&gt; &lt;ol&gt; &lt;li&gt; &lt;span class=&quot;bluebold&quot;&gt; Je crée mon prospect &lt;/span&gt; 
+    &lt;br&gt; - Je le nomme : &lt;strong&gt; « mon prénom » + « nom de mon choix » &lt;/strong&gt;comme nom de famille  
+    &lt;br&gt; - Dans le process de création, je choisis de créer une &lt;strong&gt; tâche d’appel &lt;/strong&gt; &lt;/li&gt; 
+    &lt;br&gt;&lt;li&gt; &lt;span class=&quot;bluebold&quot;&gt; Je traite ma tâche d&apos;appel &lt;/span&gt; 
+    &lt;br&gt; - Il accepte me rencontrer, &lt;strong&gt; je positionne le RDV de Découverte &lt;/strong&gt;  en renseignant l’issue de la tâche d’appel 
+    &lt;br&gt;&lt;i&gt;Une opportunité est créée, portant le RDV&lt;/i&gt;&lt;/li&gt;
+       &lt;br&gt; &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt; J’enrichis l’environnement de mon prospect &lt;i&gt;(pendant le RDV de Découverte)&lt;/i&gt;  &lt;/span&gt; 
+    &lt;br&gt;  A travers &lt;strong&gt; les boutons d’actions &lt;/strong&gt;, je fais les liens avec : 
+    &lt;br&gt; - Son mari 
+    &lt;br&gt; - Son entreprise (prendre un SIRET sur internet) 
+    &lt;br&gt; - Son Expert-Comptable, Chantal&lt;/li&gt;
+       &lt;br&gt; &lt;li&gt; &lt;span class=&quot;bluebold&quot;&gt; Je programme ensuite mon &quot;Entretien de Vente&quot;&lt;/span&gt; :
+    &lt;br&gt; - &lt;strong&gt;Depuis le Calendrier xRM,&lt;/strong&gt; j&apos;ouvre mon RDV de Découverte
+    &lt;br&gt;- Je renseigne l’issue : “Entretien de Vente” et programme une date dans quelques jours
+    &lt;br&gt;&lt;i&gt;→ &lt;strong&gt; Mon RDV “Entretien de Vente” &lt;/strong&gt; est créé au sein de l’Opportunité &lt;/i&gt;&lt;/li&gt;
+       &lt;br&gt; &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt; Pour préparer mon Entretien de vente, &lt;strong&gt; je crée une Offre Commerciale Retraite en démat &lt;/strong&gt;  &lt;/span&gt; 
+    &lt;br&gt;- J&apos;ouvre l’Opportunité et crée une Offre Commerciale
+    &lt;br&gt;- Je visualise le bouton « Appel OAV » (PRISME) &lt;br&gt; → Attention à bien renseigner &lt;strong&gt; l’ensemble des informations nécessaires &lt;/strong&gt; pour pouvoir lancer le parcours PRISME (profession, situation maritale, …) 
+    &lt;br&gt; → Depuis l’environnement de formation xRM, je ne peux pas accéder à l’OAV. Je m’arrête là.  &lt;/li&gt;
+    &lt;/ol&gt;&lt;/div&gt;&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock42</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>0ab63b8c-9fb9-492c-bebc-2142d41562e6</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;h2&gt;J&apos;ai besoin d&apos;un coup de main&lt;/h2&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:richTextInline</componentName>
+                <identifier>forceCommunity_richTextInline3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;/xrmformation/s/reseau-parcours/reseau-parcours-vente-type&quot; target=&quot;_blank&quot; &gt; 
+     Article &lt;u&gt; &lt;strong&gt; Parcours de Vente de bout-en-bout&lt;/strong&gt; &lt;/u&gt;
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock43</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;center&gt; &lt;img width=70% src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/guide6lemon.PNG&quot; alt=&quot;lemon&quot;/&gt; &lt;br&gt; 
+  &lt;br&gt;  &lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+    &lt;a href  =&quot;https://youtu.be/kzdE9biJdgc&quot; target=&quot;_blank&quot; &gt; 
+     Vidéo Colette &lt;u&gt; &lt;strong&gt; Episode 1 &lt;/strong&gt; &lt;/u&gt; - La rencontre de Noé et son prospect Colette      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock44</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;https://youtu.be/Yyb2sij4rWs &quot; target=&quot;_blank&quot; &gt; 
+     Vidéo Colette &lt;u&gt; &lt;strong&gt; Episode 3 &lt;/strong&gt; &lt;/u&gt; - Noé fait la découverte de Colette 	
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock45</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+  
+    &lt;a href  =&quot;https://youtu.be/ln_IlPhG42E&quot; target=&quot;_blank&quot; &gt; 
+     Vidéo Colette &lt;u&gt; &lt;strong&gt; Episode 6 &lt;/strong&gt; &lt;/u&gt; - Noé fait une proposition retraite à Colette 
+      
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock46</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;largebutton&quot; style=width:400px &gt; 
+    &lt;a href  =&quot;https://youtu.be/dLsnQOz3oJ4&quot; target=&quot;_blank&quot; &gt; 
+     Vidéo Colette &lt;u&gt; &lt;strong&gt; Episode 2 &lt;/strong&gt; &lt;/u&gt; -  Noé programme un RDV avec Colette 
+    &lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock47</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>b0ed63b9-e09a-4d02-a534-6c5a6ab4b258</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>eb4bc567-97df-4e8e-89c3-d1a63e6b1211</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab35</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-d138693f-3cd9-492d-a076-ec9d4b7c05ed</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;articleslies&quot;/&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+   Articles liés
+        &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock48</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>eb4bc567-97df-4e8e-89c3-d1a63e6b1211</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>cdbeeb7d-9551-4a0a-b8dc-145f9f9788b2</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab36</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>8a81b48a-7e28-4a96-be07-7426d62b7936</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>b985d</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab37</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>e2a14883-5797-4c13-a82e-b1fa3557fd57</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>026a8</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab38</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-54a2b992-10e3-40a3-8425-4a5bb7a4b437</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a href=&quot;/s/reseau-parcours/reseau-clients-prospects&quot;&gt;
+    &lt;div class=&quot;flexbox&quot;&gt;
+	&lt;div class=&quot;carteimage&quot;&gt;&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/mesclients.png&quot; alt=&quot;Mes clients, mes prospects&quot;&gt;
+    &lt;/div&gt;
+	&lt;div class=&quot;cartetexte&quot;&gt; &lt;h4&gt;Mes clients, mes prospects&lt;/h4&gt;
+    Retrouvez vos clients et prospects suivis ou confiés, dans votre tableau de bord &quot;PTF/Matière&quot;
+        &lt;/div&gt;
+    &lt;/div&gt;&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock49</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>cdbeeb7d-9551-4a0a-b8dc-145f9f9788b2</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a href=&quot;/s/reseau-parcours/reseau-gestion-taches&quot;&gt;
+&lt;div class=&quot;flexbox&quot;&gt;
+	&lt;div class=&quot;carteimage&quot;&gt;&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/gestiondestaches.png&quot; alt=&quot;Gestion taches&quot;&gt;
+    &lt;/div&gt;
+	&lt;div class=&quot;cartetexte&quot;&gt; &lt;h4&gt;Gestion des tâches&lt;/h4&gt;
+Apprenez à gérer votre activité dans xRM
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock50</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>8a81b48a-7e28-4a96-be07-7426d62b7936</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a href=&quot;/s/reseau-parcours/reseau-parcours-vente-type&quot;&gt;
+&lt;div class=&quot;flexbox&quot;&gt;
+	&lt;div class=&quot;carteimageparcours&quot;&gt;
+&lt;img width=&quot;100&quot; height=&quot;100&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/localisation.png&quot; alt=&quot;Parcours type&quot; class=&quot;pageImg&quot;&gt;    
+    &lt;/div&gt;
+	&lt;div class=&quot;cartetexteparcours&quot;&gt;&lt;span class=&quot;white14raleway&quot;&gt;Un parcours de vente type dans xRM&lt;/span&gt;
+        &lt;br&gt;
+       &lt;span class=&quot;white14&quot;&gt; Visualisez ce parcours de bout en bout pour comprendre la logique xRM &lt;/span&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock51</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>e2a14883-5797-4c13-a82e-b1fa3557fd57</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-a7d3d145-b166-4308-958b-0d87345d7968</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;a7d3d145-b166-4308-958b-0d87345d7968&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;2e50b06e-f74c-4635-b08c-a8d0d0babd7b&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-8dfe8c8e-6374-45e8-ac0f-99823caed2ce</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;8dfe8c8e-6374-45e8-ac0f-99823caed2ce&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;33914a90-3f27-4fa8-8833-fb24bab7e887&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;2&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;7d768ff0-0597-4704-84f9-3f4c78d1144e&quot;,&quot;columnKey&quot;:&quot;94096&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;6e0878cc-0bee-4edd-9096-ffb9a8f75ac5&quot;,&quot;columnKey&quot;:&quot;2c247&quot;,&quot;columnName&quot;:&quot;Column 3&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-bce3500b-208a-409a-991d-e627efc2758d</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;bce3500b-208a-409a-991d-e627efc2758d&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;adc625fe-df4d-4ea8-b541-222619eb7474&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-b2ccfc44-dacd-4b9d-942d-d0927e7296e7</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;b2ccfc44-dacd-4b9d-942d-d0927e7296e7&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;bd728ab6-52b4-4d34-8526-da328414d303&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section4</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-dc3eaaf9-801f-4974-9a49-8a673094f2d0</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;dc3eaaf9-801f-4974-9a49-8a673094f2d0&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;f43eb283-9920-495a-af49-71e4503d6dda&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;6207ff8b-a504-4327-addb-cd168f0e749e&quot;,&quot;columnKey&quot;:&quot;cef6e&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section5</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-1971ea07-1193-4243-a636-aa948e2fe01c</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;1971ea07-1193-4243-a636-aa948e2fe01c&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;7d36a09c-7cf9-46fa-8b3c-90d8a7ed1532&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section6</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-a54146a2-c379-4abd-96b7-a041588e5a00</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;a54146a2-c379-4abd-96b7-a041588e5a00&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;93c96be3-452a-4fbf-b80e-20fc8cc48c0b&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section7</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-de10505d-dd20-4172-a1c6-7b3b65126f7a</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;de10505d-dd20-4172-a1c6-7b3b65126f7a&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;0c0fb5d4-d3a4-41cc-b288-515c4a3c0f70&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;457b7df8-c199-46ab-b3c5-94adb12b27b8&quot;,&quot;columnKey&quot;:&quot;cf856&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section8</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-f84cb6ba-81d7-4eec-a318-e02f670781dc</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;f84cb6ba-81d7-4eec-a318-e02f670781dc&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;fa458590-67f0-4a0e-9c7d-fe9763d54a5e&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section9</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-5d066b90-8b01-4585-b330-298105df7d17</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;5d066b90-8b01-4585-b330-298105df7d17&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;ad10509e-3dd6-4266-b15a-460dab50d3a0&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section10</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-45e6b81c-70b8-4556-ba3b-35bb51d5f2e8</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;45e6b81c-70b8-4556-ba3b-35bb51d5f2e8&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;44fc1721-d133-465e-bc2b-fd9e9da65921&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;78c4feac-faab-43c0-a690-cc8b605a6013&quot;,&quot;columnKey&quot;:&quot;67f36&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section11</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-85a3d41d-6ff0-4c0d-845f-239b25af2e6d</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;85a3d41d-6ff0-4c0d-845f-239b25af2e6d&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;2933836b-af4a-4312-b542-8bea86d7d739&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section12</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-1a5cfd96-d2b7-4d61-965d-d65544113074</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;1a5cfd96-d2b7-4d61-965d-d65544113074&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;78f22411-7153-4eb0-9f11-650cb68a7772&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;2618c88d-480e-485c-b0af-7b08d985e2a8&quot;,&quot;columnKey&quot;:&quot;5ac27&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section13</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-f457e922-99c1-45a8-a753-6694074b8e5d</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;f457e922-99c1-45a8-a753-6694074b8e5d&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;86c86968-5f6b-4351-b0bd-a946521795f8&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;51777c20-459f-4102-b5ee-64200f327c94&quot;,&quot;columnKey&quot;:&quot;02182&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>209</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section14</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-2e7b5e62-15ba-40de-b11c-fe6d2a4fa872</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;2e7b5e62-15ba-40de-b11c-fe6d2a4fa872&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;9d640264-4051-47b6-9c78-bef1b0a63374&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section15</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-bf8a5ffb-9f2f-46e1-b258-5f432272ba5e</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;bf8a5ffb-9f2f-46e1-b258-5f432272ba5e&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;93fac460-ddb7-47df-acc5-be4369d64614&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section16</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-f49dd8e1-a55b-4338-bc1f-da829851fdd5</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;f49dd8e1-a55b-4338-bc1f-da829851fdd5&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;5a8bcaeb-b8bb-4bbf-92c3-91c18f7e4f07&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;1a961109-1d3a-4db8-bb7d-262883e1d6d6&quot;,&quot;columnKey&quot;:&quot;155a3&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;64245a61-a741-4c8b-a9c9-edd03b123916&quot;,&quot;columnKey&quot;:&quot;226dc&quot;,&quot;columnName&quot;:&quot;Column 3&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section17</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-ac33f6d9-ad4a-421f-b28a-7bf4f00ff7c7</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;ac33f6d9-ad4a-421f-b28a-7bf4f00ff7c7&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;f20dd792-5148-4306-8c81-0f22395cc982&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;e5dd8c7a-f10e-4898-8250-1d31c463589c&quot;,&quot;columnKey&quot;:&quot;32ded&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section18</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-4366e609-842e-4cc7-b720-a1a016316d8e</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;4366e609-842e-4cc7-b720-a1a016316d8e&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;0e0f2f61-1f2a-459b-b892-60fc11018666&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section19</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-495ac738-ae54-4cdb-8b4a-f967fa18aca7</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;495ac738-ae54-4cdb-8b4a-f967fa18aca7&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;70d2969c-408b-4193-851e-c8a1d37194df&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;00689d06-737f-419a-9a3d-082b3e764fcd&quot;,&quot;columnKey&quot;:&quot;31341&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;84939543-0fdc-412d-8269-9e55a5961cc7&quot;,&quot;columnKey&quot;:&quot;c96e7&quot;,&quot;columnName&quot;:&quot;Column 3&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section20</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-5d522884-48e0-4636-a2db-95232eaa49ec</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;5d522884-48e0-4636-a2db-95232eaa49ec&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;0ab63b8c-9fb9-492c-bebc-2142d41562e6&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;7&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;b0ed63b9-e09a-4d02-a534-6c5a6ab4b258&quot;,&quot;columnKey&quot;:&quot;186db&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;5&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section21</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-d138693f-3cd9-492d-a076-ec9d4b7c05ed</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;d138693f-3cd9-492d-a076-ec9d4b7c05ed&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;eb4bc567-97df-4e8e-89c3-d1a63e6b1211&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section22</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-54a2b992-10e3-40a3-8425-4a5bb7a4b437</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;54a2b992-10e3-40a3-8425-4a5bb7a4b437&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;cdbeeb7d-9551-4a0a-b8dc-145f9f9788b2&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;8a81b48a-7e28-4a96-be07-7426d62b7936&quot;,&quot;columnKey&quot;:&quot;b985d&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;e2a14883-5797-4c13-a82e-b1fa3557fd57&quot;,&quot;columnKey&quot;:&quot;026a8&quot;,&quot;columnName&quot;:&quot;Column 3&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section23</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>content</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>customHeadTags</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>FORMATION - COCKPIT- Exercices 1-3</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:seoAssistant</componentName>
+                <identifier>forceCommunity_seoAssistant</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>sfdcHiddenRegion</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <masterLabel>FORMATION - COCKPIT- Exercices 1-3_FORMATION - COCKPIT- Exercices 1 à 3</masterLabel>
+    <template>
+        <name>siteforce:dynamicLayout</name>
+    </template>
+    <type>CommAppPage</type>
+</FlexiPage>

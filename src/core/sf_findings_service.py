@@ -343,13 +343,10 @@ class SfFindingsService:
                     "DeweyAnalysis__c": analysis_id,
                 }
                 if finding.source_path:
-                    if source_root:
-                        try:
-                            rel = Path(finding.source_path).relative_to(source_root)
-                            rec["FilePath__c"] = str(rel)[:255]
-                        except ValueError:
-                            rec["FilePath__c"] = str(finding.source_path)[:255]
-                    else:
+                    try:
+                        rel = Path(finding.source_path).relative_to(source_root)
+                        rec["FilePath__c"] = ("/" + str(rel))[:255]
+                    except (ValueError, TypeError):
                         rec["FilePath__c"] = str(finding.source_path)[:255]
                 if finding.line is not None:
                     rec["LineNumber__c"] = finding.line
@@ -526,7 +523,7 @@ class SfFindingsService:
             else:
                 change = "Dégradé"
 
-            records.append({
+            rec = {
                 "attributes": {"type": "DeweyPosture__c"},
                 "DeweyAnalysis__c": analysis_id,
                 "CapabilityId__c": a.capability_id[:50],
@@ -538,7 +535,8 @@ class SfFindingsService:
                 "ComponentName__c": cname[:255] if cname else "",
                 "PreviousLevel__c": prev_level or "",
                 "LevelChange__c": change,
-            })
+            }
+            records.append(rec)
         if not records:
             return
         results = self._rest(
@@ -615,7 +613,7 @@ class SfFindingsService:
             else:
                 change = "Dégradé"
 
-            records.append({
+            rec = {
                 "attributes": {"type": "DeweyPosture__c"},
                 "DeweyAnalysis__c": analysis_id,
                 "CapabilityId__c": "component_posture",
@@ -627,7 +625,8 @@ class SfFindingsService:
                 "ComponentName__c": comp_name[:255],
                 "PreviousLevel__c": prev_level or "",
                 "LevelChange__c": change,
-            })
+            }
+            records.append(rec)
 
         for i in range(0, len(records), _BATCH_SIZE):
             batch = records[i: i + _BATCH_SIZE]

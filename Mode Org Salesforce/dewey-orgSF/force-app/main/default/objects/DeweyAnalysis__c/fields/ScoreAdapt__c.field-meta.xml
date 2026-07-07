@@ -3,7 +3,7 @@
     <fullName>ScoreAdapt__c</fullName>
     <description>Standard vs Custom adaptation score (0-100). Measures how well the org follows platform-native patterns.</description>
     <externalId>false</externalId>
-    <label>Adaptation Score</label>
+    <label>Adapt</label>
     <precision>11</precision>
     <required>false</required>
     <scale>1</scale>
