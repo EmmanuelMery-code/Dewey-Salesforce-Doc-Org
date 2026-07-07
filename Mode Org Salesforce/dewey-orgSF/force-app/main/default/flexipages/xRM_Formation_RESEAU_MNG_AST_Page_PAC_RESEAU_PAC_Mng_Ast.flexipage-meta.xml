@@ -1,0 +1,1051 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>c8460f20-2ab4-499e-a7ee-50609179543e</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-c2a5741f-1cfa-46cc-945f-f2f6213ae4dd</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;header&quot;&gt;
+&lt;div class=&quot;headerimage&quot;&gt;
+    &lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/pacmanagertassist.png&quot; alt=&quot;pacmanagertassist&quot; &gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;headertext&quot;&gt;
+        &lt;h1&gt;PAC Manager &amp; Assistante&lt;/h1&gt;
+        &lt;h3&gt;&lt;a href=&quot;#concept&quot;&gt;Le concept &lt;/a&gt;
+        &lt;br&gt;&lt;a href=&quot;#comment&quot;&gt;Comment faire dans xRM&lt;/a&gt;
+        &lt;br&gt;&lt;a href=&quot;#challenge&quot;&gt;Challengez-vous &lt;/a&gt;
+        &lt;br&gt;&lt;a href=&quot;#articles&quot;&gt;Articles liés&lt;/a&gt;&lt;/h3&gt;
+     &lt;/div&gt;
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;bandeautitre&quot;&gt;
+Pilotage Manager &amp; Assistante : PAC 
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/Pilotage%20MNG%20AST%20-%20PAC.png&quot; alt=&quot;Pilotage PAC&quot;/&gt;
+&lt;br&gt;&lt;br&gt;Les conseillers ont aussi accès à ces tableaux de bord pour suivre leur propre activité. N&apos;hésitez pas à parcourir les articles &quot;Pilotage&quot; pour découvrir leur vision.
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;concept&quot;/&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+Le concept
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock4</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;h2&gt;Votre page Plan d’Actions Commerciales vous permet de suivre l’activité marketing liée aux portefeuilles de votre équipe&lt;/h2&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:richTextInline</componentName>
+                <identifier>forceCommunity_richTextInline</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>c8460f20-2ab4-499e-a7ee-50609179543e</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>3275a9f9-2316-4f41-bf5a-20d80ac95f5a</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>6ec3c765-5c02-45fb-b6e5-cdd0a9b152c0</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>0b7e0</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-59d84c04-ff72-41d0-9f7d-1d7859bcd383</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;strong&gt;Elle est organisée en 3 parties :&lt;/strong&gt;
+&lt;ol&gt;
+    &lt;strong&gt;&lt;li&gt;Une vision de vos activités marketing : &lt;/strong&gt;
+		&lt;br&gt;- La liste des &lt;span class=&quot;bluebold&quot;&gt;campagnes marketing en cours&lt;/span&gt; où un des client/prospect de votre équipe est concerné 
+    	&lt;br&gt;- Les &lt;span class=&quot;bluebold&quot;&gt;Tâches&lt;/span&gt; en provenance d’un coupon/formulaire &lt;span class=&quot;bluebold&quot;&gt;à traiter par votre équipe&lt;/span&gt;
+		&lt;br&gt;- Le &lt;span class=&quot;bluebold&quot;&gt;taux de prise de RDV &lt;/span&gt;de vos campagnes (nombre de RDV/tâches d’appel)&lt;/li&gt;
+
+    &lt;li&gt;&lt;strong&gt;Les actions immédiates à mener : &lt;/strong&gt;
+		&lt;br&gt;- Les &lt;span class=&quot;bluebold&quot;&gt;Tâches en provenance d’un coupon/formulaire &lt;/span&gt;renvoyé par un client/prospect &lt;span class=&quot;bluebold&quot;&gt;à confier&lt;/span&gt;
+		&lt;br&gt;- Les &lt;span class=&quot;bluebold&quot;&gt;RDV en provenance du CRC/assistante à confier&lt;/span&gt;
+		&lt;br&gt;- Les &lt;span class=&quot;bluebold&quot;&gt;Comptes&lt;/span&gt; avec des Tâches de relance &lt;span class=&quot;bluebold&quot;&gt;à confier&lt;/span&gt;&lt;/li&gt;
+
+    &lt;li&gt;&lt;strong&gt;Les actions à mener pour préparer votre activité : &lt;/strong&gt;
+		&lt;br&gt;- Les &lt;span class=&quot;bluebold&quot;&gt;Kits de campagne&lt;/span&gt; à votre disposition, si vous souhaitez y ajouter un client/prospect (&lt;span class=&quot;textlink&quot;&gt;&lt;a href=&quot;reseau-kit-campagne&quot;&gt;découvrez-en plus dans cet article&lt;/a&gt;&lt;/span&gt;)
+        &lt;br&gt;- Les &lt;span class=&quot;bluebold&quot;&gt;campagnes dont vous devez valider les membres &lt;/span&gt;qui font partie du portefeuille de votre équipe, ou décider de les faire valider par les conseillers&lt;/li&gt;
+&lt;br&gt;
+Pour chaque élément, vous pouvez ouvrir le rapport lié pour accéder au détail des informations. Découvrez comment confier des Tâches, Comptes et RDV dans le chapitre &lt;span class=&quot;textlink&quot;&gt;&lt;a href=&quot;#comment&quot;&gt;“Comment faire dans xRM”&lt;/a&gt;&lt;/span&gt; de cet article.</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock5</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>3275a9f9-2316-4f41-bf5a-20d80ac95f5a</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;img src = &quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/pacmanager.png&quot; ALT=&quot;pacmanager&quot;/&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock6</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>6ec3c765-5c02-45fb-b6e5-cdd0a9b152c0</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>7fdd647e-f21f-4b24-b4e2-2d3f5320410f</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab4</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-e5e62fcc-25d1-4c43-9845-70a35b08abc0</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;img src = &quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/pacmanager2.png&quot; ALT=&quot;pacmanager2&quot;/&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock7</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>7fdd647e-f21f-4b24-b4e2-2d3f5320410f</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>bca822a3-a582-4edb-ad40-a5ad64123049</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab5</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-482ecda3-7591-4adb-9fb0-8e03050c251c</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;comment&quot;/&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+Comment faire dans xRM
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock8</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>bca822a3-a582-4edb-ad40-a5ad64123049</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>91b120de-bf58-4f75-9821-41ca5d194f5a</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab6</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-7ea8f742-8c66-4211-a352-9724b67b1b4c</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;doigt&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;Valider les membres de campagnes&lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+           &lt;br&gt;
+&lt;div&gt;&lt;table&gt;
+		&lt;tr valign=&quot;top&quot;&gt; 
+		&lt;td width=&quot;300&quot;&gt;
+            &lt;br&gt; &lt;strong&gt;Comment faire : &lt;/strong&gt;
+            &lt;ol&gt;
+                &lt;li&gt;Depuis la page PAC, &lt;span class=&quot;bluebold&quot;&gt;ouvrir le rapport&lt;/span&gt; &quot;Les membres de campagne à valider&quot; &lt;/li&gt;
+                &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Ouvrir la campagne&lt;/span&gt; liée aux membres en question&lt;/li&gt;
+                &lt;li&gt;Depuis l&apos;onglet &lt;span class=&quot;bluebold&quot;&gt;&quot;Membres de campagnes&quot;&lt;/span&gt;, &lt;span class=&quot;bluebold&quot;&gt;sélectionner à l&apos;aide des coches&lt;/span&gt; les membres souhaités &lt;/li&gt;
+                &lt;li&gt;Cliquez sur &lt;span class=&quot;bluebold&quot;&gt;&quot;Mettre à jour&quot;&lt;/span&gt;, puis choisir le nouveau statut : &quot;Validé&quot;, &quot;Rejeté&quot;, ou &quot;A valider commercial&quot;&lt;/li&gt;
+&lt;/ol&gt;
+             &lt;br&gt;
+            &lt;li&gt; &lt;span class=&quot;bluebold&quot;&gt;Pourquoi est-il important de mettre un statut Rejeté ? &lt;/span&gt; Pour suivre la validation de vos conseillers. Si vos conseillers valident une partie de la cible et ne change pas le statut &quot;à valider commercial&quot; alors vous ne saurez pas s&apos;ils ont vu/validé ou invalidé la campagne.
+            
+            &lt;br&gt; &lt;strong&gt;A SAVOIR IMPORTANT : Si aucun membre n&apos;est validé alors vous ne participez pas à la campagne et donc aucun membre ne recevra d&apos;email/de courrier et aucune tâche d&apos;appel ne sera créée dans le cadre de la campagne - Principe modifié par rapport à SIC &lt;/strong&gt;
+      &lt;/td&gt; &lt;td&gt; 
+            &lt;img width=1000px src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/MARKETING/Valider%20des%20membres%20de%20campagne%20-%20Manager%20(25s).gif&quot; alt=&quot;Valider des membres de campagne - Manager (25s)&quot;/&gt; 
+           &lt;/td&gt;
+    &lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock9</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;doigt&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;Affecter les RDV du CRC ou de mon assistant(e) à mes conseillers&lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+    &lt;br&gt;
+           
+&lt;div&gt;&lt;table&gt;
+    &lt;tr valign=&quot;top&quot;&gt; 
+		&lt;td width=&quot;300&quot;&gt;
+&lt;br&gt;
+            &lt;strong&gt;Comment faire :&lt;/strong&gt;
+            &lt;ol&gt;
+                &lt;li&gt;Depuis la Page PAC, &lt;span class=&quot;bluebold&quot;&gt;ouvrir le rapport&lt;/span&gt; &quot;Événements CRC à confier&quot; &lt;/li&gt;
+                &lt;li&gt;Cliquer sur un compte et l&apos;ouvrir puis, &lt;span class=&quot;bluebold&quot;&gt; en respectant l&apos;ordre ci-dessous : &lt;/span&gt;
+                    &lt;br&gt;- Etape 1 : &lt;span class=&quot;bluebold&quot;&gt;Modifier le confié &lt;/span&gt;
+                    &lt;br&gt;- Etape 2 :  &lt;span class=&quot;bluebold&quot;&gt;Modifier le propriétaire de l&apos;opportunité &lt;/span&gt;: depuis l&apos;onglet Associé, ouvrir l&apos;opportunité et modifier le propriétaire&lt;/li&gt;
+    &lt;/ol&gt;
+            &lt;br&gt; &lt;span class=&quot;bluebold&quot;&gt;Ainsi le compte, le RDV et l&apos;Opportunité seront attribués au conseiller choisi.&lt;/span&gt; &lt;br&gt;
+&lt;br&gt;
+            &lt;br&gt; &lt;strong&gt; Si vous ne respectez cet ordre, vous ne pourrez plus confier le compte &lt;/strong&gt;
+                    &lt;ul&gt;
+                        &lt;li&gt;En effet, une opportunité sera ouverte et affectée à un conseiller et dans ce cas, le compte ne peut plus être confié. &lt;/li&gt;
+&lt;li&gt; Alors il faudra clotûrer l&apos;opportunité par le conseiller affecté puis confier le compte et re-créer l&apos;opportunité, et demander au marketing de remettre le code campagne. &lt;/li&gt;
+                    &lt;/ul&gt;
+                &lt;/td&gt; 
+       &lt;td&gt; 
+            &lt;img width=1200px src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/MARKETING/Confiage%20de%20RDV%20du%20CRC.gif&quot; alt=&quot;Confiage de RDV du CRC (24s)&quot;/&gt; 
+           &lt;/td&gt;
+    &lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock10</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;doigt&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;POUR LE MANAGER : Affecter les tâches provenant d&apos;une campagne marketing : créer vos vues de liste et confier les comptes &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+
+           
+&lt;div&gt;&lt;table&gt;
+		&lt;tr valign=&quot;top&quot;&gt; 
+		&lt;td&gt;
+&lt;br&gt;
+            &lt;span class=&quot;bluebold&quot;&gt;Lorsque vous confiez un compte, la tâche marketing associée est confiée automatiquement.&lt;/span&gt;
+			&lt;br&gt;&lt;br&gt;Toutefois, le flux de tâche marketing pouvant être important, nous vous conseillons de créer des vues de listes de compte spécifiques, pour pouvoir identifier facilement les Comptes avec des tâches marketing, et les confier beaucoup plus rapidement. 
+            &lt;br&gt;Cette opération n&apos;est à faire qu&apos;une seule fois.&lt;br&gt;
+            &lt;br&gt;&lt;h3&gt;1. Créer ses vues de liste&lt;/h3&gt;
+            &lt;br&gt;&lt;strong&gt;Comment faire pour créer ses vues de liste dédiées au confiage :&lt;/strong&gt;
+               &lt;ol&gt;&lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Ouvrir une vue de liste similaire &lt;/span&gt;: depuis l&apos;objet Compte, ouvrez la vue &lt;span class=&quot;bluebold&quot;&gt;&quot;2.2.1. Mes confiés PP prospects&quot;&lt;/span&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Cloner la vue de liste&lt;/span&gt; : cliquer sur l&apos;écrou, puis &quot;Clôner&quot;, la nommer &quot;6.1 PP Prospects à CONFIER MARKETING&quot; (visible uniquement par vous), et enregistrer&lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Modifier les filtres en supprimant le filtre &quot;Confié est l&apos;utilisateur connecté   égal à  Vrai&quot; et en ajoutant 2 filtres : un filtre &quot;Dernière campagne&quot; en précisant le CODE CAMPAGNE &lt;/span&gt; sur lequel vous recherchez les PP prospects à confier &lt;span class=&quot;bluebold&quot;&gt; et un filtre confié/suiveur contient votre nom, &lt;/span&gt; pour obtenir le résultat ci-contre &lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Sélectionner de nouveaux champs à afficher, dans le rouage à droite &quot;sélectionner les champs à afficher&quot; et ajouter 2 champs &lt;/span&gt; &quot;Dernière CAMPAGNE&quot; pour visualiser le code campagne de la dernière campagne en cours et &quot;Origine marketing&quot; pour visualiser l&apos;origine de la tâche (formulaire, campagne marketing, coupon...)&lt;/li&gt;
+            &lt;/ol&gt;
+            &lt;br&gt;&lt;strong&gt; Vous obtenez votre vue de liste de Comptes PP prospects avec des tâches marketing en cours sur la campagne sélectionnée.&lt;/strong&gt; Si vous souhaitez afficher les prospects à confier d&apos;une autre campagne, changez dans le filtre Dernière campagne le code campagne.
+            &lt;br&gt; &lt;span class=&quot;bluebold&quot;&gt;Afin de pouvoir identifier et confier vos PP clients, PM prospects et PM clients avec des tâches marketing en cours,&lt;/span&gt; clônez la vue que vous venez de créer, et modifiez le &lt;span class=&quot;bluebold&quot;&gt; &quot;Type d&apos;enregistrement du compte&quot;&lt;/span&gt; par &lt;span class=&quot;bluebold&quot;&gt;&quot;Personne Physique client&quot;&lt;/span&gt; pour mes PP clients, par &lt;span class=&quot;bluebold&quot;&gt;&quot;Personne Morale&quot;&lt;/span&gt; pour mes PM prospects et par &lt;span class=&quot;bluebold&quot;&gt;&quot;Personne Morale Client&quot;&lt;/span&gt; pour mes PM clients.
+            &lt;br&gt;&lt;strong&gt; Attention, il faut impérativement faire 4 vues de listes différentes pour confier vos PP prospects, vos PP clients, vos PM prospects et vos PM clients pour pouvoir ensuite effectuer le confiage.&lt;/strong&gt;
+            &lt;/td&gt;
+       &lt;td width=&quot;300&quot;&gt; 
+            &lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/MKT%20Vue%20de%20liste%20mng.jpeg&quot; alt=&quot;affecterlestaches&quot;&gt; 
+           &lt;/td&gt;
+    &lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;
+        &lt;br&gt;  &lt;center&gt; &lt;iframe width=&quot;900&quot; height=&quot;450&quot; src=&quot;https://www.youtube.com/embed/eYYmSPVrBC0&quot; frameborder=&quot;0&quot; alt=&quot;affecter les tâches&quot;&gt;&lt;/iframe&gt; &lt;/center&gt;
+   &lt;br&gt;&lt;br&gt;&lt;div&gt;
+    &lt;h3&gt;2. Effectuer le confiage de façon unitaire ou sur plusieurs comptes, c&apos;est très simple grâce à vos vues de listes.&lt;/h3&gt;
+        &lt;br&gt;Placez vous sur la vue de liste souhaitée, sélectionner le ou les comptes que vous souhaitez confier à un collaborateur et &lt;span class=&quot;bluebold&quot;&gt;modifiez le nom du Confié&lt;/span&gt; grâce au crayon, sans quitter la vue.
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock11</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;doigt&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;POUR L&apos;ASSISTANT(E) : Affecter les tâches provenant d&apos;une campagne marketing : créer vos vues de liste et confier les comptes &lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+
+           
+&lt;div&gt;
+&lt;table&gt;
+		&lt;tr valign=&quot;top&quot;&gt; 
+		&lt;td&gt;&lt;br&gt;
+            &lt;br&gt;&lt;h3&gt;1. Créer ses vues de liste&lt;/h3&gt;
+            &lt;br&gt;&lt;strong&gt;Comment faire pour créer ses vues de liste dédiées au confiage :&lt;/strong&gt;
+            &lt;ol&gt;&lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Ouvrir une vue de liste similaire &lt;/span&gt;: depuis l&apos;objet Compte, ouvrez la vue &lt;span class=&quot;bluebold&quot;&gt;&quot;2.2.1. Mes confiés PP prospects&quot;&lt;/span&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Cloner la vue de liste&lt;/span&gt; : cliquer sur l&apos;écrou, puis &quot;Clôner&quot;, la nommer &quot;6.1 MES PP Prospects à CONFIER MARKETING&quot; (visible uniquement par vous), et enregistrer&lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Modifier les filtres en ajoutant un filtre &quot;Dernière campagne&quot; en précisant le CODE CAMPAGNE sur lequel vous recherchez les PP à confier et ajouter une filtre &quot;confié/suiveur&quot; en précisant le nom du manager &lt;/span&gt; pour obtenir le résultat ci-contre &lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Sélectionner de nouveaux champs à afficher, dans le rouage à droite &quot;sélectionner les champs à afficher&quot; et ajouter 2 champs &lt;/span&gt; &quot;Dernière CAMPAGNE&quot; pour visualiser le code campagne de la dernière campagne en cours et &quot;Origine marketing&quot; pour visualiser l&apos;origine de la tâche (formulaire, campagne marketing, coupon...)&lt;/li&gt;
+            &lt;/ol&gt;
+            &lt;br&gt;&lt;strong&gt; Vous obtenez la vue de liste de Comptes PP clients avec des tâches marketing de la campagne sélectionnée en cours du manager nommé.&lt;/strong&gt; Si vous souhaitez afficher les prospects/clients d&apos;une autre campagne à confier, changez le code campagne et enregistrez.
+            &lt;br&gt; &lt;span class=&quot;bluebold&quot;&gt;Afin de pouvoir identifier et confier les PP clients, PM prospects et PM clients avec des tâches marketing en cours,&lt;/span&gt; clônez la vue que vous venez de créer, et modifiez le &lt;span class=&quot;bluebold&quot;&gt; &quot;Type d&apos;enregistrement du compte&quot;&lt;/span&gt; par &lt;span class=&quot;bluebold&quot;&gt;&quot;Personne Physique Client&quot;&lt;/span&gt; pour mes PP clients, par &lt;span class=&quot;bluebold&quot;&gt;&quot;Personne Morale&quot;&lt;/span&gt; pour mes PM prospects et par &lt;span class=&quot;bluebold&quot;&gt;&quot;Personne Morale Client&quot;&lt;/span&gt; pour mes PM clients.
+            &lt;br&gt;&lt;strong&gt; Attention, il faut impérativement faire 4 vues de listes différentes pour confier les PP prospects, les PP clients, les PM prospects et les PM clients pour pouvoir ensuite effectuer le confiage.&lt;/strong&gt;
+            &lt;br&gt;&lt;strong&gt; Pré-requis indispensable : vous devez avoir sélectionné vos inspections préférées dans Choix de vos inspections au niveau de votre profil.&lt;/strong&gt;
+            &lt;/td&gt;
+       &lt;td width=&quot;300&quot;&gt; 
+&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/MKT%20Vue%20de%20liste%20ast.jpeg&quot; alt=&quot;Filtres vue de liste Ast&quot;&gt; 
+           &lt;/td&gt;
+    &lt;/tr&gt;&lt;/table&gt;
+    
+        &lt;br&gt;  &lt;center&gt; &lt;iframe width=&quot;900&quot; height=&quot;450&quot; src=&quot;https://www.youtube.com/embed/xECJPz7V6D4&quot; frameborder=&quot;0&quot; alt=&quot;affecter les tâches&quot;&gt;&lt;/iframe&gt; &lt;/center&gt;
+          
+   &lt;br&gt;&lt;br&gt;&lt;div&gt;
+    &lt;h3&gt;2. Effectuer le confiage de façon unitaire ou sur plusieurs comptes, c&apos;est très simple grâce à vos vues de listes.&lt;/h3&gt;
+        &lt;br&gt;Placez vous sur la vue de liste souhaitée, sélectionner le ou les comptes que vous souhaitez confier à un collaborateur et &lt;span class=&quot;bluebold&quot;&gt;modifiez le nom du Confié&lt;/span&gt; grâce au crayon, sans quitter la vue.
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock12</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+    &lt;div&gt;
+    &lt;img class=&quot;titreboule&quot; src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/HOME/doigt%20rouge.png&quot; alt=&quot;doigt&quot;&gt;
+    &lt;h3&gt;&lt;span style=&quot;margin-left:10px&quot;&gt;Réaffecter les tâches provenant d&apos;une campagne marketing&lt;/span&gt;&lt;/h3&gt; &lt;/div&gt;
+
+           
+&lt;div&gt;&lt;table style=&quot;width:100%&quot;&gt;
+		&lt;tr valign=&quot;top&quot;&gt; 
+		&lt;td width=&quot;300&quot;&gt;
+&lt;br&gt;
+            &lt;span class=&quot;bluebold&quot;&gt;Votre conseiller est en arrêt ou est sorti des effectifs : vous pouvez réaffecter ses tâches à d&apos;autres collaborateurs.&lt;/span&gt;
+            &lt;br&gt;
+            &lt;br&gt;&lt;strong&gt;Comment faire pour sélectionner les tâches à réaffecter :&lt;/strong&gt;
+            &lt;ol&gt;&lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Aller sur la campagne &lt;/span&gt; et l&apos; ouvrir &lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Cliquer sur Reaffectation des Tâches &lt;/span&gt; en haut à droite de la page &lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;bluebold&quot;&gt;Sélectionner les tâches&lt;/span&gt; à réaffecter  &lt;/li&gt;
+            &lt;li&gt;Cliquer sur &lt;span class=&quot;bluebold&quot;&gt; Réaffecter à un utilisateur et sélectionner le conseiller à affecter&lt;/span&gt; &lt;/li&gt;
+                &lt;li&gt;Cliquer sur &lt;span class=&quot;bluebold&quot;&gt; Réaffecter  &lt;/span&gt; &lt;/li&gt;
+            &lt;/ol&gt;
+                  &lt;td&gt; 
+               &lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/MARKETING/reaffecttaches.gif&quot; alt=&quot;affecterlestachesmanager&quot;/&gt;
+           &lt;/td&gt;
+    &lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;
+   &lt;br&gt;&lt;br&gt;&lt;div&gt;
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock13</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;challenge&quot;/&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+Challengez-vous
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock14</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>91b120de-bf58-4f75-9821-41ca5d194f5a</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>64efbbc8-412c-42af-8bdb-f0dcc8176689</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab7</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>6ac5c5b7-cdeb-4192-9588-7e40e74c6504</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>3011f</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab8</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-c677c500-e9a0-4b39-b41f-f90df7457ccd</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+      &lt;div class=&quot;question&quot;&gt;
+          &lt;strong&gt;Sur mon PAC, je vois “Les comptes avec tâches coupon ou formulaire à confier”.&lt;/strong&gt;
+              &lt;h2&gt;Que dois-je faire ?&lt;/h2&gt;
+    &lt;/div&gt;&lt;br&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;truth&quot; tabindex=&quot;2&quot;&gt;
+          &lt;span class=&quot;bluebold&quot;&gt;1. Ouvrir le rapport lié, puis ouvrir chaque Compte et le confier afin que mon conseiller récupère le compte et la tâche dans sa page PAC &lt;/span&gt;
+          &lt;br&gt;&lt;br&gt;&lt;br&gt;
+            &lt;i&gt;Comme vous pouvez le voir dans la vidéo ci-dessus, vous devez confier le Compte associé. Les Tâches seront ainsi automatiquement confiées à vos conseillers.&lt;/i&gt;
+        &lt;br&gt;&lt;br&gt;&lt;div class=&quot;button&quot;&gt; ← Retour
+          &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;div class=&quot;possibilities&quot; tabindex=&quot;1&quot;&gt;
+            &lt;ol&gt;
+              &lt;li&gt;Ouvrir le rapport lié, puis ouvrir chaque Compte et le confier&lt;/li&gt;
+              &lt;li&gt;Rien, il y a une règle automatique de répartition qui va tourner dans la nuit&lt;/li&gt;
+              &lt;li&gt;Dire à mes conseillers d’aller voir quelles tâche les intéressent&lt;/li&gt;
+            &lt;/ol&gt;
+                &lt;br&gt;&lt;div class=&quot;button&quot;&gt; Réponse
+          &lt;/div&gt; 
+          &lt;/div&gt; 
+    &lt;/div&gt;
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock15</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>64efbbc8-412c-42af-8bdb-f0dcc8176689</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;roundedboxarticle&quot;&gt; 
+&lt;div&gt;
+      &lt;div class=&quot;question&quot;&gt;
+          &lt;strong&gt;Sur mon PAC, je vois “Taux de RDV de mes campagnes”.&lt;/strong&gt;
+              &lt;h2&gt;Comment l’interpréter ?&lt;/h2&gt;
+    &lt;/div&gt;&lt;br&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;truth&quot; tabindex=&quot;2&quot;&gt;
+          &lt;span class=&quot;bluebold&quot;&gt;2. C’est le nombre de RDV pris sur le nombre total de tâche d’appel d’origine Marketing&lt;/span&gt;
+          &lt;br&gt;&lt;br&gt;
+            &lt;i&gt;La tâche véhiculée par le marketing comporte un code campagne. Pensez bien à générer votre RDV depuis la tâche d’appel, afin que le RDV reprenne ce code campagne. 
+Pour plus d’information à ce sujet, lisez l’article &lt;span class=&quot;linktext&quot;&gt;&lt;a href=&quot;reseau-gestion-taches&quot;&gt;“Gestion des tâches”&lt;/a&gt;&lt;/span&gt;&lt;/i&gt;
+        &lt;br&gt;&lt;br&gt;&lt;div class=&quot;button&quot;&gt; ← Retour
+          &lt;/div&gt; 
+          &lt;/div&gt;
+        &lt;div class=&quot;possibilities&quot; tabindex=&quot;1&quot;&gt;
+            &lt;ol&gt;
+              &lt;li&gt;C’est le nombre de RDV pris sur le nombre total de tâche d’appel d’origine Marketing&lt;/li&gt;
+              &lt;li&gt;C’est le nombre de RDV pris sur le nombre de campagnes Marketing&lt;/li&gt;
+              &lt;li&gt;C’est le taux de présence de mes prospects en RDV&lt;/li&gt;
+            &lt;/ol&gt;
+              	&lt;br&gt;&lt;div class=&quot;button&quot;&gt; Réponse
+          &lt;/div&gt; 
+	&lt;/div&gt;
+    &lt;/div&gt; 
+    &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock16</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>6ac5c5b7-cdeb-4192-9588-7e40e74c6504</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>89b32458-94da-4be8-ac6d-efa70b703ed2</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab9</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-696c013e-bd88-4987-80a8-58317271a0a1</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a name=&quot;articles&quot;/&gt;&lt;div class=&quot;bandeautitre&quot;&gt;
+Articles liés
+&lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock17</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>89b32458-94da-4be8-ac6d-efa70b703ed2</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>6250c4d9-7070-4764-997a-ef07993f6e6a</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>1</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab10</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>64ee645f-5f82-4604-a360-ef127a86f043</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>07b33</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab11</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>9d250b6e-08db-4549-83ad-2ef12f539894</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>81441</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:tab</componentName>
+                <identifier>customTab12</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>facet-indirection-a1b9e790-ae42-42fd-9baa-dab3ef463669</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a href=&quot;reseau-campagnes-marketing&quot;&gt;
+&lt;div class=&quot;flexbox&quot;&gt;
+  &lt;div class=&quot;carteimage&quot;&gt;&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/campmarketing.png&quot; alt=&quot;Campagnes marketing&quot;&gt;
+    &lt;/div&gt;
+  &lt;div class=&quot;cartetexte&quot;&gt; &lt;h4&gt;Campagnes marketing&lt;/h4&gt;
+    Comprendre les différents type de campagnes 
+        &lt;/div&gt;
+&lt;/div&gt;
+&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock18</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>6250c4d9-7070-4764-997a-ef07993f6e6a</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a href=&quot;reseau-kit-campagne&quot;&gt;
+&lt;div class=&quot;flexbox&quot;&gt;
+  &lt;div class=&quot;carteimage&quot;&gt;&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/kitcampagne.png&quot; alt=&quot;Kit de campagne&quot;&gt;
+    &lt;/div&gt;
+  &lt;div class=&quot;cartetexte&quot;&gt; &lt;h4&gt;Kit de campagne&lt;/h4&gt;
+Envoyez, à la demande, des emails sur nos produits préparés par le marketing 
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock19</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>64ee645f-5f82-4604-a360-ef127a86f043</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;a href=&quot;reseau-campagne-locale&quot;&gt;
+&lt;div class=&quot;flexbox&quot;&gt;
+  &lt;div class=&quot;carteimage&quot;&gt;&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/RESEAU/camplocales.png&quot; alt=&quot;Campagne locale&quot;&gt;
+    &lt;/div&gt;
+  &lt;div class=&quot;cartetexte&quot;&gt; &lt;h4&gt;Campagne locale&lt;/h4&gt;
+Apprenez à les créer et les suivre dans le temps
+    &lt;/div&gt;
+&lt;/div&gt;
+&lt;/a&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock20</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>9d250b6e-08db-4549-83ad-2ef12f539894</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-c2a5741f-1cfa-46cc-945f-f2f6213ae4dd</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;c2a5741f-1cfa-46cc-945f-f2f6213ae4dd&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;c8460f20-2ab4-499e-a7ee-50609179543e&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>247</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-59d84c04-ff72-41d0-9f7d-1d7859bcd383</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;59d84c04-ff72-41d0-9f7d-1d7859bcd383&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;3275a9f9-2316-4f41-bf5a-20d80ac95f5a&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;7&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;6ec3c765-5c02-45fb-b6e5-cdd0a9b152c0&quot;,&quot;columnKey&quot;:&quot;0b7e0&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;5&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-e5e62fcc-25d1-4c43-9845-70a35b08abc0</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;e5e62fcc-25d1-4c43-9845-70a35b08abc0&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;7fdd647e-f21f-4b24-b4e2-2d3f5320410f&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>85</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-482ecda3-7591-4adb-9fb0-8e03050c251c</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;482ecda3-7591-4adb-9fb0-8e03050c251c&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;bca822a3-a582-4edb-ad40-a5ad64123049&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>33</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section4</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-7ea8f742-8c66-4211-a352-9724b67b1b4c</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;7ea8f742-8c66-4211-a352-9724b67b1b4c&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;91b120de-bf58-4f75-9821-41ca5d194f5a&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>300</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section5</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-c677c500-e9a0-4b39-b41f-f90df7457ccd</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;c677c500-e9a0-4b39-b41f-f90df7457ccd&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;64efbbc8-412c-42af-8bdb-f0dcc8176689&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;6ac5c5b7-cdeb-4192-9588-7e40e74c6504&quot;,&quot;columnKey&quot;:&quot;3011f&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;6&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>108</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section6</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-696c013e-bd88-4987-80a8-58317271a0a1</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;696c013e-bd88-4987-80a8-58317271a0a1&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;89b32458-94da-4be8-ac6d-efa70b703ed2&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;12&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>32</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section7</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>background</name>
+                    <value>background: rgba(0,0,0,0)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>backgroundOverlay</name>
+                    <value>rgba(0,0,0,0.5)</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>contentAreaWidth</name>
+                    <value>100</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>regions</name>
+                    <value>facet-indirection-a1b9e790-ae42-42fd-9baa-dab3ef463669</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionConfig</name>
+                    <value>{&quot;UUID&quot;:&quot;a1b9e790-ae42-42fd-9baa-dab3ef463669&quot;,&quot;columns&quot;:[{&quot;UUID&quot;:&quot;6250c4d9-7070-4764-997a-ef07993f6e6a&quot;,&quot;columnKey&quot;:&quot;1&quot;,&quot;columnName&quot;:&quot;Column 1&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;64ee645f-5f82-4604-a360-ef127a86f043&quot;,&quot;columnKey&quot;:&quot;07b33&quot;,&quot;columnName&quot;:&quot;Column 2&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]},{&quot;UUID&quot;:&quot;9d250b6e-08db-4549-83ad-2ef12f539894&quot;,&quot;columnKey&quot;:&quot;81441&quot;,&quot;columnName&quot;:&quot;Column 3&quot;,&quot;columnWidth&quot;:&quot;4&quot;,&quot;seedComponents&quot;:[]}]}</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>sectionHeight</name>
+                    <value>118</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:section</componentName>
+                <identifier>forceCommunity_section8</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>content</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>customHeadTags</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>description</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>RESEAU - PAC Manager Assistante</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:seoAssistant</componentName>
+                <identifier>forceCommunity_seoAssistant</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>sfdcHiddenRegion</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <masterLabel>RESEAU - MNG AST Page PAC_RESEAU - PAC Mng Ast</masterLabel>
+    <template>
+        <name>siteforce:dynamicLayout</name>
+    </template>
+    <type>CommAppPage</type>
+</FlexiPage>

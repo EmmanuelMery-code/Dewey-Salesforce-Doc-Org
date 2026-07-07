@@ -48,12 +48,62 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
+            <field>NewFindings__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
             <field>FindingTotal__c</field>
             <table>DeweyAnalysis__c</table>
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
             <field>Status__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>DisparuFindings__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>MajorDelta__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>ScoreRatio__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>ScoreDelta__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Project__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>CriticalDelta__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>ScoreAdapt__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Version__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>ScoreAdopt__c</field>
             <table>DeweyAnalysis__c</table>
         </columns>
         <masterLabel>Analysis Information</masterLabel>

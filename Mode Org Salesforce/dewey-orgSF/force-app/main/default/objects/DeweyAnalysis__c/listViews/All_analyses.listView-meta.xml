@@ -8,6 +8,8 @@
     <columns>ScoreAdopt__c</columns>
     <columns>ScoreRatio__c</columns>
     <columns>ScoreDelta__c</columns>
+    <columns>NewFindings__c</columns>
+    <columns>FindingTotal__c</columns>
     <columns>FindingCritical__c</columns>
     <columns>CriticalDelta__c</columns>
     <columns>FindingMajor__c</columns>

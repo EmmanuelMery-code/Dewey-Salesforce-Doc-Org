@@ -3,7 +3,7 @@
     <fullName>NewFindings__c</fullName>
     <description>Number of new DeweyFinding__c records created in this run (not seen in any previous run for this source). Null on first run (all findings are new by definition).</description>
     <externalId>false</externalId>
-    <label>New Findings</label>
+    <label>New</label>
     <precision>8</precision>
     <required>false</required>
     <scale>0</scale>

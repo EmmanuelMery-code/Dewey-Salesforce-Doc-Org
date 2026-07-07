@@ -56,6 +56,16 @@
             <field>Remediation__c</field>
             <table>DeweyFinding__c</table>
         </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>DeweyAnalysis__c.Project__c</field>
+            <table>DeweyFinding__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Owner</field>
+            <table>DeweyFinding__c</table>
+        </columns>
         <masterLabel>Finding Information</masterLabel>
     </sections>
 </ReportType>

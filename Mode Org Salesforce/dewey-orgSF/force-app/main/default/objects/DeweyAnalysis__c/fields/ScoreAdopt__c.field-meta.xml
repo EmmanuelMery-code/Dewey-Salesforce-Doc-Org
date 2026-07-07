@@ -3,7 +3,7 @@
     <fullName>ScoreAdopt__c</fullName>
     <description>No-code / low-code adoption score (0-100). Measures platform feature usage vs custom code ratio.</description>
     <externalId>false</externalId>
-    <label>Adoption Score</label>
+    <label>Adopt</label>
     <precision>11</precision>
     <required>false</required>
     <scale>1</scale>

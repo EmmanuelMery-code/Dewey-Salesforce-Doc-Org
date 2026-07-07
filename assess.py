@@ -183,15 +183,20 @@ def main() -> None:
         source_branch = args.branch or _git_branch(source_path)
     print(f"      Project: {source_name}  Branch: {source_branch}")
 
-    # Detect git root for relative file paths in findings
-    source_root: Path | None = None
+    # Detect git root for relative file paths in findings.
+    # Falls back to source_path itself so paths are always relative (never absolute).
+    source_root: Path = source_path
     try:
         r = subprocess.run(
             ["git", "-C", str(source_path), "rev-parse", "--show-toplevel"],
             capture_output=True, text=True,
         )
         if r.returncode == 0:
-            source_root = Path(r.stdout.strip())
+            git_root = Path(r.stdout.strip())
+            # Only use git root if it is source_path or a parent of it,
+            # to avoid a parent repo swallowing the snapshot subdirectory.
+            if source_path == git_root or source_path.is_relative_to(git_root):
+                source_root = git_root
     except Exception:
         pass
 
