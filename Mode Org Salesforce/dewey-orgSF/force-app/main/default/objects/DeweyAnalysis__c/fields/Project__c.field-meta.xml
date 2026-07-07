@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Project__c</fullName>
+    <description>Stable project identifier used to scope finding deduplication and delta computation across multiple analysis runs (e.g. &quot;xRM&quot;, &quot;xrmassbl3&quot;). Passed via --project at assessment time. Source__c records the exact snapshot/branch path.</description>
+    <encryptionScheme>None</encryptionScheme>
+    <externalId>false</externalId>
     <label>Project</label>
-    <type>Text</type>
     <length>80</length>
     <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
     <unique>false</unique>
-    <caseSensitive>false</caseSensitive>
-    <description>Stable project identifier used to scope finding deduplication and delta computation across multiple analysis runs (e.g. "xRM", "xrmassbl3"). Passed via --project at assessment time. Source__c records the exact snapshot/branch path.</description>
 </CustomField>

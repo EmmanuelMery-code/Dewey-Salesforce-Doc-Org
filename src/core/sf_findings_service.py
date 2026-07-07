@@ -56,6 +56,10 @@ _TERMINAL_STATUSES = {"Résolu", "Accepté"}
 # Statuses that indicate the finding is still active (not yet addressed)
 _ACTIVE_STATUSES = {"Découvert", "Pris en charge", "Disparu"}
 
+# Maximum scoring weight in DEFAULT_SCORING_WEIGHTS (custom_objects = 8).
+# Used to compute ScoreMax: total_artifacts × _SCORE_MAX_WEIGHT.
+_SCORE_MAX_WEIGHT = 8
+
 # Ordered posture levels — lower index = closer to OOTB (better for a Salesforce org)
 _LEVEL_ORDER: dict[str, int] = {
     "Adopt (OOTB)": 0,
@@ -67,6 +71,27 @@ _LEVEL_ORDER: dict[str, int] = {
 
 def _map_component_type(target_kind: str) -> str:
     return _COMPONENT_TYPE_MAP.get((target_kind or "").lower(), "Other")
+
+
+def _compute_score_max(metrics) -> int:
+    """
+    Theoretical maximum score for this org's artifact volume.
+    = total artifact count × max scoring weight (8 = custom_objects).
+    Used as denominator for ScoreRatio__c formula field.
+    """
+    total = (
+        metrics.apex_classes + metrics.apex_triggers
+        + metrics.flows
+        + metrics.custom_objects + metrics.custom_fields
+        + metrics.record_types + metrics.validation_rules
+        + metrics.layouts + metrics.custom_tabs + metrics.custom_apps
+        + metrics.omni_scripts + metrics.omni_integration_procedures
+        + metrics.omni_ui_cards + metrics.omni_data_transforms
+        + metrics.bre_decision_matrices + metrics.bre_expression_sets
+        + metrics.agents + metrics.gen_ai_prompts + metrics.einstein_predictions
+        + metrics.lwc_count + metrics.flexipage_count
+    )
+    return total * _SCORE_MAX_WEIGHT
 
 
 _API_VERSION = "v66.0"
@@ -89,6 +114,8 @@ class SfFindingsService:
         scope: str = "all",
         source_root=None,           # Path | None — git root for relative file paths
         project: str = "",          # Stable project key for finding deduplication
+        posture_signal_map: dict[str, str] | None = None,  # {rule_id: signal}
+        version: str = "",
     ) -> tuple[str, str | None]:
         """
         1. Fetch all active DeweyFinding__c for this source (deduplicate by key).
@@ -129,9 +156,12 @@ class SfFindingsService:
             "Status__c": "Completed",
             "ScoreAdopt__c": round(adoption_stats.percent_adoption) if adoption_stats else None,
             "ScoreAdapt__c": round(adoption_stats.percent_adaptation) if adoption_stats else None,
+            "ScoreMax__c": _compute_score_max(metrics),
         }
         if source_branch:
             analysis_payload["SourceBranch__c"] = source_branch[:255]
+        if version:
+            analysis_payload["Version__c"] = version[:50]
         analysis_payload = {k: v for k, v in analysis_payload.items() if v is not None}
 
         analysis_id = self._create_record("DeweyAnalysis__c", analysis_payload)
@@ -147,28 +177,30 @@ class SfFindingsService:
         # ── Step 5 : push DeweyPosture__c records ────────────────────────────
         if adoption_stats:
             self._push_posture(analysis_id, adoption_stats, snapshot=snapshot, source=dedup_key)
+        if posture_signal_map:
+            self._push_component_posture(analysis_id, report, posture_signal_map, source=dedup_key)
 
         # ── Step 6 : create DeweyDelta__c ──────────────────────────────────────
         prev_id = self._fetch_previous_analysis_id(dedup_key, exclude_id=analysis_id)
         delta_summary: str | None = None
         if prev_id:
             prev_counts = self._fetch_previous_counts(prev_id)
-            score_delta = (
-                (analysis_payload.get("ScoreGlobal__c") or 0)
-                - prev_counts.get("ScoreGlobal__c", 0)
-            )
+            curr_max = analysis_payload.get("ScoreMax__c") or 0
+            curr_score = analysis_payload.get("ScoreGlobal__c") or 0
+            curr_ratio = round(curr_score / curr_max * 100, 1) if curr_max else 0.0
+            ratio_delta = round(curr_ratio - prev_counts.get("ScoreRatio__c", 0.0), 1)
             crit_delta = counts.get("Critical", 0) - prev_counts.get("FindingCritical__c", 0)
             maj_delta = counts.get("Major", 0) - prev_counts.get("FindingMajor__c", 0)
 
             sign = lambda n: f"+{n}" if n > 0 else str(n)
             delta_summary = (
-                f"score {sign(score_delta)}, "
+                f"ratio {sign(ratio_delta)}%, "
                 f"new {n_new}, disparu {n_disparu}, "
                 f"critical {sign(crit_delta)}, major {sign(maj_delta)}"
             )
             self._rest("PATCH", f"/sobjects/DeweyAnalysis__c/{analysis_id}", {
                 "PreviousAnalysis__c": prev_id,
-                "ScoreDelta__c": score_delta,
+                "ScoreDelta__c": ratio_delta,
                 "NewFindings__c": n_new,
                 "DisparuFindings__c": n_disparu,
                 "CriticalDelta__c": crit_delta,
@@ -448,9 +480,9 @@ class SfFindingsService:
         records = data.get("result", {}).get("records", [])
         return records[0]["Id"] if records else None
 
-    def _fetch_previous_counts(self, prev_id: str) -> dict[str, int]:
+    def _fetch_previous_counts(self, prev_id: str) -> dict:
         soql = (
-            f"SELECT ScoreGlobal__c, FindingCritical__c, FindingMajor__c "
+            f"SELECT ScoreRatio__c, FindingCritical__c, FindingMajor__c "
             f"FROM DeweyAnalysis__c WHERE Id = '{prev_id}'"
         )
         cmd = ["sf", "data", "query", "--query", soql, "--json", "-o", self.org_alias]
@@ -461,7 +493,7 @@ class SfFindingsService:
             return {}
         r = records[0]
         return {
-            "ScoreGlobal__c": int(r.get("ScoreGlobal__c") or 0),
+            "ScoreRatio__c": float(r.get("ScoreRatio__c") or 0),
             "FindingCritical__c": int(r.get("FindingCritical__c") or 0),
             "FindingMajor__c": int(r.get("FindingMajor__c") or 0),
         }
@@ -519,6 +551,118 @@ class SfFindingsService:
             raise RuntimeError(
                 f"DeweyPosture__c batch insert errors: {json.dumps(errors[:3])}"
             )
+
+    def _push_component_posture(
+        self,
+        analysis_id: str,
+        report,
+        posture_signal_map: dict[str, str],
+        source: str = "",
+    ) -> None:
+        """
+        Creates one DeweyPosture__c per unique component that has at least one
+        non-Neutral PostureSignal on its findings.
+
+        Signal priority: AdaptCode > AdaptDecl > AdoptDecl
+        Level mapping:
+          AdaptCode  → "Adapt (code)"
+          AdaptDecl  → "Adapt (declaratif)"
+          AdoptDecl  → "Adopt declaratif"
+        """
+        from collections import defaultdict
+
+        _SIGNAL_ORDER: dict[str, int] = {
+            "AdaptCode": 3,
+            "AdaptDecl": 2,
+            "AdoptDecl": 1,
+        }
+        _SIGNAL_TO_LEVEL: dict[str, str] = {
+            "AdaptCode": "Adapt (code)",
+            "AdaptDecl": "Adapt (declaratif)",
+            "AdoptDecl": "Adopt declaratif",
+        }
+
+        # Compute worst signal per (component_type, component_name)
+        comp_signal: dict[tuple[str, str], int] = defaultdict(int)
+        for finding in report.all_findings():
+            signal = posture_signal_map.get(finding.rule.id)
+            if not signal or signal not in _SIGNAL_ORDER:
+                continue
+            key = (_map_component_type(finding.target_kind), finding.target_name or "")
+            comp_signal[key] = max(comp_signal[key], _SIGNAL_ORDER[signal])
+
+        if not comp_signal:
+            return
+
+        # Fetch previous component posture for LevelChange
+        prev_posture = (
+            self._fetch_previous_component_posture(source, analysis_id) if source else {}
+        )
+
+        _ORDER_TO_SIGNAL = {v: k for k, v in _SIGNAL_ORDER.items()}
+        records = []
+        for (comp_type, comp_name), signal_val in comp_signal.items():
+            signal_key = _ORDER_TO_SIGNAL[signal_val]
+            current_level = _SIGNAL_TO_LEVEL[signal_key]
+            prev_level = prev_posture.get((comp_type, comp_name))
+
+            if prev_level is None:
+                change = "Premier run"
+            elif current_level == prev_level:
+                change = "Stable"
+            elif _LEVEL_ORDER.get(current_level, 99) < _LEVEL_ORDER.get(prev_level, 99):
+                change = "Amélioré"
+            else:
+                change = "Dégradé"
+
+            records.append({
+                "attributes": {"type": "DeweyPosture__c"},
+                "DeweyAnalysis__c": analysis_id,
+                "CapabilityId__c": "component_posture",
+                "CapabilityLabel__c": f"{comp_type}: {comp_name}"[:100],
+                "Level__c": current_level,
+                "Weight__c": 1,
+                "Evidence__c": "",
+                "ComponentType__c": comp_type[:80],
+                "ComponentName__c": comp_name[:255],
+                "PreviousLevel__c": prev_level or "",
+                "LevelChange__c": change,
+            })
+
+        for i in range(0, len(records), _BATCH_SIZE):
+            batch = records[i: i + _BATCH_SIZE]
+            results = self._rest(
+                "POST",
+                "/composite/sobjects",
+                {"allOrNone": False, "records": batch},
+            )
+            errors = [r for r in results if not r.get("success")]
+            if errors:
+                print(
+                    f"      [posture] {len(errors)} error(s) in component posture batch: "
+                    f"{json.dumps(errors[:2])}"
+                )
+
+        print(f"      [posture] {len(records)} component posture record(s) pushed")
+
+    def _fetch_previous_component_posture(
+        self, source: str, exclude_id: str
+    ) -> dict[tuple[str, str], str]:
+        """Returns {(component_type, component_name): level} from the previous analysis."""
+        prev_id = self._fetch_previous_analysis_id(source, exclude_id=exclude_id)
+        if not prev_id:
+            return {}
+        soql = (
+            f"SELECT ComponentType__c, ComponentName__c, Level__c FROM DeweyPosture__c "
+            f"WHERE DeweyAnalysis__c = '{prev_id}' AND CapabilityId__c = 'component_posture'"
+        )
+        cmd = ["sf", "data", "query", "--query", soql, "--json", "-o", self.org_alias]
+        out = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        records = json.loads(out.stdout).get("result", {}).get("records", [])
+        return {
+            (r.get("ComponentType__c", ""), r.get("ComponentName__c", "")): r["Level__c"]
+            for r in records
+        }
 
     def _fetch_previous_posture_levels(
         self, source: str, exclude_id: str

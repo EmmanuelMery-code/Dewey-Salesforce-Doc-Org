@@ -9,6 +9,9 @@
     <columns>
         <field>DeweyFinding__c$RuleId__c</field>
     </columns>
+    <columns>
+        <field>DeweyFinding__c$Status__c</field>
+    </columns>
     <format>Summary</format>
     <groupingsDown>
         <dateGranularity>Day</dateGranularity>
@@ -25,8 +28,4 @@
     <showDetails>true</showDetails>
     <showGrandTotal>true</showGrandTotal>
     <showSubTotals>true</showSubTotals>
-    <timeFrameFilter>
-        <dateColumn>DeweyFinding__c$ResolvedDate__c</dateColumn>
-        <interval>INTERVAL_CURRENT</interval>
-    </timeFrameFilter>
 </Report>

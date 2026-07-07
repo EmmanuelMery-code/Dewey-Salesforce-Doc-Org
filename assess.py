@@ -24,6 +24,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--source", required=True,       help="Local SFDX path or GitHub URL")
     p.add_argument("--branch",  default=None, help="Branch (remote: to clone; local: auto-detected from git)")
     p.add_argument("--project", default=None, help="Stable project identifier for finding deduplication across runs (e.g. 'xRM'). Defaults to source name if omitted.")
+    p.add_argument("--version", default=None, help="Optional version label for this run (e.g. 26.2, 26.2.3). Stored in Analysis record. Left blank if not provided.")
     p.add_argument(
         "--scope",
         default="all",
@@ -34,7 +35,18 @@ def _parse_args() -> argparse.Namespace:
         "--pmd-ruleset",
         default=None,
         metavar="PATH",
-        help="Path to a PMD ruleset XML file. When provided, PMD is invoked on Apex sources and violations are merged into the findings.",
+        help="Path to a PMD ruleset XML file (requires --analyzer pmd or auto-selected when provided).",
+    )
+    p.add_argument(
+        "--analyzer",
+        default=None,
+        choices=["pmd", "sfca", "none"],
+        help=(
+            "Static analyzer to use: 'pmd' (PMD, requires --pmd-ruleset), "
+            "'sfca' (Salesforce Code Analyzer — Apex + LWC + Aura), "
+            "'none' (skip static analysis). "
+            "Defaults to 'pmd' when --pmd-ruleset is provided, 'none' otherwise."
+        ),
     )
     return p.parse_args()
 
@@ -184,20 +196,34 @@ def main() -> None:
         pass
 
     # ── Step 3 : run assessment ────────────────────────────────────────────────
-    print(f"[3/5] Running assessment (scope: {args.scope})…")
+    # Resolve analyzer mode: explicit --analyzer takes precedence;
+    # if --pmd-ruleset is given without --analyzer, default to "pmd".
+    analyzer = args.analyzer or ("pmd" if args.pmd_ruleset else "none")
+    print(f"[3/5] Running assessment (scope: {args.scope}, analyzer: {analyzer})…")
 
     pmd_ref_map: dict = {}
-    if args.pmd_ruleset:
-        from pathlib import Path as _Path
-        pmd_path = _Path(args.pmd_ruleset).expanduser().resolve()
-        if not pmd_path.exists():
-            print(f"WARNING: --pmd-ruleset path not found: {pmd_path}", file=sys.stderr)
-            pmd_path = None
+    sfca_ref_map: dict = {}
+    pmd_path = None
+
+    if analyzer == "pmd":
+        if args.pmd_ruleset:
+            pmd_path = Path(args.pmd_ruleset).expanduser().resolve()
+            if not pmd_path.exists():
+                print(f"WARNING: --pmd-ruleset path not found: {pmd_path}", file=sys.stderr)
+                pmd_path = None
+                analyzer = "none"
+            else:
+                pmd_ref_map = cfg_svc.load_pmd_ref_map()
+                print(f"      PMD ruleset: {pmd_path.name}  ({len(pmd_ref_map)} mapped rules)")
         else:
-            pmd_ref_map = cfg_svc.load_pmd_ref_map()
-            print(f"      PMD ruleset: {pmd_path.name}  ({len(pmd_ref_map)} mapped rules)")
-    else:
-        pmd_path = None
+            print("WARNING: --analyzer pmd requires --pmd-ruleset. Skipping PMD.", file=sys.stderr)
+            analyzer = "none"
+    elif analyzer == "sfca":
+        sfca_ref_map = cfg_svc.load_sfca_ref_map()
+        print(f"      SFCA: {len(sfca_ref_map)} mapped rules")
+
+    posture_signal_map = cfg_svc.load_posture_signal_map()
+    print(f"      Posture signals: {len(posture_signal_map)} rules with signal")
 
     from src.core.orchestrator_headless import HeadlessOrchestrator
     orch = HeadlessOrchestrator(
@@ -208,6 +234,8 @@ def main() -> None:
         config=config,
         pmd_ruleset_path=pmd_path,
         pmd_ref_map=pmd_ref_map,
+        analyzer=analyzer,
+        sfca_ref_map=sfca_ref_map,
     )
     result = orch.run()
     counts = result.report.severity_counts()
@@ -225,6 +253,8 @@ def main() -> None:
         scope=args.scope,
         source_root=source_root,
         project=project,
+        posture_signal_map=posture_signal_map,
+        version=args.version or "",
     )
     print(f"      Analysis created: {analysis_id}")
 

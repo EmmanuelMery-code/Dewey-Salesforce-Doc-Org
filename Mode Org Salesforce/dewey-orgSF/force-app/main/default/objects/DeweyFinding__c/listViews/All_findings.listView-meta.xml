@@ -12,6 +12,6 @@
     <filterScope>Everything</filterScope>
     <label>All findings</label>
     <sharedTo>
-        <allInternalUsers>true</allInternalUsers>
+        <allInternalUsers></allInternalUsers>
     </sharedTo>
 </ListView>

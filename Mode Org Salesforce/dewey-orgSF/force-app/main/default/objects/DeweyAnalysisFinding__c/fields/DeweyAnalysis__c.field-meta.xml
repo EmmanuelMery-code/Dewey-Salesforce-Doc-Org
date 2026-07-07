@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>DeweyAnalysis__c</fullName>
+    <description>The analysis run in which this finding was detected.</description>
     <label>Dewey Analysis</label>
-    <type>MasterDetail</type>
     <referenceTo>DeweyAnalysis__c</referenceTo>
     <relationshipLabel>Analysis Findings</relationshipLabel>
     <relationshipName>AnalysisFindings</relationshipName>
     <relationshipOrder>0</relationshipOrder>
     <reparentableMasterDetail>false</reparentableMasterDetail>
+    <trackTrending>false</trackTrending>
+    <type>MasterDetail</type>
     <writeRequiresMasterRead>false</writeRequiresMasterRead>
-    <description>The analysis run in which this finding was detected.</description>
 </CustomField>

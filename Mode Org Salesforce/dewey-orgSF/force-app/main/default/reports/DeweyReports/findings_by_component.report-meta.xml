@@ -6,6 +6,9 @@
     <columns>
         <field>DeweyFinding__c$RuleId__c</field>
     </columns>
+    <columns>
+        <field>DeweyFinding__c$Status__c</field>
+    </columns>
     <filter>
         <criteriaItems>
             <column>DeweyFinding__c$Severity__c</column>
@@ -32,8 +35,4 @@
     <showDetails>true</showDetails>
     <showGrandTotal>true</showGrandTotal>
     <showSubTotals>true</showSubTotals>
-    <timeFrameFilter>
-        <dateColumn>DeweyFinding__c$ResolvedDate__c</dateColumn>
-        <interval>INTERVAL_CURRENT</interval>
-    </timeFrameFilter>
 </Report>

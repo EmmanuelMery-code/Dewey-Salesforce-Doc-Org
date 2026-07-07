@@ -35,24 +35,6 @@
     <columns>
         <field>DeweyFinding__c$Message__c</field>
     </columns>
-    <filter>
-        <booleanFilter>1 AND 2</booleanFilter>
-        <criteriaItems>
-            <column>DeweyFinding__c$IsNew__c</column>
-            <columnToColumn>false</columnToColumn>
-            <isUnlocked>true</isUnlocked>
-            <operator>equals</operator>
-            <value>1</value>
-        </criteriaItems>
-        <criteriaItems>
-            <column>DeweyFinding__c$IsResolved__c</column>
-            <columnToColumn>false</columnToColumn>
-            <isUnlocked>true</isUnlocked>
-            <operator>equals</operator>
-            <value>0</value>
-        </criteriaItems>
-        <language>en_US</language>
-    </filter>
     <format>Matrix</format>
     <groupingsAcross>
         <dateGranularity>Day</dateGranularity>
@@ -75,7 +57,7 @@
     <showGrandTotal>true</showGrandTotal>
     <showSubTotals>true</showSubTotals>
     <timeFrameFilter>
-        <dateColumn>DeweyFinding__c$ResolvedDate__c</dateColumn>
+        <dateColumn>DeweyFinding__c$FirstSeenDate__c</dateColumn>
         <interval>INTERVAL_CUSTOM</interval>
     </timeFrameFilter>
 </Report>
