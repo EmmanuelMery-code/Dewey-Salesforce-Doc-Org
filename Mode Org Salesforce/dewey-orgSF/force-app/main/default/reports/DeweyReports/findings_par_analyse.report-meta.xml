@@ -10,7 +10,7 @@
         </chartSummaries>
         <chartType>VerticalColumn</chartType>
         <enableHoverLabels>true</enableHoverLabels>
-        <expandOthers>false</expandOthers>
+        <expandOthers>true</expandOthers>
         <groupingColumn>DeweyAnalysis__c$Name</groupingColumn>
         <location>CHART_BOTTOM</location>
         <showAxisLabels>true</showAxisLabels>
@@ -52,4 +52,8 @@
     <showDetails>false</showDetails>
     <showGrandTotal>true</showGrandTotal>
     <showSubTotals>false</showSubTotals>
+    <timeFrameFilter>
+        <dateColumn>DeweyAnalysis__c$AnalysisDate__c</dateColumn>
+        <interval>INTERVAL_CURRENT</interval>
+    </timeFrameFilter>
 </Report>

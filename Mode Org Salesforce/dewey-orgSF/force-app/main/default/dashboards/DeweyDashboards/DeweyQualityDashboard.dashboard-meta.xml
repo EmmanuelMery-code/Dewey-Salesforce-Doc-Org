@@ -160,7 +160,7 @@
                     <axisBinding>y</axisBinding>
                     <column>RowCount</column>
                 </chartSummary>
-                <componentType>BarStacked</componentType>
+                <componentType>BarStacked100</componentType>
                 <decimalPrecision>-1</decimalPrecision>
                 <displayUnits>Auto</displayUnits>
                 <drillEnabled>false</drillEnabled>
@@ -180,7 +180,7 @@
                     </groupingSorts>
                 </groupingSortProperties>
                 <header>Findings by component type</header>
-                <legendPosition>Right</legendPosition>
+                <legendPosition>Bottom</legendPosition>
                 <report>DeweyReports/findings_by_severity</report>
                 <showPercentage>false</showPercentage>
                 <showValues>false</showValues>
