@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>CapabilityId__c</fullName>
+    <description>Technical identifier of the capability (e.g. data_model, security, automation). Matches CapabilityAssessment.capability_id in Python.</description>
+    <encryptionScheme>None</encryptionScheme>
+    <externalId>false</externalId>
     <label>Capability ID</label>
-    <type>Text</type>
     <length>50</length>
     <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
     <unique>false</unique>
-    <caseSensitive>false</caseSensitive>
-    <description>Technical identifier of the capability (e.g. data_model, security, automation). Matches CapabilityAssessment.capability_id in Python.</description>
 </CustomField>

@@ -51,6 +51,8 @@ class HeadlessOrchestrator:
         config=None,
         pmd_ruleset_path: str | Path | None = None,
         pmd_ref_map: dict[str, str] | None = None,
+        analyzer: str = "none",
+        sfca_ref_map: dict[str, str] | None = None,
     ) -> None:
         self.source_path = Path(source_path)
         self.rule_catalog = rule_catalog
@@ -59,6 +61,8 @@ class HeadlessOrchestrator:
         self.config = config
         self.pmd_ruleset_path = Path(pmd_ruleset_path) if pmd_ruleset_path else None
         self.pmd_ref_map = pmd_ref_map or {}
+        self.analyzer = analyzer  # "pmd" | "sfca" | "none"
+        self.sfca_ref_map = sfca_ref_map or {}
 
     def run(self) -> AssessmentResult:
         from src.parsers.salesforce_parser import SalesforceMetadataParser
@@ -80,9 +84,12 @@ class HeadlessOrchestrator:
         engine.rule_exclusions = self.exclusions
         report = engine.analyze_snapshot(snapshot)
 
-        # ── PMD ────────────────────────────────────────────────────────────────
-        if self.pmd_ruleset_path and self.pmd_ref_map and snapshot.apex_artifacts:
-            self._run_pmd(snapshot, report)
+        # ── Static analysis (PMD or SFCA) ─────────────────────────────────────
+        if self.analyzer == "pmd":
+            if self.pmd_ruleset_path and self.pmd_ref_map and snapshot.apex_artifacts:
+                self._run_pmd(snapshot, report)
+        elif self.analyzer == "sfca":
+            self._run_sfca(snapshot, report)
 
         # ── Scope filter ───────────────────────────────────────────────────────
         if self.scope != "all":
@@ -94,7 +101,8 @@ class HeadlessOrchestrator:
 
     def _log(self, message: str) -> None:
         if message:
-            print(f"      [pmd] {message}")
+            tag = "sfca" if self.analyzer == "sfca" else "pmd"
+            print(f"      [{tag}] {message}")
 
     def _ensure_java_in_path(self) -> None:
         """Prepend Homebrew OpenJDK to PATH if a real JVM is not available."""
@@ -149,6 +157,55 @@ class HeadlessOrchestrator:
 
         if injected:
             print(f"      [pmd] {injected} finding(s) injected from {len(pmd_result.violations)} violation(s)")
+
+    def _run_sfca(self, snapshot, report) -> None:
+        from src.core.sfca_service import SfcaService
+        from src.analyzer.models import Finding
+
+        sfca_svc = SfcaService(self.source_path, log_callback=self._log)
+        violations = sfca_svc.analyze()
+        if not violations:
+            return
+
+        catalog_by_id: dict[str, object] = {r.id: r for r in self.rule_catalog.all}
+        injected = 0
+        for violation in violations:
+            rule_id = self.sfca_ref_map.get(violation.rule)
+            if not rule_id:
+                continue
+            rule = catalog_by_id.get(rule_id)
+            if not rule:
+                continue
+
+            file_path = violation.file_path
+            suffix = file_path.suffix.lower()
+            if suffix == ".cls":
+                target_kind = "apex_class"
+                section = report.apex
+            elif suffix in (".js", ".html"):
+                target_kind = "lwc"
+                section = report.lwc
+            elif file_path.parent.parent.name == "aura":
+                target_kind = "aura"
+                section = report.aura
+            else:
+                target_kind = "apex_class"
+                section = report.apex
+
+            artifact_name = file_path.stem
+            finding = Finding(
+                rule=rule,
+                target_kind=target_kind,
+                target_name=artifact_name,
+                message=violation.message or rule.description,
+                source_path=file_path,
+                line=violation.begin_line or None,
+            )
+            section.setdefault(artifact_name, []).append(finding)
+            injected += 1
+
+        if injected:
+            print(f"      [sfca] {injected} finding(s) injected from {len(violations)} violation(s)")
 
     def _filter_report(self, report, scope: str):
         """

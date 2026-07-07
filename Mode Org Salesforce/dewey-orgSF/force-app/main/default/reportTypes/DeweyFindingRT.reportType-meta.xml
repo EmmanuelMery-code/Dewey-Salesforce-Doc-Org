@@ -3,7 +3,7 @@
     <baseObject>DeweyFinding__c</baseObject>
     <category>other</category>
     <deployed>true</deployed>
-    <description>Findings from Dewey org assessment runs.</description>
+    <description>Findings from Dewey org assessment runs. Use for finding-level analysis: by severity, component type, status or rule.</description>
     <label>Dewey Finding Report</label>
     <sections>
         <columns>
@@ -13,7 +13,17 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
+            <field>Rule__c</field>
+            <table>DeweyFinding__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
             <field>Severity__c</field>
+            <table>DeweyFinding__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Status__c</field>
             <table>DeweyFinding__c</table>
         </columns>
         <columns>
@@ -28,22 +38,12 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
-            <field>RuleId__c</field>
-            <table>DeweyFinding__c</table>
-        </columns>
-        <columns>
-            <checkedByDefault>false</checkedByDefault>
             <field>Message__c</field>
             <table>DeweyFinding__c</table>
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
-            <field>IsNew__c</field>
-            <table>DeweyFinding__c</table>
-        </columns>
-        <columns>
-            <checkedByDefault>false</checkedByDefault>
-            <field>IsResolved__c</field>
+            <field>FirstSeenDate__c</field>
             <table>DeweyFinding__c</table>
         </columns>
         <columns>
@@ -54,16 +54,6 @@
         <columns>
             <checkedByDefault>false</checkedByDefault>
             <field>Remediation__c</field>
-            <table>DeweyFinding__c</table>
-        </columns>
-        <columns>
-            <checkedByDefault>false</checkedByDefault>
-            <field>ResolvedDate__c</field>
-            <table>DeweyFinding__c</table>
-        </columns>
-        <columns>
-            <checkedByDefault>false</checkedByDefault>
-            <field>IsAssigned__c</field>
             <table>DeweyFinding__c</table>
         </columns>
         <masterLabel>Finding Information</masterLabel>

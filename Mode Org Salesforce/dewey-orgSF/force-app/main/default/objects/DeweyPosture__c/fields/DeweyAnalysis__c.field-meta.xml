@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>DeweyAnalysis__c</fullName>
-    <label>Analysis</label>
-    <type>Lookup</type>
-    <referenceTo>DeweyAnalysis__c</referenceTo>
-    <relationshipName>PostureItems</relationshipName>
-    <relationshipLabel>Posture Assessments</relationshipLabel>
     <deleteConstraint>Cascade</deleteConstraint>
-    <required>false</required>
     <description>Parent analysis run that produced this capability posture record.</description>
+    <label>Analysis</label>
+    <referenceTo>DeweyAnalysis__c</referenceTo>
+    <relationshipLabel>Posture Assessments</relationshipLabel>
+    <relationshipName>PostureItems</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
 </CustomField>

@@ -3,4 +3,42 @@
     <fullName>Standard</fullName>
     <active>true</active>
     <label>Standard</label>
+    <picklistValues>
+        <picklist>Scope__c</picklist>
+        <values>
+            <fullName>all</fullName>
+            <default>true</default>
+        </values>
+        <values>
+            <fullName>apex</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>flows</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>omni</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>security</fullName>
+            <default>false</default>
+        </values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Status__c</picklist>
+        <values>
+            <fullName>Completed</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Failed</fullName>
+            <default>false</default>
+        </values>
+        <values>
+            <fullName>Running</fullName>
+            <default>true</default>
+        </values>
+    </picklistValues>
 </RecordType>

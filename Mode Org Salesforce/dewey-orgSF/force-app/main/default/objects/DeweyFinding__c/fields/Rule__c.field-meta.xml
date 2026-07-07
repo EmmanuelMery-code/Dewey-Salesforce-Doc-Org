@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Rule__c</fullName>
-    <label>Rule</label>
-    <type>Lookup</type>
-    <referenceTo>DeweyRule__c</referenceTo>
-    <relationshipName>DeweyFindings</relationshipName>
-    <relationshipLabel>Dewey Findings</relationshipLabel>
     <deleteConstraint>SetNull</deleteConstraint>
     <description>Lookup to the DeweyRule__c that triggered this finding. Resolved via DeweyRule__c.RuleId__c (External ID).</description>
+    <label>Rule</label>
+    <referenceTo>DeweyRule__c</referenceTo>
+    <relationshipLabel>Dewey Findings</relationshipLabel>
+    <relationshipName>DeweyFindings</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
 </CustomField>

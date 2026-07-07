@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>ComponentType__c</fullName>
+    <description>Salesforce metadata type of the decisive component (e.g. ApexTrigger, Flow, FlexiPage, Dashboard). Empty for Adopt (OOTB) level.</description>
+    <encryptionScheme>None</encryptionScheme>
+    <externalId>false</externalId>
     <label>Component Type</label>
-    <type>Text</type>
     <length>80</length>
     <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
     <unique>false</unique>
-    <caseSensitive>false</caseSensitive>
-    <description>Salesforce metadata type of the decisive component (e.g. ApexTrigger, Flow, FlexiPage, Dashboard). Empty for Adopt (OOTB) level.</description>
 </CustomField>

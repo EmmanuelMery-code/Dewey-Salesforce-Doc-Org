@@ -144,10 +144,32 @@ class SfConfigService:
         )
         return {r["PmdRuleRef__c"]: r["RuleId__c"] for r in records if r.get("PmdRuleRef__c")}
 
+    def load_sfca_ref_map(self) -> dict[str, str]:
+        """Returns {sfca_rule_name: dewey_rule_id} for enabled rules with SfcaRuleRef__c set."""
+        records = self._query(
+            "SELECT RuleId__c, SfcaRuleRef__c FROM DeweyRule__c "
+            "WHERE SfcaRuleRef__c != null AND IsEnabled__c = true"
+        )
+        return {r["SfcaRuleRef__c"]: r["RuleId__c"] for r in records if r.get("SfcaRuleRef__c")}
+
+    def load_posture_signal_map(self) -> dict[str, str]:
+        """Returns {rule_id: signal} for rules with PostureSignal__c set (excluding Neutral)."""
+        records = self._query(
+            "SELECT RuleId__c, PostureSignal__c FROM DeweyRule__c "
+            "WHERE PostureSignal__c != null AND PostureSignal__c != 'Neutral' "
+            "AND IsEnabled__c = true"
+        )
+        return {
+            r["RuleId__c"]: r["PostureSignal__c"]
+            for r in records
+            if r.get("RuleId__c") and r.get("PostureSignal__c")
+        }
+
     def _query_rules(self) -> list[dict]:
         return self._query(
             "SELECT RuleId__c, IsEnabled__c, Severity__c, Category__c, "
-            "Subcategory__c, Source__c, Message__c, Remediation__c, PmdRuleRef__c "
+            "Subcategory__c, Source__c, Message__c, Remediation__c, "
+            "PmdRuleRef__c, SfcaRuleRef__c, PostureSignal__c "
             "FROM DeweyRule__c"
         )
 

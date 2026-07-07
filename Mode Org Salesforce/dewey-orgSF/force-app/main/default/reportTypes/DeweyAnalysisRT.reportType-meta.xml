@@ -13,7 +13,7 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
-            <field>OrgAlias__c</field>
+            <field>Source__c</field>
             <table>DeweyAnalysis__c</table>
         </columns>
         <columns>
@@ -29,6 +29,21 @@
         <columns>
             <checkedByDefault>false</checkedByDefault>
             <field>FindingCritical__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>FindingMajor__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>FindingMinor__c</field>
+            <table>DeweyAnalysis__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>FindingInfo__c</field>
             <table>DeweyAnalysis__c</table>
         </columns>
         <columns>
