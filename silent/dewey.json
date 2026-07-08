@@ -1,0 +1,25 @@
+{
+  "defaults": {
+    "output_dir": "output",
+    "generate_html": false,
+    "generate_word": false,
+    "generate_summary_word": false,
+    "generate_data_dictionary_word": false,
+    "generate_audit_summary_rtf": false,
+    "generate_excels": false,
+    "include_comparison": true,
+    "pmd_enabled": true,
+    "use_history": true
+  },
+  "mapping": {
+    "source_folder": "source_dir",
+    "output_folder": "output_dir",
+    "exclusion_file": "exclusion_config_path",
+    "pmd_ruleset_file": "pmd_ruleset_path",
+    "analyzer_rules_file": "analyzer_rules_path",
+    "technical_debt_file": "technical_debt_path",
+    "innovation_file": "innovation_path",
+    "posture_adopt_adapt": "posture_config",
+    "comparison_target": "comparison_target"
+  }
+}
