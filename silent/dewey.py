@@ -191,6 +191,45 @@ class Dewey:
                 traceback.print_exc()
             raise
 
+    def _flow_elements_coverage(self, flows) -> List[Dict[str, Any]]:
+        """
+        Construit, pour chaque flow, le detail de la couverture de tests par element
+        (quel(s) element(s) sont testes et par quelle(s) classe(s) Apex).
+
+        Cette information n'est disponible que si la generation de la couverture de
+        tests a ete activee (voir 'test_coverage' dans la configuration).
+        """
+        result = []
+        for flow in flows:
+            elements = flow.elements or []
+            total = len(elements)
+            covered_elements = [e for e in elements if e.covered_by]
+            covered = len(covered_elements)
+            pct = (covered / total * 100) if total > 0 else None
+
+            result.append({
+                "flow": flow.name,
+                "couverture_globale_pct": flow.test_coverage,
+                "blocs_couverts": flow.test_coverage_elements_covered,
+                "blocs_total": (
+                    flow.test_coverage_elements_covered + flow.test_coverage_elements_uncovered
+                ),
+                "elements_total": total,
+                "elements_couverts": covered,
+                "elements_couverts_pct": pct,
+                "elements": [
+                    {
+                        "nom": e.name,
+                        "type": e.element_type,
+                        "label": e.label,
+                        "teste": bool(e.covered_by),
+                        "classes_test": list(e.covered_by),
+                    }
+                    for e in elements
+                ],
+            })
+        return result
+
     def _collect_data(self):
         """Collecte toutes les informations exposées dans les différentes pages du rapport."""
         snapshot = self._result.snapshot
@@ -307,7 +346,10 @@ class Dewey:
             },
             "Flow": {
                 "count": metrics.flows,
-                "items": [_to_dict(f) for f in snapshot.flows]
+                "items": [_to_dict(f) for f in snapshot.flows],
+                # Couverture des elements de flow par classe(s) de test Apex
+                # (equivalent de la colonne "Teste par" des pages HTML de flow)
+                "couverture_elements": self._flow_elements_coverage(snapshot.flows)
             },
             "omni BRE": (
                 metrics.omni_scripts + metrics.omni_integration_procedures +
