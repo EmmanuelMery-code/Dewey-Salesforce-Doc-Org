@@ -223,21 +223,42 @@ def render_flow_panel(
             return f"<td style='color:#dc2626;font-weight:600'>Inactif ({html_value(status)})</td>"
         return "<td style='color:#94a3b8'>Inconnu</td>"
 
+    def elements_coverage_cell(item) -> str:
+        elements = item.elements or []
+        total = len(elements)
+        if item.test_coverage is None or total == 0:
+            return "<td>N/A</td>"
+        covered = sum(1 for e in elements if e.covered_by)
+        pct = (covered / total * 100) if total > 0 else 0.0
+        return f"<td>{pct:.1f}% ({covered}/{total})</td>"
+
     flow_rows = "".join(
         f"<tr><td><a href='{href_relative(current_path, flow_pages[item.name])}'>{html_value(item.name)}</a></td>"
         f"<td>{html_value(item.process_type)}</td>{flow_status_cell(item.status)}"
         f"<td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td>"
         f"<td>{'⚠' if item.soql_in_loop or item.dml_in_loop else 'OK'}</td>"
-        f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_elements_covered}/{item.test_coverage_elements_covered + item.test_coverage_elements_uncovered} blocs)') if item.test_coverage is not None else 'N/A'}</td></tr>"
+        f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_elements_covered}/{item.test_coverage_elements_covered + item.test_coverage_elements_uncovered} blocs API)') if item.test_coverage is not None else 'N/A'}</td>"
+        f"{elements_coverage_cell(item)}</tr>"
         for item in snapshot.flows
         if item.name in flow_pages
-    ) or "<tr><td colspan='8' class='empty'>Aucun flow analyse.</td></tr>"
+    ) or "<tr><td colspan='9' class='empty'>Aucun flow analyse.</td></tr>"
     redundant_flow_rows = "".join(
         f"<tr><td>{html_value(group.object_name)}</td><td>{html_value(group.trigger_type)}</td><td>{', '.join(group.flows)}</td></tr>"
         for group in snapshot.redundant_flows
     ) or "<tr><td colspan='3' class='empty'>Aucune redondance de Flow detectee.</td></tr>"
 
-    flow_list_table = f"<table><thead><tr><th>Nom</th><th>Type</th><th>Statut</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th>% Couverture</th></tr></thead><tbody>{flow_rows}</tbody></table>"
+    coverage_header_tooltip = (
+        "% de blocs testes calcule par l'API Tooling Salesforce (FlowTestCoverage). "
+        "Un 'bloc' est plus granulaire qu'un element du flow : chaque branche de decision, "
+        "chaque sortie de boucle ou chemin de fault est compte separement. "
+        "C'est pourquoi le nombre de blocs est generalement superieur au nombre d'elements nommes du flow."
+    )
+    elements_coverage_header_tooltip = (
+        "% d'elements du flow (au sens de l'onglet Elements de la page du flow) testes par au moins "
+        "une classe Apex, c'est-a-dire marques 'Oui' dans la colonne Teste par. "
+        "Calcul : nombre d'elements 'Oui' / nombre total d'elements du flow."
+    )
+    flow_list_table = f"<table><thead><tr><th>Nom</th><th>Type</th><th>Statut</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th title=\"{coverage_header_tooltip}\">% Couverture</th><th title=\"{elements_coverage_header_tooltip}\">% elements couverts</th></tr></thead><tbody>{flow_rows}</tbody></table>"
     flow_redundancy_table = f"<table><thead><tr><th>Objet</th><th>Evenement</th><th>Flows</th></tr></thead><tbody>{redundant_flow_rows}</tbody></table>"
     return tabbed_sections("index-flows", [
         ("Liste", flow_list_table),
