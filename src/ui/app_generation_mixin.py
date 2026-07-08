@@ -427,7 +427,12 @@ class AppGenerationMixin:
                     details[elem_key].append(test_class)
 
             # Step 3 — Recalculate aggregate percentages from distinct element counts
+            # NOTE: coverage_data also holds Apex entries (keyed by class name, with
+            # "lines_*" keys) inserted earlier. Only touch entries created by the Flow
+            # queries above, identified by the presence of "_covered_set".
             for flow_name, data in coverage_data.items():
+                if "_covered_set" not in data:
+                    continue
                 covered_set = data.pop("_covered_set", set())
                 distinct_covered = len(covered_set)
                 total = data["elements_total"]
