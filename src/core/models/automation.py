@@ -49,6 +49,7 @@ class FlowElementInfo:
     connectors: list[FlowConnector] = field(default_factory=list)
     targets: list[str] = field(default_factory=list)
     target: str = ""  # Legacy, for backward compatibility if needed
+    covered_by: list[str] = field(default_factory=list)  # Apex test class names
 
 
 @dataclass(slots=True)

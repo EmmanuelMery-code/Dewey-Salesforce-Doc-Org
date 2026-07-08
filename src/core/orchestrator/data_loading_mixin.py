@@ -58,23 +58,31 @@ class _DataLoadingMixin(_OrchestratorState):
                     total_covered += artifact.test_coverage
                     count += 1
 
-        for flow in snapshot.flows:
-            if flow.name in self.test_coverage_data:
-                coverage_info = self.test_coverage_data[flow.name]
-                if isinstance(coverage_info, dict):
-                    # New format with detailed coverage info
-                    flow.test_coverage = coverage_info.get("percentage")
-                    flow.test_coverage_elements_covered = coverage_info.get("elements_covered", 0)
-                    flow.test_coverage_elements_uncovered = coverage_info.get("elements_uncovered", 0)
-                else:
-                    # Old format (just percentage) - fallback for compatibility
-                    flow.test_coverage = coverage_info
-                    flow.test_coverage_elements_covered = 0
-                    flow.test_coverage_elements_uncovered = 0
+        # Build a case-insensitive index once for all flows
+        coverage_keys_lower = {k.lower(): k for k in self.test_coverage_data}
 
-                if flow.test_coverage is not None:
-                    total_covered += flow.test_coverage
-                    count += 1
+        for flow in snapshot.flows:
+            canonical_key = coverage_keys_lower.get(flow.name.lower())
+            if canonical_key is None:
+                continue
+            coverage_info = self.test_coverage_data[canonical_key]
+            if isinstance(coverage_info, dict):
+                flow.test_coverage = coverage_info.get("percentage")
+                flow.test_coverage_elements_covered = coverage_info.get("elements_covered", 0)
+                flow.test_coverage_elements_uncovered = coverage_info.get("elements_uncovered", 0)
+                element_details = coverage_info.get("element_details", {})
+                for element in flow.elements:
+                    elem_key = element.name.lower() if element.name else ""
+                    if elem_key in element_details:
+                        element.covered_by = sorted(element_details[elem_key])
+            else:
+                flow.test_coverage = coverage_info
+                flow.test_coverage_elements_covered = 0
+                flow.test_coverage_elements_uncovered = 0
+
+            if flow.test_coverage is not None:
+                total_covered += flow.test_coverage
+                count += 1
 
         # Calculate org-level test coverage
         if count > 0:

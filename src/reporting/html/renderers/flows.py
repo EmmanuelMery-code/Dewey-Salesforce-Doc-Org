@@ -175,17 +175,54 @@ def render_flow_page(
             dependencies.append(inc)
             
     metrics_list = list(review.metrics)
-    metrics_list.append(("Couverture de tests", (f"{flow.test_coverage:.1f} %") if flow.test_coverage is not None else "N/A"))
+    if flow.test_coverage is not None:
+        covered = flow.test_coverage_elements_covered
+        total = flow.test_coverage_elements_covered + flow.test_coverage_elements_uncovered
+        coverage_label = f"{flow.test_coverage:.1f} % ({covered}/{total} blocs API)"
+    else:
+        coverage_label = "N/A"
+    metrics_list.append(("Couverture de tests", coverage_label))
 
+    metric_tooltips = {
+        "Couverture de tests": (
+            "% de blocs testes calcule par l'API Tooling Salesforce (FlowTestCoverage). "
+            "Un 'bloc' est plus granulaire qu'un element du flow : chaque branche de decision, "
+            "chaque sortie de boucle ou chemin de fault est compte separement, d'ou un total "
+            "de blocs generalement superieur au nombre d'elements nommes ci-dessus."
+        ),
+    }
     metrics = "".join(
-        f"<li><strong>{html_value(label)}:</strong> {html_value(value)}</li>"
+        (
+            f"<li title=\"{metric_tooltips[label]}\"><strong>{html_value(label)}:</strong> {html_value(value)}</li>"
+            if label in metric_tooltips
+            else f"<li><strong>{html_value(label)}:</strong> {html_value(value)}</li>"
+        )
         for label, value in metrics_list
     )
+    has_coverage = flow.test_coverage is not None
+    
+    header_extra = "<th>Teste par</th>" if has_coverage else ""
+    
+    def render_element_row(element):
+        coverage_cell = ""
+        if has_coverage:
+            if element.covered_by:
+                classes = ", ".join(element.covered_by)
+                coverage_cell = f"<td style='color: #16a34a;' title='Teste par {classes}'>Oui ({len(element.covered_by)})</td>"
+            else:
+                coverage_cell = "<td style='color: #dc2626;'>Non</td>"
+        
+        return (
+            f"<tr><td>{html_value(element.element_type)}</td><td>{html_value(element.name)}</td>"
+            f"<td>{html_value(element.label)}</td><td>{html_value(element.description)}</td>"
+            f"<td>{html_value(element.target)}</td>{coverage_cell}</tr>"
+        )
+
     elements_rows = "".join(
-        f"<tr><td>{html_value(element.element_type)}</td><td>{html_value(element.name)}</td>"
-        f"<td>{html_value(element.label)}</td><td>{html_value(element.description)}</td><td>{html_value(element.target)}</td></tr>"
+        render_element_row(element)
         for element in flow.elements
-    ) or "<tr><td colspan='5' class='empty'>Aucun element detecte.</td></tr>"
+    ) or f"<tr><td colspan='{6 if has_coverage else 5}' class='empty'>Aucun element detecte.</td></tr>"
+
     count_rows = "".join(
         f"<tr><td>{html_value(name)}</td><td>{count}</td></tr>"
         for name, count in sorted(flow.element_counts.items())
@@ -232,7 +269,7 @@ def render_flow_page(
                 f"<table><thead><tr><th>Composant lie</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{relation_rows}</tbody></table>{relation_graph}",
             ),
             ("One Page", one_page_graph),
-            ("Elements", f"<table><thead><tr><th>Type</th><th>Nom</th><th>Label</th><th>Description</th><th>Cible</th></tr></thead><tbody>{elements_rows}</tbody></table>"),
+            ("Elements", f"<table><thead><tr><th>Type</th><th>Nom</th><th>Label</th><th>Description</th><th>Cible</th>{header_extra}</tr></thead><tbody>{elements_rows}</tbody></table>"),
         ],
     )
     body = f"""
