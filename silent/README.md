@@ -78,6 +78,16 @@ for f in findings[:3]:
 # Détails des agents, prompts et tags IA détectés
 print(data["ai_usage"]["stats"]["with_tag_count"])
 print(data["index"]["IA"]["details"]["prompts"])
+
+# 5. Couverture des elements de Flow par classe de test Apex
+# Necessite que la generation de la couverture de tests soit activee.
+couverture_flows = data["index"]["Flow"]["couverture_elements"]
+for flow in couverture_flows:
+    print(f"{flow['flow']}: {flow['elements_couverts']}/{flow['elements_total']} elements testes "
+          f"({flow['elements_couverts_pct']:.1f}% si disponible)")
+    for elem in flow["elements"]:
+        if elem["teste"]:
+            print(f"  - {elem['nom']} ({elem['type']}) teste par : {', '.join(elem['classes_test'])}")
 ```
 
 ### Exportation
@@ -105,3 +115,16 @@ La comparaison dans Dewey s'appuie sur l'**historique** stocké dans la base `hi
 4.  **Cible spécifique** : Utilisez `comparison_target` dans la config pour comparer avec une génération précise (ex: `"1"`).
 
 > **Note importante** : Si `use_history=False` est utilisé, aucune donnée n'est lue ou écrite en base, et la section `comparaison` sera vide.
+
+## 5. Couverture des éléments de Flow par classe de test
+
+`data["index"]["Flow"]["couverture_elements"]` contient, pour chaque flow, le détail de la couverture de tests au niveau de chaque élément (équivalent de la colonne « Teste par » des pages HTML de flow) :
+
+*   `couverture_globale_pct` / `blocs_couverts` / `blocs_total` : couverture au sens de l'API Tooling Salesforce (granularité "blocs", cf. `FlowTestCoverage`).
+*   `elements_total` / `elements_couverts` / `elements_couverts_pct` : nombre d'éléments nommés du flow (au sens du XML) et proportion testée par au moins une classe Apex.
+*   `elements` : liste détaillée, un item par élément du flow, avec :
+    *   `nom`, `type`, `label` : identification de l'élément.
+    *   `teste` : booléen indiquant si l'élément est couvert par au moins une classe de test.
+    *   `classes_test` : liste des noms des classes Apex qui couvrent cet élément.
+
+> **Prérequis** : cette information n'est disponible que si la récupération de la couverture de tests a été activée lors de la génération (récupération des données `FlowTestCoverage` / `FlowElementTestCoverage` via l'API Tooling). Si elle est désactivée, `teste` sera `False` pour tous les éléments et `elements_couverts_pct` sera `None`.
