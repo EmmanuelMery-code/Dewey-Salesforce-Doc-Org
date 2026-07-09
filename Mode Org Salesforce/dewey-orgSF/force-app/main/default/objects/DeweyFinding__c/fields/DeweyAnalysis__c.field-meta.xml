@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>DeweyAnalysis__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The first analysis run that detected this finding. The finding record persists independently across multiple runs via DeweyAnalysisFinding__c junction records.</description>
+    <label>First Seen In Analysis</label>
+    <referenceTo>DeweyAnalysis__c</referenceTo>
+    <relationshipLabel>Findings (First Seen)</relationshipLabel>
+    <relationshipName>DeweyFindings</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>
