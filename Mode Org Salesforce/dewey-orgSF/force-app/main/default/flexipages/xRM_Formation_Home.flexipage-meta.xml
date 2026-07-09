@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;h1 style=&quot;text-align: center;&quot;&gt;&lt;b style=&quot;font-size: 36px;&quot;&gt;Apprenez à utiliser xRM&lt;/b&gt;&lt;/h1&gt;&lt;h1 style=&quot;text-align: center;&quot;&gt;&lt;b style=&quot;font-size: 36px;&quot;&gt;à travers xRM Formation !&lt;/b&gt;&lt;/h1&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;Ici vous retrouverez les ressources utiles pour bien démarrer avec xRM : parcours de formation, vidéos tutoriels et quizz pour vous challenger.&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;text-align: center;&quot;&gt;&lt;b style=&quot;font-size: 16px;&quot;&gt;Choisissez votre profil pour commencer &lt;/b&gt;&lt;b style=&quot;background-color: rgb(248, 249, 250); font-family: sans-serif; color: rgb(32, 33, 34);&quot;&gt;↓&lt;/b&gt;&lt;/p&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:richTextInline</componentName>
+                <identifier>forceCommunity_richTextInline</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>header</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <name>featured</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;personacontainer&quot;&gt;
+                &lt;a href=&quot;reseau-parcours&quot;&gt;&lt;span class=&quot;personapadding&quot;&gt;  
+					&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/mdpro.png&quot; alt=&quot;Parcours Réseau&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;
+                &lt;a href=&quot;parcours-vad&quot;&gt;&lt;span class=&quot;personapaddingintright&quot;&gt;
+						&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/vadpro.png&quot; alt=&quot;Parcours VAD&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;                                             
+            &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>content</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;div class=&quot;personacontainer&quot;&gt;      
+&lt;a href=&quot;marketing-parcours-&quot;&gt;&lt;span class=&quot;personapaddingintleft&quot;&gt;
+&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/market.png&quot; alt=&quot;Parcours Marketing&quot; class=&quot;pageImg&quot;&gt;
+&lt;/span&gt;&lt;/a&gt;
+&lt;a href=&quot;crc-aparcours&quot;&gt;&lt;span class=&quot;personapadding&quot;&gt;
+					&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/crcmdpro.png&quot; alt=&quot;Parcours CRC&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;                               
+            &lt;/div&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock2</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>sidebar</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <name>footer</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>customHeadTags</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>description</name>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>title</name>
+                    <value>Home</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:seoAssistant</componentName>
+                <identifier>forceCommunity_seoAssistant</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>sfdcHiddenRegion</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <appendable>enabled</appendable>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>richTextValue</name>
+                    <value>&lt;center&gt;
+&lt;div class=&quot;roundedboxhome&quot;&gt; 
+        &lt;div class=&quot;upperroundedbox&quot;&gt; 
+            &lt;div class=&quot;personacontainer&quot;&gt;
+                &lt;a href=&quot;reseau-parcours/reseau-besoindaide&quot;&gt;&lt;span class=&quot;personapadding&quot;&gt;  
+					&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/mdpro.png&quot; alt=&quot;Parcours Réseau&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;
+                &lt;a href=&quot;parcours-vad/vad-besoin-daide&quot;&gt;&lt;span class=&quot;personapadding&quot;&gt;
+						&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/vadpro.png&quot; alt=&quot;Parcours VAD&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;
+                &lt;a href=&quot;marketing-parcours-/marketing-besoin-daide&quot;&gt;&lt;span class=&quot;personapadding&quot;&gt;
+						&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/market.png&quot; alt=&quot;Parcours Marketing&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;
+                &lt;a href=&quot;crc-aparcours/crc-besoin-daide-&quot;&gt;&lt;span class=&quot;personapadding&quot;&gt;
+					&lt;img src=&quot;https://ag2rlm.sharepoint.com/sites/cdnxrmProd/SiteAssets/xRM%20Formation/BAB/crcmdpro.png&quot; alt=&quot;Parcours CRC&quot; class=&quot;pageImg&quot;&gt;
+                    &lt;/span&gt;&lt;/a&gt;                               
+            &lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;lowerroundedbox&quot;&gt;
+        &lt;h2&gt; Besoin d’aide ? &lt;/h2&gt;
+	&lt;span&gt; Une question ? Une proposition ? C’est par ici !&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/center&gt;</value>
+                </componentInstanceProperties>
+                <componentName>forceCommunity:htmlBlock</componentName>
+                <identifier>forceCommunity_htmlBlock3</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>sidebarAlt</name>
+        <prependable>enabled</prependable>
+        <replaceable>enabled</replaceable>
+        <type>Region</type>
+    </flexiPageRegions>
+    <masterLabel>Home</masterLabel>
+    <template>
+        <name>siteforce:sldsTwoCol66Layout</name>
+    </template>
+    <type>CommAppPage</type>
+</FlexiPage>

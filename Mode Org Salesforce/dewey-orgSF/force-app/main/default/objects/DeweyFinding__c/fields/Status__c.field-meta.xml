@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status__c</fullName>
+    <description>Lifecycle status of this finding. Découvert: first detected. Pris en charge: a task has been created. Disparu: no longer detected in a subsequent run but not yet resolved. Résolu: manually marked as fixed. Accepté: manually accepted as a known risk — creates a DeweyExclusion__c to suppress future detection.</description>
+    <label>Status</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Découvert</fullName>
+                <default>true</default>
+                <label>Découvert</label>
+            </value>
+            <value>
+                <fullName>Pris en charge</fullName>
+                <default>false</default>
+                <label>Pris en charge</label>
+            </value>
+            <value>
+                <fullName>Disparu</fullName>
+                <default>false</default>
+                <label>Disparu</label>
+            </value>
+            <value>
+                <fullName>Résolu</fullName>
+                <default>false</default>
+                <label>Résolu</label>
+            </value>
+            <value>
+                <fullName>Accepté</fullName>
+                <default>false</default>
+                <label>Accepté</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

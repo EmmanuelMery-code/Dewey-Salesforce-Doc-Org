@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ScoreDelta__c</fullName>
+    <description>Difference between current ScoreRatio__c and previous analysis ScoreRatio__c (ratio = ScoreGlobal / ScoreMax × 100). Positive = improvement, negative = degradation. Null on first run.</description>
+    <externalId>false</externalId>
+    <label>Score Δ</label>
+    <precision>8</precision>
+    <required>false</required>
+    <scale>1</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>

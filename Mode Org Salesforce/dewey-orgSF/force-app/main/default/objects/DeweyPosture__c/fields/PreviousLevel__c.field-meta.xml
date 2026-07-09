@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>PreviousLevel__c</fullName>
+    <description>Adopt/adaptation level recorded in the previous analysis run for this capability. Empty on first run. Used with LevelChange__c for trend tracking in CRM Analytics.</description>
+    <label>Previous Level</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Adopt (OOTB)</fullName>
+                <default>false</default>
+                <label>Adopt (OOTB)</label>
+            </value>
+            <value>
+                <fullName>Adopt declaratif</fullName>
+                <default>false</default>
+                <label>Adopt declaratif</label>
+            </value>
+            <value>
+                <fullName>Adapt (declaratif)</fullName>
+                <default>false</default>
+                <label>Adapt (declaratif)</label>
+            </value>
+            <value>
+                <fullName>Adapt (code)</fullName>
+                <default>false</default>
+                <label>Adapt (code)</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

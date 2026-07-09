@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>PreviousAnalysis__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Reference to the most recent completed analysis run for the same source, used for delta computation. Null on first run.</description>
+    <label>Previous Analysis</label>
+    <referenceTo>DeweyAnalysis__c</referenceTo>
+    <relationshipLabel>Follow-up Analyses</relationshipLabel>
+    <relationshipName>FollowUpAnalyses</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

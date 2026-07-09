@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All_analyses</fullName>
+    <columns>NAME</columns>
+    <columns>Project__c</columns>
+    <columns>Version__c</columns>
+    <columns>ScoreAdapt__c</columns>
+    <columns>ScoreAdopt__c</columns>
+    <columns>ScoreRatio__c</columns>
+    <columns>ScoreDelta__c</columns>
+    <columns>NewFindings__c</columns>
+    <columns>FindingTotal__c</columns>
+    <columns>FindingCritical__c</columns>
+    <columns>CriticalDelta__c</columns>
+    <columns>FindingMajor__c</columns>
+    <columns>MajorDelta__c</columns>
+    <columns>FindingMinor__c</columns>
+    <columns>AnalysisDate__c</columns>
+    <filterScope>Everything</filterScope>
+    <filters>
+        <field>RECORDTYPE</field>
+        <operation>equals</operation>
+        <value>DeweyAnalysis__c.Standard</value>
+    </filters>
+    <label>All analyses</label>
+    <sharedTo>
+        <allInternalUsers></allInternalUsers>
+    </sharedTo>
+</ListView>
