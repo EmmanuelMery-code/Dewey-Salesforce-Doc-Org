@@ -26,8 +26,8 @@ Deux modes coexistent dans le même repo Python :
 | `src/analyzer/engine.py` | Orchestrateur analyse statique |
 | `src/analyzer/apex_analyzer.py` + `flow_analyzer.py` + `lwc_analyzer.py` + `security_analyzer.py` | Analyseurs par type |
 | `src/analyzer/rules.xml` | Référence rules → seed CSV (fallback si SF indisponible) |
-| `src/core/models.py` | Dataclasses centrales partagées |
-| `src/core/customization_metrics.py` | Scoring no/low/pro-code |
+| `src/core/SfOrg_models.py` | Dataclasses centrales partagées (renommé : masqué par le package `src/core/models/` issu de `main`) |
+| `src/core/SfOrg_customization_metrics.py` | Scoring no/low/pro-code (renommé : masqué par le package `src/core/customization_metrics/` issu de `main`) |
 | `src/core/pmd_service.py` | Intégration PMD optionnelle |
 
 ### Fichiers conservés pour Mode A (non utilisés en Mode B)
