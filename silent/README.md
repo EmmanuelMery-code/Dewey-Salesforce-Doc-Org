@@ -21,6 +21,8 @@ Ce sont les paramètres appliqués par défaut à chaque analyse pour garantir u
 *   `include_comparison` : Activé par défaut pour permettre le calcul des régressions.
 *   `pmd_enabled` : Activé par défaut pour l'analyse de qualité du code.
 *   `use_history` : Activé par défaut (`true`).
+*   `calculate_coverage` : Désactivé par défaut (`false`). Voir section 6 ci-dessous.
+*   `run_tests` : Désactivé par défaut (`false`). Voir section 6 ci-dessous.
 
 ### `mapping`
 Permet de faire le pont entre les clés utilisées dans les fichiers de configuration externes (comme `app_settings.json`) et les noms de paramètres attendus par le moteur interne :
@@ -128,3 +130,28 @@ La comparaison dans Dewey s'appuie sur l'**historique** stocké dans la base `hi
     *   `classes_test` : liste des noms des classes Apex qui couvrent cet élément.
 
 > **Prérequis** : cette information n'est disponible que si la récupération de la couverture de tests a été activée lors de la génération (récupération des données `FlowTestCoverage` / `FlowElementTestCoverage` via l'API Tooling). Si elle est désactivée, `teste` sera `False` pour tous les éléments et `elements_couverts_pct` sera `None`.
+
+## 6. Récupération de la couverture de tests (Apex + Flows) via le CLI Salesforce
+
+Par défaut, `Dewey` travaille uniquement à partir des métadonnées déjà présentes sur disque (`source_dir`) : il n'appelle jamais le CLI Salesforce, donc `metrics.test_coverage`, `test_coverage` des classes Apex et `test_coverage` des flows restent `None`/`N/A` tant que rien n'est configuré. C'est le comportement historique et volontairement silencieux (aucun accès réseau/org requis).
+
+Pour que Dewey interroge l'org via `sf` (comme le fait l'application graphique), activez les paramètres suivants dans la configuration :
+
+```python
+config = {
+    "source_dir": "chemin/vers/metadata",
+    "alias": "mh recette",          # utilisé aussi comme org cible si "target_org" est absent
+    "calculate_coverage": True,      # active la récupération ApexCodeCoverageAggregate / FlowTestCoverage
+    "run_tests": False,              # True pour relancer RunLocalTests avant de lire la couverture
+    # "target_org": "mh recette",    # optionnel : override explicite de l'org cible (alias ou username sf)
+}
+
+dewey = Dewey(config, verbosity="steps")
+```
+
+*   `calculate_coverage` (`false` par défaut) : si `True`, Dewey utilise `SalesforceCliService.fetch_test_coverage()` pour interroger `ApexCodeCoverageAggregate`, `FlowTestCoverage`, `FlowElementTestCoverage` et `ApexClass` via l'API Tooling, avec un nombre de requêtes minimal (une requête `ApexClass` supplémentaire n'est faite que si nécessaire).
+*   `run_tests` (`false` par défaut) : si `True`, Dewey exécute `sf apex run test --test-level RunLocalTests` (bloquant, jusqu'à 60 min) avant de lire la couverture, pour être sûr d'avoir des données fraîches. À utiliser avec précaution (impact sur l'org et durée d'exécution).
+*   `target_org` (optionnel) : alias ou username `sf` à interroger. Si absent, Dewey réutilise `alias`.
+*   Si `calculate_coverage=True` mais qu'aucun `target_org`/`alias` n'est renseigné, ou que le CLI `sf` n'est pas disponible/connecté, Dewey le signale via un log `[COUVERTURE]` et continue sans couverture (aucune exception levée).
+
+Une fois activé, `data["index"]["Métriques"]["test_coverage"]`, les classes Apex (`data["index"]["Apex Trigger"]["items"]`) et les flows (`data["index"]["Flow"]["items"]` + `couverture_elements`) contiennent des valeurs réelles au lieu de `None`/`N/A`.
