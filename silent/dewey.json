@@ -9,7 +9,9 @@
     "generate_excels": false,
     "include_comparison": true,
     "pmd_enabled": true,
-    "use_history": true
+    "use_history": true,
+    "calculate_coverage": false,
+    "run_tests": false
   },
   "mapping": {
     "source_folder": "source_dir",

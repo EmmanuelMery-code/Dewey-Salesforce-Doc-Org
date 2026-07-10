@@ -217,6 +217,7 @@ class AppSfCliMixin:
         org_ref = selected_org.org_ref
 
         def task() -> GenerationResult:
+            self.cli_service.reset_command_stats()
             manifest_path = self.cli_service.generate_manifest(selected_org.org_ref, source)
             retrieved_path = self.cli_service.retrieve_from_org(
                 selected_org.org_ref, source, manifest_path
@@ -253,7 +254,9 @@ class AppSfCliMixin:
                 log_callback=self.task_manager.queue_log,
             )
             generator.alias = self.alias_var.get().strip() or org_ref
-            return generator.generate()
+            result = generator.generate()
+            self.cli_service.log_command_summary()
+            return result
 
         self.task_manager.start_task(
             status_text=self._t("pipeline_in_progress"),
