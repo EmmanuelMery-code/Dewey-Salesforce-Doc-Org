@@ -19,6 +19,9 @@ table { width: 100%; border-collapse: collapse; background: white; margin: 12px 
 th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
 th { background: #dbeafe; }
 tr:nth-child(even) { background: #f8fbff; }
+.table-scroll { max-height: 520px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; margin: 12px 0 24px; }
+.table-scroll table { margin: 0; border: none; }
+.table-scroll th { position: sticky; top: 0; z-index: 1; }
 .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #dbeafe; color: #1e3a8a; }
 .badge.complexity-simple { background: #dcfce7; color: #166534; }
 .badge.complexity-medium { background: #fef3c7; color: #92400e; }
