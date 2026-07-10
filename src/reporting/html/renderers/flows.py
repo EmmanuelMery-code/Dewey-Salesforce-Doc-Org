@@ -269,7 +269,10 @@ def render_flow_page(
                 f"<table><thead><tr><th>Composant lie</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{relation_rows}</tbody></table>{relation_graph}",
             ),
             ("One Page", one_page_graph),
-            ("Elements", f"<table><thead><tr><th>Type</th><th>Nom</th><th>Label</th><th>Description</th><th>Cible</th>{header_extra}</tr></thead><tbody>{elements_rows}</tbody></table>"),
+            (
+                "Elements",
+                f"<div class='table-scroll'><table><thead><tr><th>Type</th><th>Nom</th><th>Label</th><th>Description</th><th>Cible</th>{header_extra}</tr></thead><tbody>{elements_rows}</tbody></table></div>",
+            ),
         ],
     )
     body = f"""
