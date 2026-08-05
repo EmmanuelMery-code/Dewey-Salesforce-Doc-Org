@@ -18,12 +18,14 @@ try:
     from src.core.orchestrator.generator import SalesforceDocumentationGenerator
     from src.core.history_service import HistoryEntry
     from src.core.customization_metrics import PostureCapabilityConfig
+    from src.core.sf_cli_service import SalesforceCliService
 except ImportError as e:
     # Si l'import échoue, on essaie d'ajouter le répertoire courant au cas où
     sys.path.insert(0, str(Path.cwd()))
     from src.core.orchestrator.generator import SalesforceDocumentationGenerator
     from src.core.history_service import HistoryEntry
     from src.core.customization_metrics import PostureCapabilityConfig
+    from src.core.sf_cli_service import SalesforceCliService
 
 def _classify(old_v, new_v, direction):
     """Return (delta, status) for a metric given its 'good' direction."""
@@ -143,6 +145,33 @@ class Dewey:
 
         # Configurer le callback de log en fonction de la verbosité
         filtered_params['log_callback'] = self._log_callback
+
+        # Récupération de la couverture de tests (Apex + Flows) via le CLI Salesforce.
+        # Désactivé par défaut : nécessite un org connecté (sf CLI) et un alias/target_org.
+        # Voir dewey.json ("calculate_coverage", "run_tests", "target_org").
+        self.calculate_coverage = bool(self.params.get('calculate_coverage', False))
+        self.run_tests_before_coverage = bool(self.params.get('run_tests', False))
+        self.target_org = self.params.get('target_org') or self.params.get('alias')
+
+        if self.calculate_coverage:
+            if not self.target_org:
+                self._log_callback(
+                    "[COUVERTURE] 'calculate_coverage' est actif mais aucun 'target_org' "
+                    "(ni 'alias') n'est configure : la couverture de tests est ignoree."
+                )
+            else:
+                cli_service = SalesforceCliService(root_path, log_callback=self._log_callback)
+                if self.run_tests_before_coverage:
+                    self._log_callback(
+                        f"[COUVERTURE] Execution des tests Apex sur '{self.target_org}'..."
+                    )
+                    cli_service.run_apex_tests(self.target_org)
+                self._log_callback(
+                    f"[COUVERTURE] Recuperation de la couverture de tests sur '{self.target_org}'..."
+                )
+                filtered_params['test_coverage_data'] = cli_service.fetch_test_coverage(
+                    self.target_org
+                )
 
         self._generator = SalesforceDocumentationGenerator(**filtered_params)
         
