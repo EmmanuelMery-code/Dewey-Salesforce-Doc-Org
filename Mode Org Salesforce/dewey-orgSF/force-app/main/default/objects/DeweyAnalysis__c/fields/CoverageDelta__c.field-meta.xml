@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CoverageDelta__c</fullName>
+    <description>Difference between current TestCoveragePct__c and previous analysis TestCoveragePct__c. Positive = improvement, negative = degradation. Null on first run or when coverage was not requested on both runs.</description>
+    <externalId>false</externalId>
+    <label>Coverage Δ</label>
+    <precision>6</precision>
+    <required>false</required>
+    <scale>1</scale>
+    <trackTrending>false</trackTrending>
+    <type>Number</type>
+    <unique>false</unique>
+</CustomField>
