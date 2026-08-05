@@ -48,6 +48,24 @@ def _parse_args() -> argparse.Namespace:
             "Defaults to 'pmd' when --pmd-ruleset is provided, 'none' otherwise."
         ),
     )
+    p.add_argument(
+        "--coverage",
+        action="store_true",
+        help=(
+            "Fetch Apex + Flow test coverage from the target org via the Tooling API "
+            "(FlowTestCoverage, FlowElementTestCoverage, ApexCodeCoverageAggregate) "
+            "and apply it to the assessment (per-artifact coverage + org-level average, "
+            "pushed to DeweyAnalysis__c). Requires an org connected via the SF CLI."
+        ),
+    )
+    p.add_argument(
+        "--run-tests",
+        action="store_true",
+        help=(
+            "Run all local Apex tests on the target org before fetching coverage "
+            "(only used together with --coverage). Ignored otherwise."
+        ),
+    )
     return p.parse_args()
 
 
@@ -126,7 +144,12 @@ def _top_findings(report, n: int = 5) -> list:
     return all_findings[:n]
 
 
-def _print_summary(analysis_id: str, report, delta_summary: str | None) -> None:
+def _print_summary(
+    analysis_id: str,
+    report,
+    delta_summary: str | None,
+    test_coverage: float | None = None,
+) -> None:
     counts = report.severity_counts()
     total = sum(counts.values())
     print("\n" + "═" * 60)
@@ -138,6 +161,8 @@ def _print_summary(analysis_id: str, report, delta_summary: str | None) -> None:
     print(f"    Major     : {counts.get('Major', 0)}")
     print(f"    Minor     : {counts.get('Minor', 0)}")
     print(f"    Info      : {counts.get('Info', 0)}")
+    if test_coverage is not None:
+        print(f"  Test coverage : {test_coverage:.1f} %")
     if delta_summary:
         print(f"  Delta       : {delta_summary}")
     print()
@@ -230,6 +255,25 @@ def main() -> None:
     posture_signal_map = cfg_svc.load_posture_signal_map()
     print(f"      Posture signals: {len(posture_signal_map)} rules with signal")
 
+    # Apex + Flow test coverage (optional, requires --coverage and an SF CLI
+    # connected org). Uses the same SalesforceCliService.fetch_test_coverage()
+    # shared with Mode A (desktop app) and the silent Dewey module — minimal,
+    # retried SOQL queries (see src/core/sf_cli_service.py).
+    cli_service = None
+    coverage_data: dict = {}
+    if args.coverage:
+        from src.core.sf_cli_service import SalesforceCliService
+        cli_service = SalesforceCliService(
+            Path(__file__).resolve().parent,
+            log_callback=lambda message: print(f"      [coverage] {message}"),
+        )
+        cli_service.reset_command_stats()
+        if args.run_tests:
+            print(f"      Running Apex tests on `{args.org}`…")
+            cli_service.run_apex_tests(args.org)
+        print(f"      Fetching test coverage from `{args.org}`…")
+        coverage_data = cli_service.fetch_test_coverage(args.org)
+
     from src.core.orchestrator_headless import HeadlessOrchestrator
     orch = HeadlessOrchestrator(
         source_path=source_path,
@@ -241,6 +285,7 @@ def main() -> None:
         pmd_ref_map=pmd_ref_map,
         analyzer=analyzer,
         sfca_ref_map=sfca_ref_map,
+        coverage_data=coverage_data,
     )
     result = orch.run()
     counts = result.report.severity_counts()
@@ -265,7 +310,10 @@ def main() -> None:
 
     # ── Step 6 : summary ──────────────────────────────────────────────────────
     print("[5/5] Done.")
-    _print_summary(analysis_id, result.report, delta_summary)
+    test_coverage = getattr(result.snapshot.metrics, "test_coverage", None)
+    _print_summary(analysis_id, result.report, delta_summary, test_coverage=test_coverage)
+    if cli_service is not None:
+        cli_service.log_command_summary()
 
     # ── Step 7 : cleanup ──────────────────────────────────────────────────────
     if tmp_dir and tmp_dir.exists():

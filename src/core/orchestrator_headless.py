@@ -40,6 +40,12 @@ class HeadlessOrchestrator:
         One of "all", "apex", "flows", "security", "omni".
     config : SfConfig
         Unused in v1 — reserved for weight/threshold overrides.
+    coverage_data : dict[str, dict] | None
+        Apex + Flow test coverage, as returned by
+        :meth:`~src.core.sf_cli_service.SalesforceCliService.fetch_test_coverage`.
+        When provided, it is applied to the parsed snapshot (per-artifact coverage
+        + org-level average) exactly like in Mode A. When omitted, no coverage is
+        fetched and ``snapshot.metrics.test_coverage`` stays ``None``.
     """
 
     def __init__(
@@ -53,6 +59,7 @@ class HeadlessOrchestrator:
         pmd_ref_map: dict[str, str] | None = None,
         analyzer: str = "none",
         sfca_ref_map: dict[str, str] | None = None,
+        coverage_data: dict[str, dict] | None = None,
     ) -> None:
         self.source_path = Path(source_path)
         self.rule_catalog = rule_catalog
@@ -63,6 +70,7 @@ class HeadlessOrchestrator:
         self.pmd_ref_map = pmd_ref_map or {}
         self.analyzer = analyzer  # "pmd" | "sfca" | "none"
         self.sfca_ref_map = sfca_ref_map or {}
+        self.coverage_data = coverage_data or {}
 
     def run(self) -> AssessmentResult:
         from src.parsers.salesforce_parser import SalesforceMetadataParser
@@ -78,6 +86,14 @@ class HeadlessOrchestrator:
         # ── Adoption posture ───────────────────────────────────────────────────
         from src.core.customization_metrics import compute_adoption_stats
         snapshot.adoption_stats = compute_adoption_stats(snapshot)
+
+        # ── Test coverage (Apex + Flows) ───────────────────────────────────────
+        if self.coverage_data:
+            from src.core.orchestrator.data_loading_mixin import apply_test_coverage
+            apply_test_coverage(
+                snapshot, self.coverage_data,
+                log=lambda message: self._log(message, tag="coverage"),
+            )
 
         # ── Analyse ────────────────────────────────────────────────────────────
         engine = AnalyzerEngine(catalog=self.rule_catalog)
@@ -99,9 +115,10 @@ class HeadlessOrchestrator:
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 
-    def _log(self, message: str) -> None:
+    def _log(self, message: str, tag: str | None = None) -> None:
         if message:
-            tag = "sfca" if self.analyzer == "sfca" else "pmd"
+            if tag is None:
+                tag = "sfca" if self.analyzer == "sfca" else "pmd"
             print(f"      [{tag}] {message}")
 
     def _ensure_java_in_path(self) -> None:

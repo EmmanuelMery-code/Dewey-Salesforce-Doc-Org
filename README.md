@@ -102,6 +102,7 @@ Extension headless du même moteur d'analyse, sans application desktop, pilotée
 - **Configuration** : chargée par SOQL depuis les Custom Objects Salesforce `DeweyRule__c`, `DeweyConfig__c`, `DeweyExclusion__c` (avec fallback sur `src/analyzer/rules.xml` si l'org est indisponible)
 - **Analyse** : `src/core/orchestrator_headless.py` orchestre les mêmes analyseurs que le Mode A (`src/analyzer/`), sans callbacks UI
 - **Résultats** : poussés dans `OrgAnalysis__c`, `Finding__c` et `AnalysisDelta__c` (delta calculé par rapport à la dernière analyse pour la même org)
+- **Couverture de tests (optionnel)** : avec `--coverage`, la couverture Apex + Flows est récupérée via `SalesforceCliService.fetch_test_coverage` (partagé avec le Mode A et le module `silent/dewey.py`) et exposée sur `DeweyAnalysis__c.TestCoveragePct__c` (+ `CoverageDelta__c` vs l'analyse précédente)
 - **Paramètres du skill** :
 
 ```
@@ -110,6 +111,10 @@ Extension headless du même moteur d'analyse, sans application desktop, pilotée
   --source     chemin local OU URL GitHub
   --branch     branche GitHub (défaut : main)
   --scope      all | apex | flows | security | omni (défaut : all)
+  --coverage   récupère la couverture de tests Apex + Flows via le CLI Salesforce
+               (Tooling API) et l'ajoute à l'analyse (nécessite un org connecté)
+  --run-tests  lance les tests Apex locaux avant de récupérer la couverture
+               (utilisé uniquement avec --coverage)
 ```
 
 - **Sortie** : résumé terminal (score global, top 5 findings critiques, delta vs analyse précédente) + package Salesforce dédié `dewey-sf-assessment` (objets, permission set, reports, dashboards)
@@ -236,6 +241,7 @@ A headless extension of the same analysis engine, with no desktop application, d
 - **Configuration**: loaded via SOQL from the Salesforce Custom Objects `DeweyRule__c`, `DeweyConfig__c`, `DeweyExclusion__c` (falls back to `src/analyzer/rules.xml` if the org is unavailable)
 - **Analysis**: `src/core/orchestrator_headless.py` orchestrates the same analyzers as Mode A (`src/analyzer/`), without any UI callbacks
 - **Results**: pushed to `OrgAnalysis__c`, `Finding__c` and `AnalysisDelta__c` (delta computed against the last analysis for the same org)
+- **Test coverage (optional)**: with `--coverage`, Apex + Flow coverage is fetched via `SalesforceCliService.fetch_test_coverage` (shared with Mode A and the `silent/dewey.py` module) and exposed on `DeweyAnalysis__c.TestCoveragePct__c` (+ `CoverageDelta__c` vs the previous analysis)
 - **Skill parameters**:
 
 ```
@@ -244,6 +250,10 @@ A headless extension of the same analysis engine, with no desktop application, d
   --source     local path OR GitHub URL
   --branch     GitHub branch (default: main)
   --scope      all | apex | flows | security | omni (default: all)
+  --coverage   fetch Apex + Flow test coverage via the Salesforce CLI (Tooling
+               API) and add it to the assessment (requires a connected org)
+  --run-tests  run local Apex tests before fetching coverage (only used
+               together with --coverage)
 ```
 
 - **Output**: terminal summary (global score, top 5 critical findings, delta vs previous analysis) + a dedicated Salesforce package `dewey-sf-assessment` (objects, permission set, reports, dashboards)

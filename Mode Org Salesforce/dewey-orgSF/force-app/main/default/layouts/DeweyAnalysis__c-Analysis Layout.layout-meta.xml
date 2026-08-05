@@ -71,6 +71,10 @@
                 <behavior>Edit</behavior>
                 <field>ScoreAdapt__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>TestCoveragePct__c</field>
+            </layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>
     </layoutSections>
@@ -159,6 +163,10 @@
             <layoutItems>
                 <behavior>Readonly</behavior>
                 <field>MajorDelta__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>CoverageDelta__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>

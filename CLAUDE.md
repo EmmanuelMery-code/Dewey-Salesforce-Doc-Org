@@ -77,7 +77,7 @@ Files under `src/ui/`, `src/reporting/`, `src/ai/`, `src/core/history_service.py
 7. Clean up temp dir if remote clone
 ```
 
-Parameters: `--org` (default: `ag2rPoc`), `--source` (local path or GitHub URL), `--branch` (default: `main`), `--scope` (`all | apex | flows | security | omni`, default: `all`)
+Parameters: `--org` (default: `ag2rPoc`), `--source` (local path or GitHub URL), `--branch` (default: `main`), `--scope` (`all | apex | flows | security | omni`, default: `all`), `--coverage` (fetch Apex + Flow test coverage via the SF CLI Tooling API and push it to `TestCoveragePct__c`/`CoverageDelta__c`), `--run-tests` (run local Apex tests before `--coverage`)
 
 ---
 

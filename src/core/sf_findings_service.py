@@ -158,6 +158,9 @@ class SfFindingsService:
             "ScoreAdapt__c": round(adoption_stats.percent_adaptation) if adoption_stats else None,
             "ScoreMax__c": _compute_score_max(metrics),
         }
+        test_coverage = getattr(metrics, "test_coverage", None)
+        if test_coverage is not None:
+            analysis_payload["TestCoveragePct__c"] = round(test_coverage, 1)
         if source_branch:
             analysis_payload["SourceBranch__c"] = source_branch[:255]
         if version:
@@ -198,14 +201,20 @@ class SfFindingsService:
                 f"new {n_new}, disparu {n_disparu}, "
                 f"critical {sign(crit_delta)}, major {sign(maj_delta)}"
             )
-            self._rest("PATCH", f"/sobjects/DeweyAnalysis__c/{analysis_id}", {
+            patch_payload: dict[str, Any] = {
                 "PreviousAnalysis__c": prev_id,
                 "ScoreDelta__c": ratio_delta,
                 "NewFindings__c": n_new,
                 "DisparuFindings__c": n_disparu,
                 "CriticalDelta__c": crit_delta,
                 "MajorDelta__c": maj_delta,
-            })
+            }
+            prev_coverage = prev_counts.get("TestCoveragePct__c")
+            if test_coverage is not None and prev_coverage is not None:
+                coverage_delta = round(test_coverage - prev_coverage, 1)
+                patch_payload["CoverageDelta__c"] = coverage_delta
+                delta_summary += f", coverage {sign(coverage_delta)}%"
+            self._rest("PATCH", f"/sobjects/DeweyAnalysis__c/{analysis_id}", patch_payload)
 
         return analysis_id, delta_summary
 
@@ -479,7 +488,7 @@ class SfFindingsService:
 
     def _fetch_previous_counts(self, prev_id: str) -> dict:
         soql = (
-            f"SELECT ScoreRatio__c, FindingCritical__c, FindingMajor__c "
+            f"SELECT ScoreRatio__c, FindingCritical__c, FindingMajor__c, TestCoveragePct__c "
             f"FROM DeweyAnalysis__c WHERE Id = '{prev_id}'"
         )
         cmd = ["sf", "data", "query", "--query", soql, "--json", "-o", self.org_alias]
@@ -489,11 +498,14 @@ class SfFindingsService:
         if not records:
             return {}
         r = records[0]
-        return {
+        result: dict[str, Any] = {
             "ScoreRatio__c": float(r.get("ScoreRatio__c") or 0),
             "FindingCritical__c": int(r.get("FindingCritical__c") or 0),
             "FindingMajor__c": int(r.get("FindingMajor__c") or 0),
         }
+        if r.get("TestCoveragePct__c") is not None:
+            result["TestCoveragePct__c"] = float(r["TestCoveragePct__c"])
+        return result
 
     # ── Posture push ──────────────────────────────────────────────────────────
 

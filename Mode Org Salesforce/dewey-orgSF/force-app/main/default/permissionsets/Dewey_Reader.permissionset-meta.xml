@@ -27,6 +27,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
+        <field>DeweyAnalysis__c.CoverageDelta__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
         <field>DeweyAnalysis__c.CriticalDelta__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -143,6 +148,11 @@
     <fieldPermissions>
         <editable>false</editable>
         <field>DeweyAnalysis__c.Status__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>DeweyAnalysis__c.TestCoveragePct__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

@@ -77,13 +77,14 @@ def _make_catalog():
     return RuleCatalog.load()
 
 
-def _make_orchestrator(scope="all", exclusions=None, source_path=None):
+def _make_orchestrator(scope="all", exclusions=None, source_path=None, coverage_data=None):
     from src.core.orchestrator_headless import HeadlessOrchestrator
     return HeadlessOrchestrator(
         source_path=source_path or Path("/tmp/fake-project"),
         rule_catalog=_make_catalog(),
         exclusions=exclusions or {},
         scope=scope,
+        coverage_data=coverage_data,
     )
 
 
@@ -246,3 +247,51 @@ class TestScopeFiltering:
                     enumerate(["apex_class", "flow", "security", "omni_script", "object"])]
         result = self._run_scoped("all", findings)
         assert len(result.report.all_findings()) == 5
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Test coverage (Apex + Flows) — applied via the shared apply_test_coverage()
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestHeadlessOrchestratorCoverage:
+    """
+    Coverage data (when provided) must be applied to the parsed snapshot via
+    the shared `src.core.orchestrator.data_loading_mixin.apply_test_coverage`
+    function — identical to Mode A (desktop app) and the silent Dewey module.
+    """
+
+    def _run_with_mocks(self, coverage_data=None):
+        snap = _make_snapshot()
+        report = _make_report([])
+        engine_mock = MagicMock()
+        engine_mock.analyze_snapshot.return_value = report
+        engine_mock.rule_exclusions = {}
+
+        with patch("src.parsers.salesforce_parser.SalesforceMetadataParser") as MockParser, \
+             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine, \
+             patch("src.core.customization_metrics.compute_adoption_stats") as mock_adoption, \
+             patch("src.core.orchestrator.data_loading_mixin.apply_test_coverage") as mock_apply:
+            MockParser.return_value.parse.return_value = snap
+            MockEngine.return_value = engine_mock
+            mock_adoption.return_value = MagicMock()
+
+            orch = _make_orchestrator(coverage_data=coverage_data)
+            result = orch.run()
+
+        return result, mock_apply, snap
+
+    def test_apply_test_coverage_called_when_coverage_data_provided(self):
+        coverage_data = {"MyClass": {"percentage": 87.5}}
+        result, mock_apply, snap = self._run_with_mocks(coverage_data=coverage_data)
+        mock_apply.assert_called_once()
+        args, kwargs = mock_apply.call_args
+        assert args[0] is snap
+        assert args[1] == coverage_data
+
+    def test_apply_test_coverage_not_called_without_coverage_data(self):
+        result, mock_apply, snap = self._run_with_mocks(coverage_data=None)
+        mock_apply.assert_not_called()
+
+    def test_apply_test_coverage_not_called_with_empty_dict(self):
+        result, mock_apply, snap = self._run_with_mocks(coverage_data={})
+        mock_apply.assert_not_called()
