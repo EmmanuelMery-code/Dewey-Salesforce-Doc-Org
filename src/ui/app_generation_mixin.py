@@ -91,6 +91,7 @@ class AppGenerationMixin:
             self._append_log(self._t("generation_last_alias", alias=org_ref))
 
         def task() -> GenerationResult:
+            self.cli_service.reset_command_stats()
             test_coverage = None
             if selected_org:
                 if self.run_tests_var.get():
@@ -151,7 +152,9 @@ class AppGenerationMixin:
                 log_callback=self.task_manager.queue_log,
             )
             generator.alias = self.alias_var.get().strip() or org_ref
-            return generator.generate()
+            result = generator.generate()
+            self.cli_service.log_command_summary()
+            return result
 
         self.task_manager.start_task(
             status_text=self._t("doc_in_progress"),
@@ -198,6 +201,7 @@ class AppGenerationMixin:
         org_ref = selected_org.org_ref
 
         def task() -> None:
+            self.cli_service.reset_command_stats()
             sep = "=" * 120
             self.task_manager.queue_log("")
             self.task_manager.queue_log(sep)
@@ -276,6 +280,8 @@ class AppGenerationMixin:
             self.task_manager.queue_log("")
             self.task_manager.queue_log(sep)
 
+            self.cli_service.log_command_summary()
+
         self.task_manager.start_task(
             status_text="Calcul de la couverture...",
             task=task,
@@ -283,171 +289,10 @@ class AppGenerationMixin:
         )
 
     def _fetch_test_coverage(self, target_org: str) -> dict[str, dict]:
-        """Fetch test coverage for Apex classes and Flows via Tooling API."""
-        coverage_data: dict[str, dict] = {}
-        try:
-            apex_query = (
-                "SELECT ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered "
-                "FROM ApexCodeCoverageAggregate"
-            )
-            self.task_manager.queue_log(f"[APEX] Requete SOQL: {apex_query}")
-            apex_records = self.cli_service.run_query(
-                apex_query, target_org, use_tooling_api=True
-            )
-            self.task_manager.queue_log(
-                f"[APEX] Recupere {len(apex_records)} enregistrement(s) de couverture Apex."
-            )
-            if apex_records:
-                self.task_manager.queue_log("[APEX] Resultats detailles:")
-                for idx, record in enumerate(apex_records, 1):
-                    name = record.get("ApexClassOrTrigger", {}).get("Name")
-                    covered = record.get("NumLinesCovered", 0)
-                    uncovered = record.get("NumLinesUncovered", 0)
-                    total = covered + uncovered
-                    pct = (covered / total) * 100 if total > 0 else 0.0
-                    self.task_manager.queue_log(
-                        f"  {idx}. {name}: {covered}/{total} lignes couvertes ({pct:.1f}%)"
-                    )
-                    if name:
-                        coverage_data[name] = {
-                            "percentage": pct,
-                            "lines_covered": covered,
-                            "lines_uncovered": uncovered,
-                            "lines_total": total,
-                        }
-            else:
-                self.task_manager.queue_log(
-                    "[APEX] AUCUN enregistrement de couverture Apex trouve!"
-                )
+        """Fetch test coverage for Apex classes and Flows via Tooling API.
 
-            # Step 1 — FlowTestCoverage: aggregate coverage + lookup tables for element join
-            # Id           → used as key to join FlowElementTestCoverage.FlowTestCoverageId
-            # ApexTestClass.Name → Apex test class name (via relationship)
-            # FlowVersion.Definition.DeveloperName → canonical flow API name
-            flow_query = (
-                "SELECT Id, ApexTestClass.Name, FlowVersion.Definition.DeveloperName, "
-                "NumElementsCovered, NumElementsNotCovered FROM FlowTestCoverage"
-            )
-            self.task_manager.queue_log(f"[FLOW] Requete SOQL: {flow_query}")
-            flow_records = self.cli_service.run_query(
-                flow_query, target_org, use_tooling_api=True
-            )
-            self.task_manager.queue_log(
-                f"[FLOW] Recupere {len(flow_records)} enregistrement(s) de couverture Flow."
-            )
-
-            # Lookup: FlowTestCoverage.Id → flow_name and apex_class_name
-            cov_id_to_flow: dict[str, str] = {}
-            cov_id_to_class: dict[str, str] = {}
-
-            # For each flow: record elements_total (constant across all test-class records)
-            # using the first record seen. Do NOT sum — each record is per test class.
-            for record in flow_records:
-                fv = record.get("FlowVersion") or {}
-                defn = fv.get("Definition") or {}
-                flow_name = defn.get("DeveloperName") or fv.get("DeveloperName") or fv.get("FullName")
-                apex_class = (record.get("ApexTestClass") or {}).get("Name")
-                cov_id = record.get("Id")
-                covered = record.get("NumElementsCovered") or 0
-                uncovered = record.get("NumElementsNotCovered") or 0
-
-                if flow_name and cov_id:
-                    cov_id_to_flow[cov_id] = flow_name
-                if apex_class and cov_id:
-                    cov_id_to_class[cov_id] = apex_class
-
-                if flow_name and flow_name not in coverage_data:
-                    # Record the total bloc count from the first record for this flow.
-                    # All records for the same flow agree on NumElementsCovered+NumElementsNotCovered.
-                    total = covered + uncovered
-                    coverage_data[flow_name] = {
-                        "percentage": 0.0,       # Recalculated after FlowElementTestCoverage
-                        "elements_covered": 0,   # Recalculated after FlowElementTestCoverage
-                        "elements_uncovered": total,
-                        "elements_total": total,
-                        "element_details": {},
-                        "_covered_set": set(),   # Temp: distinct element names covered
-                    }
-
-            if not coverage_data:
-                self.task_manager.queue_log("[FLOW] AUCUN enregistrement de couverture Flow trouve!")
-
-            # Step 2 — FlowElementTestCoverage: per-element detail
-            # ElementName        → API name of the flow element (matches XML <name> tag)
-            # FlowTestCoverageId → join key → flow name + Apex class name
-            elem_query = (
-                "SELECT FlowVersionId, ElementName, FlowTestCoverageId "
-                "FROM FlowElementTestCoverage"
-            )
-            self.task_manager.queue_log(f"[FLOW-ELEM] Requete SOQL: {elem_query}")
-            elem_records = self.cli_service.run_query(
-                elem_query, target_org, use_tooling_api=True
-            )
-            self.task_manager.queue_log(
-                f"[FLOW-ELEM] Recupere {len(elem_records)} enregistrement(s) d'elements Flow."
-            )
-
-            # Case-insensitive index for canonical key resolution
-            coverage_keys_lower = {k.lower(): k for k in coverage_data}
-
-            for record in elem_records:
-                cov_id = record.get("FlowTestCoverageId")
-                elem_name = record.get("ElementName")
-                flow_name = cov_id_to_flow.get(cov_id) if cov_id else None
-                test_class = cov_id_to_class.get(cov_id) if cov_id else None
-
-                if not (flow_name and elem_name and test_class):
-                    continue
-
-                canonical_key = coverage_keys_lower.get(flow_name.lower())
-                if canonical_key is None:
-                    total = 0
-                    coverage_data[flow_name] = {
-                        "percentage": 0.0,
-                        "elements_covered": 0,
-                        "elements_uncovered": 0,
-                        "elements_total": total,
-                        "element_details": {},
-                        "_covered_set": set(),
-                    }
-                    canonical_key = flow_name
-                    coverage_keys_lower[flow_name.lower()] = flow_name
-
-                data = coverage_data[canonical_key]
-                elem_key = elem_name.lower()
-
-                # Track distinct covered elements (deduplicates across test classes)
-                data["_covered_set"].add(elem_key)
-
-                # Record which test classes cover each element
-                details = data.setdefault("element_details", {})
-                if elem_key not in details:
-                    details[elem_key] = []
-                if test_class not in details[elem_key]:
-                    details[elem_key].append(test_class)
-
-            # Step 3 — Recalculate aggregate percentages from distinct element counts
-            # NOTE: coverage_data also holds Apex entries (keyed by class name, with
-            # "lines_*" keys) inserted earlier. Only touch entries created by the Flow
-            # queries above, identified by the presence of "_covered_set".
-            for flow_name, data in coverage_data.items():
-                if "_covered_set" not in data:
-                    continue
-                covered_set = data.pop("_covered_set", set())
-                distinct_covered = len(covered_set)
-                total = data["elements_total"]
-                data["elements_covered"] = distinct_covered
-                data["elements_uncovered"] = max(0, total - distinct_covered)
-                data["percentage"] = (distinct_covered / total * 100) if total > 0 else 0.0
-                self.task_manager.queue_log(
-                    f"[FLOW] {flow_name}: {distinct_covered}/{total} blocs couverts ({data['percentage']:.1f}%)"
-                )
-
-            self.task_manager.queue_log(
-                f"[RESUME] Couverture enregistree pour {len(coverage_data)} flow(s)."
-            )
-        except Exception as exc:
-            self.task_manager.queue_log(
-                f"Avertissement : impossible de recuperer la couverture de tests : {exc}"
-            )
-        return coverage_data
+        Thin wrapper around :meth:`SalesforceCliService.fetch_test_coverage`
+        (shared with the ``Dewey`` module) — ``cli_service`` already logs to
+        the task manager's log window via its ``log_callback``.
+        """
+        return self.cli_service.fetch_test_coverage(target_org)
