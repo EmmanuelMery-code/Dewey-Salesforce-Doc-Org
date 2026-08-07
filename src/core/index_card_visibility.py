@@ -39,6 +39,7 @@ class IndexCardVisibility:
     show_test_coverage: bool = True
     show_debt: bool = True
     show_innovation: bool = True
+    show_picklists: bool = True
     show_sharing_rules: bool = True
     show_duplicate_rules: bool = True
     show_lwc: bool = True
@@ -68,6 +69,7 @@ class IndexCardVisibility:
             "show_card_test_coverage": self.show_test_coverage,
             "show_card_debt": self.show_debt,
             "show_card_innovation": self.show_innovation,
+            "show_card_picklists": self.show_picklists,
             "show_card_sharing_rules": self.show_sharing_rules,
             "show_card_duplicate_rules": self.show_duplicate_rules,
             "show_card_lwc": self.show_lwc,
@@ -96,6 +98,7 @@ _SETTING_KEYS: dict[str, str] = {
     "show_test_coverage": "show_card_test_coverage",
     "show_debt": "show_card_debt",
     "show_innovation": "show_card_innovation",
+    "show_picklists": "show_card_picklists",
     "show_sharing_rules": "show_card_sharing_rules",
     "show_duplicate_rules": "show_card_duplicate_rules",
     "show_lwc": "show_card_lwc",

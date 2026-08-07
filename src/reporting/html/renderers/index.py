@@ -38,6 +38,7 @@ from src.reporting.html.renderers.index_cards import (
     render_data_model_card,
     render_debt_card,
     render_innovation_card,
+    render_picklists_card,
     render_summary_tabs,
 )
 from src.reporting.html.renderers.index_tables import (
@@ -81,6 +82,7 @@ def render_index(
     adoption_page: Path | None = None,
     debt_page: Path | None = None,
     innovation_page: Path | None = None,
+    picklists_page: Path | None = None,
     findings_report_page: Path | None = None,
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
@@ -315,6 +317,11 @@ def render_index(
         if visibility.show_innovation
         else ""
     )
+    picklists_card = (
+        render_picklists_card(snapshot, picklists_page, current_path)
+        if visibility.show_picklists
+        else ""
+    )
     
     # Calculate Apex and Flow coverage averages
     apex_covered = 0
@@ -465,7 +472,7 @@ def render_index(
         ],
         metric_cards=[
             findings_card, ai_usage_card, data_model_card, adoption_card, debt_card,
-            innovation_card,
+            innovation_card, picklists_card,
         ],
         ia_business_cards=[predictions_card, agents_card, prompts_card],
         ia_admin_card=ai_usage_card,
@@ -532,6 +539,7 @@ def write_index(
     adoption_page: Path | None = None,
     debt_page: Path | None = None,
     innovation_page: Path | None = None,
+    picklists_page: Path | None = None,
     findings_report_page: Path | None = None,
     card_visibility: IndexCardVisibility | None = None,
     root_output_dir: Path | None = None,
@@ -569,6 +577,7 @@ def write_index(
             findings_report_page=findings_report_page,
             debt_page=debt_page,
             innovation_page=innovation_page,
+            picklists_page=picklists_page,
             card_visibility=card_visibility,
             root_output_dir=root_output_dir,
             alias=alias,

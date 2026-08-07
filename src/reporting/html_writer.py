@@ -43,6 +43,7 @@ from src.reporting.html.renderers import (
     methodology as methodology_renderer,
     objects as objects_renderer,
     omni as omni_renderer,
+    picklists as picklists_renderer,
     security as security_renderer,
     security_matrix as security_matrix_renderer,
     psg as psg_renderer,
@@ -303,6 +304,17 @@ class HtmlReportWriter:
             self.log,
         )
 
+    def write_picklists_page(
+        self,
+        snapshot: MetadataSnapshot,
+    ) -> Path:
+        return picklists_renderer.write_picklists_page(
+            snapshot,
+            self.output_dir,
+            self.assets_dir,
+            self.log,
+        )
+
     def write_listing_pages(
         self,
         snapshot: MetadataSnapshot,
@@ -371,6 +383,7 @@ class HtmlReportWriter:
         adoption_page: Path | None = None,
         debt_page: Path | None = None,
         innovation_page: Path | None = None,
+        picklists_page: Path | None = None,
         findings_report_page: Path | None = None,
         card_visibility: IndexCardVisibility | None = None,
         alias: str = "",
@@ -403,6 +416,7 @@ class HtmlReportWriter:
             adoption_page=adoption_page,
             debt_page=debt_page,
             innovation_page=innovation_page,
+            picklists_page=picklists_page,
             findings_report_page=findings_report_page,
             card_visibility=card_visibility,
             root_output_dir=self.root_output_dir,

@@ -56,6 +56,9 @@ static_code_analysis_rules.csv
 # OS / editor
 .DS_Store
 Thumbs.db
+.vs/
+.vscode/
+.idea/
 
 # Local user manual (generated separately, not committed)
 Salesforce Manuel utilisateur.rtf
