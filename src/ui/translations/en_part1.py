@@ -223,6 +223,7 @@ EN_PART1: dict[str, str] = {
     "configuration_card_lwc": "LWC Components",
     "configuration_card_aura": "Aura Components",
     "configuration_card_dependencies": "Dependencies (Impact Analysis)",
+    "configuration_card_picklists": "Picklist Fields",
     "configuration_index_cards_section_synthesis": "Summary (scoring)",
     "configuration_index_cards_section_volume": "Volumes",
     "configuration_index_cards_section_quality": "Quality and postures",

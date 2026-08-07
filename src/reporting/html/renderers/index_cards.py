@@ -228,7 +228,7 @@ def render_picklists_card(
 
     if page_path is not None:
         href = html_value(href_relative(current_path, page_path))
-        title_html = f'<a href="{href}">Champs Picklist</a>'
+        title_html = f'<a href="{href}" style="color: inherit; text-decoration: none;">Champs Picklist</a>'
         picklist_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{picklist_count}</a>'
         global_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{global_count}</a>'
     else:
@@ -240,11 +240,11 @@ def render_picklists_card(
         '  <div class="card adopt-card">\n'
         f"    <span>{title_html}</span>\n"
         '    <div class="adopt-grid">\n'
-        '      <div class="adopt-stat adopt-stat--adapt">\n'
+        '      <div class="adopt-stat adopt-stat--adapt" style="background: transparent;">\n'
         '        <span class="adopt-label">Champs Picklist</span>\n'
         f'        <span class="value">{picklist_link}</span>\n'
         "      </div>\n"
-        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
+        '      <div class="adopt-stat adopt-stat--adapt" style="background: transparent; border-left: 1px solid #e2e8f0;">\n'
         '        <span class="adopt-label">Picklists Globales</span>\n'
         f'        <span class="value">{global_link}</span>\n'
         "      </div>\n"

@@ -22,7 +22,7 @@ def render_picklists_page(
 ) -> str:
     """Render the picklist fields inventory HTML page."""
 
-    back_link = index_back_link(current_path, output_dir, "metriques", "summary-tabs")
+    back_link = index_back_link(current_path, output_dir, "description", "summary-tabs")
 
     rows: list[str] = []
     for obj in snapshot.objects:

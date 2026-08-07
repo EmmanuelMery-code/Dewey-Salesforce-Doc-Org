@@ -199,6 +199,9 @@ def show_configuration_screen(app: Application) -> None:
         "show_card_dependencies": tk.BooleanVar(
             value=bool(app.show_card_dependencies_var.get())
         ),
+        "show_card_picklists": tk.BooleanVar(
+            value=bool(app.show_card_picklists_var.get())
+        ),
         "one_page_max_depth": tk.IntVar(value=int(app.one_page_max_depth_var.get())),
         "one_page_hub_threshold": tk.IntVar(
             value=int(app.one_page_hub_threshold_var.get())

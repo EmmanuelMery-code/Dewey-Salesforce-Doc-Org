@@ -395,6 +395,7 @@ def build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
                 ("show_card_duplicate_rules", "configuration_card_duplicate_rules"),
                 ("show_card_lwc", "configuration_card_lwc"),
                 ("show_card_aura", "configuration_card_aura"),
+                ("show_card_picklists", "configuration_card_picklists"),
             ],
         ),
         (

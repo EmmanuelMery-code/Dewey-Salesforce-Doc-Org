@@ -319,6 +319,14 @@ def render_health_panel(
     if not snapshot.orphans:
         return "<p class='empty'>Aucun composant orphelin detecte.</p>"
 
+    object_descriptions = {obj.api_name: obj.description for obj in snapshot.objects}
+    field_descriptions = {
+        f"{obj.api_name}.{fld.api_name}": fld.description
+        for obj in snapshot.objects
+        for fld in obj.fields
+    }
+    _kinds_with_description = ("Custom Object", "Custom Field")
+
     orphans_by_kind: dict[str, list[str]] = {}
     for orphan in snapshot.orphans:
         kind = orphan.kind or "Autre"
@@ -343,11 +351,57 @@ def render_health_panel(
             if href
             else html_value(orphan.name)
         )
-        orphans_by_kind.setdefault(kind, []).append(f"<tr><td>{name_cell}</td></tr>")
+        row = f"<td>{name_cell}</td>"
+        if kind in _kinds_with_description:
+            if kind == "Custom Object":
+                item_description = object_descriptions.get(orphan.name, "")
+            else:
+                item_description = field_descriptions.get(orphan.name, "")
+            row += f"<td>{html_value(item_description) if item_description else '-'}</td>"
+        orphans_by_kind.setdefault(kind, []).append(f"<tr>{row}</tr>")
 
     sections: list[tuple[str, str]] = []
     for kind in sorted(orphans_by_kind.keys()):
         rows = orphans_by_kind[kind]
-        table = f"<table><thead><tr><th>Nom</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
-        sections.append((f"{kind} ({len(rows)})", table))
+        description = _ORPHAN_KIND_DESCRIPTIONS.get(
+            kind,
+            "Composant sans reference detectee ailleurs dans le code analyse.",
+        )
+        description_html = f"<p class='empty' style='margin-top: 0;'>{description}</p>"
+        headers = (
+            "<th>Nom</th><th>Description</th>"
+            if kind in _kinds_with_description
+            else "<th>Nom</th>"
+        )
+        table = f"<table><thead><tr>{headers}</tr></thead><tbody>{''.join(rows)}</tbody></table>"
+        sections.append((f"{kind} ({len(rows)})", description_html + table))
     return tabbed_sections("index-orphans", sections)
+
+
+_ORPHAN_KIND_DESCRIPTIONS: dict[str, str] = {
+    "Apex Class": (
+        "Classe non instanciee/appelee dans aucune autre classe ou trigger Apex, "
+        "aucune action invocable dans un Flow, aucun import/appel depuis un composant LWC ou Aura, "
+        "et aucune reference dans un composant OmniStudio (OmniScript, Integration Procedure, "
+        "DataMapper, FlexCard). Les triggers sont exclus (points d'entree)."
+    ),
+    "Custom Object": (
+        "Objet custom non reference : ni dans le corps d'une classe ou d'un trigger Apex, "
+        "ni comme cible d'une relation (lookup/maitre-detail) depuis un autre objet, "
+        "ni comme objet de depart d'un Flow, ni comme Report Type d'un rapport, "
+        "ni dans un composant OmniStudio."
+    ),
+    "Custom Field": (
+        "Champ custom non reference (motif Objet.Champ ou balise &lt;field&gt;) dans : le corps "
+        "des classes/triggers Apex, les formules des regles de validation portant sur l'objet, "
+        "les Flows demarres sur cet objet, les composants LWC (import @salesforce/schema) et Aura, "
+        "les rapports du meme Report Type, les Page Layouts, les Lightning Record Pages (FlexiPages) "
+        "et les composants OmniStudio."
+    ),
+    "Flow": (
+        "Flow autonome (type Flow ou AutoLaunchedFlow) sans declencheur ni ecran d'entree detecte. "
+        "Attention : cette detection est heuristique et ne verifie pas encore les appels explicites "
+        "(Subflow, Flow.Interview en Apex, action Flow depuis un LWC ou un composant OmniStudio) ; "
+        "une verification manuelle est recommandee avant suppression."
+    ),
+}
