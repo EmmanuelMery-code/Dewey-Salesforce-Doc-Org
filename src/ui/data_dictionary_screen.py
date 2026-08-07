@@ -133,7 +133,9 @@ class DataDictionaryScreen:
             return
 
         # Use the parser to find package roots and objects
-        parser = SalesforceMetadataParser(source_dir)
+        parser = SalesforceMetadataParser(
+            source_dir, exclusion_config_path=self.app._selected_exclusion_file()
+        )
         package_roots = parser._resolve_package_roots()
         
         self.all_objects = []
@@ -248,7 +250,11 @@ class DataDictionaryScreen:
         output_dir = Path(self.app.output_var.get())
         
         # Parse selected objects
-        parser = SalesforceMetadataParser(source_dir, log_callback=self.app.task_manager.queue_log)
+        parser = SalesforceMetadataParser(
+            source_dir,
+            exclusion_config_path=self.app._selected_exclusion_file(),
+            log_callback=self.app.task_manager.queue_log,
+        )
         snapshot = parser.parse()
         
         # Filter snapshot objects

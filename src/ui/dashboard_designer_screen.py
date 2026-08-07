@@ -109,7 +109,9 @@ def show_dashboard_designer_screen(app: Application) -> None:
             folder = filedialog.askdirectory(title=app._t("designer_folder_title"))
             if not folder: return
             try:
-                parser = SalesforceMetadataParser(folder)
+                parser = SalesforceMetadataParser(
+                    folder, exclusion_config_path=app._selected_exclusion_file()
+                )
                 app.latest_snapshot = parser.parse()
                 window.destroy(); show_dashboard_designer_screen(app)
             except Exception as e: messagebox.showerror(app._t("error_title"), str(e))

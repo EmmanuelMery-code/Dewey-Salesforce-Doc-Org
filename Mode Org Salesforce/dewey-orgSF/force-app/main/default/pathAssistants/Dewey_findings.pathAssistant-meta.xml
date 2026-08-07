@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PathAssistant xmlns="http://soap.sforce.com/2006/04/metadata">
+    <active>true</active>
+    <entityName>DeweyFinding__c</entityName>
+    <fieldName>Status__c</fieldName>
+    <masterLabel>Dewey findings</masterLabel>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;Le finding a été accepté donc une règle d&amp;#39;exclusion a été créée pour ne plus voir cette erreur&lt;/p&gt;</info>
+        <picklistValueName>Accepté</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;Le finding a existé et n&amp;#39;a pas fait l&amp;#39;objet d&amp;#39;une action mais n&amp;#39;est plus trouvé lors de la dernière analyse&lt;/p&gt;</info>
+        <picklistValueName>Disparu</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;Le finding a été découvert, il doit être affecté via une tâche ou accepté.&lt;/p&gt;&lt;p&gt;S&amp;#39;il est accepté, une règle d&amp;#39;exclusion sera créée&lt;/p&gt;</info>
+        <picklistValueName>Découvert</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;une tâche de traitement existe pour décider d&amp;#39;une résolution ou d&amp;#39;une acceptation&lt;/p&gt;</info>
+        <picklistValueName>Pris en charge</picklistValueName>
+    </pathAssistantSteps>
+    <pathAssistantSteps>
+        <info>&lt;p&gt;Le finding a été corrigé&lt;/p&gt;</info>
+        <picklistValueName>Résolu</picklistValueName>
+    </pathAssistantSteps>
+    <recordTypeName>Standard</recordTypeName>
+</PathAssistant>
