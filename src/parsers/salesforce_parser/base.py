@@ -93,4 +93,11 @@ class _ParserState:
         "record_type": "record_type",
         "record_types": "record_type",
         "rt": "record_type",
+        "picklist": "field",
+        "picklists": "field",
+        "global_value_set": "global_value_set",
+        "global_value_sets": "global_value_set",
+        "global value set": "global_value_set",
+        "global value sets": "global_value_set",
+        "gvs": "global_value_set",
     }

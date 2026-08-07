@@ -211,6 +211,48 @@ def render_innovation_card(
     )
 
 
+def render_picklists_card(
+    snapshot: MetadataSnapshot,
+    page_path: Path | None,
+    current_path: Path,
+) -> str:
+    picklist_count = sum(
+        1
+        for obj in snapshot.objects
+        for item in obj.fields
+        if item.data_type in ("Picklist", "MultiselectPicklist")
+    )
+    global_count = sum(
+        1 for obj in snapshot.objects for item in obj.fields if item.picklist_is_global
+    )
+
+    if page_path is not None:
+        href = html_value(href_relative(current_path, page_path))
+        title_html = f'<a href="{href}">Champs Picklist</a>'
+        picklist_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{picklist_count}</a>'
+        global_link = f'<a href="{href}" style="color: inherit; text-decoration: none;">{global_count}</a>'
+    else:
+        title_html = "Champs Picklist"
+        picklist_link = str(picklist_count)
+        global_link = str(global_count)
+
+    return (
+        '  <div class="card adopt-card">\n'
+        f"    <span>{title_html}</span>\n"
+        '    <div class="adopt-grid">\n'
+        '      <div class="adopt-stat adopt-stat--adapt">\n'
+        '        <span class="adopt-label">Champs Picklist</span>\n'
+        f'        <span class="value">{picklist_link}</span>\n'
+        "      </div>\n"
+        '      <div class="adopt-stat adopt-stat--adapt" style="border-left: 1px solid #e2e8f0;">\n'
+        '        <span class="adopt-label">Picklists Globales</span>\n'
+        f'        <span class="value">{global_link}</span>\n'
+        "      </div>\n"
+        "    </div>\n"
+        "  </div>\n"
+    )
+
+
 def render_summary_tabs(
     *,
     description_cards: list[str],

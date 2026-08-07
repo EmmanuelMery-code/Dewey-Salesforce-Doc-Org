@@ -332,6 +332,52 @@ class ExcelReportWriter:
         self.log(summary)
         return written
 
+    def write_picklists_workbook(
+        self, objects: list[ObjectInfo], output_path: str | Path
+    ) -> Path:
+        """Generate the Picklist fields inventory workbook.
+
+        Lists every ``Picklist``/``MultiselectPicklist`` field found across
+        ``objects``, resolving Global Value Set references to their values
+        (already computed by the parser onto ``FieldInfo.picklist_values``).
+        """
+        output = Path(output_path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+
+        rows = [
+            [
+                obj.api_name,
+                item.api_name,
+                item.data_type,
+                "Oui" if item.picklist_is_global else "Non",
+                item.picklist_global_name or "-",
+                " | ".join(item.picklist_values) if item.picklist_values else "-",
+            ]
+            for obj in objects
+            for item in obj.fields
+            if item.data_type in ("Picklist", "MultiselectPicklist")
+        ]
+
+        workbook = Workbook()
+        summary = workbook.active
+        summary.title = "Champs Picklist"
+        self._write_sheet(
+            summary,
+            [
+                "Nom de l'Objet",
+                "Nom du Champ",
+                "Type de Champ",
+                "Picklist Globale ?",
+                "Nom Picklist Globale",
+                "Valeurs de la Picklist",
+            ],
+            rows,
+        )
+
+        workbook.save(output)
+        self.log(f"Classeur Picklist genere ({len(rows)} champ(s)): {output}")
+        return output
+
     @staticmethod
     def _data_dictionary_filename(part_index: int, filename_base: str = "data_dictionary") -> str:
         if part_index <= 1:

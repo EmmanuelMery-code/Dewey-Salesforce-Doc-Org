@@ -73,6 +73,12 @@ class _StepsMixin(_OrchestratorState):
             )
             or []
         )
+        result.picklists_excel = self._safe_run(
+            "picklists.xlsx",
+            lambda: excel_writer.write_picklists_workbook(
+                snapshot.objects, excel_dir / "picklists.xlsx"
+            ),
+        )
 
     def _run_pmd(
         self,
@@ -245,6 +251,7 @@ class _StepsMixin(_OrchestratorState):
         )
         result.debt_page = html_writer.write_debt_page(snapshot)
         result.innovation_page = html_writer.write_innovation_page(snapshot)
+        result.picklists_page = html_writer.write_picklists_page(snapshot)
         result.security_pages = html_writer.write_security_pages(
             snapshot, analyzer_report=analyzer_report
         )
@@ -301,6 +308,7 @@ class _StepsMixin(_OrchestratorState):
             adoption_page=result.adoption_page,
             debt_page=result.debt_page,
             innovation_page=result.innovation_page,
+            picklists_page=result.picklists_page,
             findings_report_page=result.findings_report_page,
             card_visibility=self.index_card_visibility,
             alias=self.alias,

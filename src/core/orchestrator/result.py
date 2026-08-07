@@ -26,6 +26,7 @@ class GenerationResult:
     profile_excel: Path | None = None
     inventory_excel: Path | None = None
     data_dictionary_excels: list[Path] = field(default_factory=list)
+    picklists_excel: Path | None = None
     pmd_excel: Path | None = None
     data_dictionary_word: Path | None = None
     summary_word: Path | None = None
@@ -39,6 +40,7 @@ class GenerationResult:
     adoption_page: Path | None = None
     debt_page: Path | None = None
     innovation_page: Path | None = None
+    picklists_page: Path | None = None
     methodology_page: Path | None = None
     findings_report_page: Path | None = None
     object_pages: dict = field(default_factory=dict)
