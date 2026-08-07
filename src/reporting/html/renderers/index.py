@@ -464,7 +464,7 @@ def render_index(
         description_cards=[
             custom_objects_card, custom_fields_card, flows_card, apex_classes_triggers_card,
             lwc_card, aura_card, omni_components_card, predictions_card, agents_card,
-            prompts_card, sharing_rules_card, duplicate_rules_card,
+            prompts_card, sharing_rules_card, duplicate_rules_card, picklists_card,
         ],
         scoring_cards=[
             customization_level_card, score_card, adopt_vs_adapt_card,
@@ -472,7 +472,7 @@ def render_index(
         ],
         metric_cards=[
             findings_card, ai_usage_card, data_model_card, adoption_card, debt_card,
-            innovation_card, picklists_card,
+            innovation_card,
         ],
         ia_business_cards=[predictions_card, agents_card, prompts_card],
         ia_admin_card=ai_usage_card,
