@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Callable
 
 from src.core.models import (
     DeviationItem,
@@ -11,6 +12,81 @@ from src.core.models import (
     TechnicalDebtItem,
 )
 from src.core.orchestrator.base import _OrchestratorState
+
+
+def apply_test_coverage(
+    snapshot: MetadataSnapshot,
+    test_coverage_data: dict,
+    log: Callable[[str], None] | None = None,
+) -> None:
+    """Populate per-artifact coverage and the org-level average on ``snapshot``.
+
+    Standalone (non-mixin) version of the logic, shared between the desktop app
+    (Mode A, via :class:`_DataLoadingMixin`) and the headless orchestrator
+    (Mode B, via :class:`~src.core.orchestrator_headless.HeadlessOrchestrator`),
+    so both apply Apex/Flow coverage identically without duplicating the logic.
+    """
+    log = log or (lambda message: None)
+    total_covered = 0.0
+    count = 0
+
+    # Collect coverage data for non-test artifacts
+    for artifact in snapshot.apex_artifacts:
+        if artifact.name in test_coverage_data:
+            coverage_info = test_coverage_data[artifact.name]
+            if isinstance(coverage_info, dict):
+                # New format with detailed coverage info
+                artifact.test_coverage = coverage_info.get("percentage")
+                artifact.test_coverage_lines_covered = coverage_info.get("lines_covered", 0)
+                artifact.test_coverage_lines_uncovered = coverage_info.get("lines_uncovered", 0)
+            else:
+                # Old format (just percentage) - fallback for compatibility
+                artifact.test_coverage = coverage_info
+                artifact.test_coverage_lines_covered = 0
+                artifact.test_coverage_lines_uncovered = 0
+
+            if not artifact.is_test and artifact.test_coverage is not None:
+                total_covered += artifact.test_coverage
+                count += 1
+
+    # Build a case-insensitive index once for all flows
+    coverage_keys_lower = {k.lower(): k for k in test_coverage_data}
+
+    for flow in snapshot.flows:
+        canonical_key = coverage_keys_lower.get(flow.name.lower())
+        if canonical_key is None:
+            continue
+        coverage_info = test_coverage_data[canonical_key]
+        if isinstance(coverage_info, dict):
+            flow.test_coverage = coverage_info.get("percentage")
+            flow.test_coverage_elements_covered = coverage_info.get("elements_covered", 0)
+            flow.test_coverage_elements_uncovered = coverage_info.get("elements_uncovered", 0)
+            element_details = coverage_info.get("element_details", {})
+            for element in flow.elements:
+                elem_key = element.name.lower() if element.name else ""
+                if elem_key in element_details:
+                    element.covered_by = sorted(element_details[elem_key])
+        else:
+            flow.test_coverage = coverage_info
+            flow.test_coverage_elements_covered = 0
+            flow.test_coverage_elements_uncovered = 0
+
+        if flow.test_coverage is not None:
+            total_covered += flow.test_coverage
+            count += 1
+
+    # Calculate org-level test coverage
+    if count > 0:
+        # Coverage data found for some components
+        snapshot.metrics.test_coverage = total_covered / count
+        log(f"Couverture de tests org calculee : {snapshot.metrics.test_coverage:.1f} % ({count} composants).")
+    else:
+        # No coverage data found - default to 0
+        snapshot.metrics.test_coverage = 0.0
+        log("Aucune donnee de couverture de tests trouvee.")
+
+    if snapshot.metrics.test_coverage is not None:
+        log(f"Couverture de tests finale : {snapshot.metrics.test_coverage:.1f} %.")
 
 
 class _DataLoadingMixin(_OrchestratorState):
@@ -35,67 +111,13 @@ class _DataLoadingMixin(_OrchestratorState):
             snapshot.metrics.profiles_ps_ratio_thresholds = tuple(self.profiles_ps_ratio_thresholds)
 
     def _apply_test_coverage(self, snapshot: MetadataSnapshot) -> None:
-        """Populate per-artifact coverage and the org-level average."""
-        total_covered = 0.0
-        count = 0
+        """Populate per-artifact coverage and the org-level average.
 
-        # Collect coverage data for non-test artifacts
-        for artifact in snapshot.apex_artifacts:
-            if artifact.name in self.test_coverage_data:
-                coverage_info = self.test_coverage_data[artifact.name]
-                if isinstance(coverage_info, dict):
-                    # New format with detailed coverage info
-                    artifact.test_coverage = coverage_info.get("percentage")
-                    artifact.test_coverage_lines_covered = coverage_info.get("lines_covered", 0)
-                    artifact.test_coverage_lines_uncovered = coverage_info.get("lines_uncovered", 0)
-                else:
-                    # Old format (just percentage) - fallback for compatibility
-                    artifact.test_coverage = coverage_info
-                    artifact.test_coverage_lines_covered = 0
-                    artifact.test_coverage_lines_uncovered = 0
-
-                if not artifact.is_test and artifact.test_coverage is not None:
-                    total_covered += artifact.test_coverage
-                    count += 1
-
-        # Build a case-insensitive index once for all flows
-        coverage_keys_lower = {k.lower(): k for k in self.test_coverage_data}
-
-        for flow in snapshot.flows:
-            canonical_key = coverage_keys_lower.get(flow.name.lower())
-            if canonical_key is None:
-                continue
-            coverage_info = self.test_coverage_data[canonical_key]
-            if isinstance(coverage_info, dict):
-                flow.test_coverage = coverage_info.get("percentage")
-                flow.test_coverage_elements_covered = coverage_info.get("elements_covered", 0)
-                flow.test_coverage_elements_uncovered = coverage_info.get("elements_uncovered", 0)
-                element_details = coverage_info.get("element_details", {})
-                for element in flow.elements:
-                    elem_key = element.name.lower() if element.name else ""
-                    if elem_key in element_details:
-                        element.covered_by = sorted(element_details[elem_key])
-            else:
-                flow.test_coverage = coverage_info
-                flow.test_coverage_elements_covered = 0
-                flow.test_coverage_elements_uncovered = 0
-
-            if flow.test_coverage is not None:
-                total_covered += flow.test_coverage
-                count += 1
-
-        # Calculate org-level test coverage
-        if count > 0:
-            # Coverage data found for some components
-            snapshot.metrics.test_coverage = total_covered / count
-            self.log(f"Couverture de tests org calculee : {snapshot.metrics.test_coverage:.1f} % ({count} composants).")
-        else:
-            # No coverage data found - default to 0
-            snapshot.metrics.test_coverage = 0.0
-            self.log("Aucune donnee de couverture de tests trouvee.")
-
-        if snapshot.metrics.test_coverage is not None:
-            self.log(f"Couverture de tests finale : {snapshot.metrics.test_coverage:.1f} %.")
+        Thin wrapper around the module-level :func:`apply_test_coverage`
+        (shared with the headless Mode B orchestrator) — passes this mixin's
+        ``self.log`` so messages keep flowing to the same callback as before.
+        """
+        apply_test_coverage(snapshot, self.test_coverage_data, log=self.log)
 
     def _load_technical_debt(self, snapshot: MetadataSnapshot) -> None:
         """Load technical debt and deviations from the configured JSON file."""

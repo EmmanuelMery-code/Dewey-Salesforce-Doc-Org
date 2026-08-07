@@ -1,0 +1,792 @@
+"""Configuration window for the Salesforce documentation generator."""
+
+from __future__ import annotations
+
+import tkinter as tk
+from pathlib import Path
+from tkinter import scrolledtext, ttk
+from typing import TYPE_CHECKING
+
+from src.ai import build_system_prompt
+from src.analyzer.rule_catalog import DEFAULT_RULES_PATH
+from src.ui import (
+    ai_tags_panel,
+    analyzer_rules_panel,
+    posture_capability_panel,
+)
+from src.ui.settings import (
+    DEFAULT_AI_USAGE_TAGS,
+    serialize_posture_config,
+)
+
+if TYPE_CHECKING:
+    from src.ui.application import Application
+
+
+def show_configuration_screen(app: Application) -> None:
+    """Create and show the configuration management window."""
+    existing = app.configuration_window
+    if existing is not None and existing.winfo_exists():
+        existing.deiconify()
+        existing.lift()
+        existing.focus_set()
+        return
+
+    window = tk.Toplevel(app)
+    window.title(app._t("configuration_title"))
+    window.geometry("980x720")
+    app._configure_secondary_window(window)
+
+    # Add scrollbar support
+    container = ttk.Frame(window)
+    container.pack(fill="both", expand=True)
+
+    canvas = tk.Canvas(container, highlightthickness=0)
+    scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas, padding=16)
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+    # Mouse wheel support
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+    ttk.Label(
+        scrollable_frame,
+        text=app._t("configuration_title"),
+        font=("Segoe UI", 13, "bold"),
+    ).pack(anchor="w", pady=(0, 8))
+
+    notebook = ttk.Notebook(scrollable_frame)
+    notebook.pack(fill="both", expand=True)
+
+    doc_tab = ttk.Frame(notebook, padding=12)
+    discussion_tab = ttk.Frame(notebook, padding=12)
+    rules_tab = ttk.Frame(notebook, padding=12)
+    ai_tags_tab = ttk.Frame(notebook, padding=12)
+    index_cards_tab = ttk.Frame(notebook, padding=12)
+    posture_tab = ttk.Frame(notebook, padding=12)
+    notebook.add(doc_tab, text=app._t("configuration_tab_documentation"))
+    notebook.add(discussion_tab, text=app._t("configuration_tab_discussion"))
+    notebook.add(rules_tab, text=app._t("configuration_tab_rules"))
+    notebook.add(ai_tags_tab, text=app._t("configuration_tab_ai_tags"))
+    notebook.add(index_cards_tab, text=app._t("configuration_tab_index_cards"))
+    notebook.add(posture_tab, text=app._t("configuration_tab_posture"))
+
+    edit_vars = {
+        "language": tk.StringVar(value=app._language_display(app.language)),
+        "login_target": tk.StringVar(value=app._login_target_display(app.login_target_key)),
+        "instance_url": tk.StringVar(value=app.instance_url_var.get()),
+        "alias": tk.StringVar(value=app.alias_var.get()),
+        "source": tk.StringVar(value=app.source_var.get()),
+        "output": tk.StringVar(value=app.output_var.get()),
+        "exclusion_file": tk.StringVar(value=app.exclusion_file_var.get()),
+        "technical_debt_file": tk.StringVar(value=app.technical_debt_file_var.get()),
+        "pmd_enabled": tk.BooleanVar(value=bool(app.pmd_enabled_var.get())),
+        "pmd_ruleset": tk.StringVar(value=app.pmd_ruleset_var.get()),
+        "analyzer_rules_file": tk.StringVar(value=app.analyzer_rules_file_var.get()),
+        "org_check_type": tk.StringVar(value=app.org_check_choice_var.get()),
+        "ai_provider": tk.StringVar(value=app.ai_provider_var.get()),
+        "claude_key": tk.StringVar(value=app.claude_api_key_var.get()),
+        "gemini_key": tk.StringVar(value=app.gemini_api_key_var.get()),
+        "gateway_key": tk.StringVar(value=app.gateway_api_key_var.get()),
+        "gateway_cert": tk.StringVar(value=app.gateway_cert_path_var.get()),
+        "claude_model": tk.StringVar(value=app.claude_model_var.get()),
+        "gemini_model": tk.StringVar(value=app.gemini_model_var.get()),
+        "gateway_model": tk.StringVar(value=app.gateway_model_var.get()),
+        "generate_excels": tk.BooleanVar(value=bool(app.generate_excels_var.get())),
+        "generate_org_check_reports": tk.BooleanVar(
+            value=bool(app.generate_org_check_reports_var.get())
+        ),
+        "generate_data_dictionary_word": tk.BooleanVar(
+            value=bool(app.generate_data_dictionary_word_var.get())
+        ),
+        "generate_summary_word": tk.BooleanVar(
+            value=bool(app.generate_summary_word_var.get())
+        ),
+        "generate_audit_summary_rtf": tk.BooleanVar(
+            value=bool(app.generate_audit_summary_rtf_var.get())
+        ),
+        "generate_html": tk.BooleanVar(
+            value=bool(app.generate_html_var.get())
+        ),
+        "run_tests": tk.BooleanVar(value=bool(app.run_tests_var.get())),
+        "calculate_coverage": tk.BooleanVar(value=bool(app.calculate_coverage_var.get())),
+        "show_card_customization_level": tk.BooleanVar(
+            value=bool(app.show_card_customization_level_var.get())
+        ),
+        "show_card_score": tk.BooleanVar(
+            value=bool(app.show_card_score_var.get())
+        ),
+        "show_card_adopt_vs_adapt": tk.BooleanVar(
+            value=bool(app.show_card_adopt_vs_adapt_var.get())
+        ),
+        "show_card_adopt_adapt_score": tk.BooleanVar(
+            value=bool(app.show_card_adopt_adapt_score_var.get())
+        ),
+        "show_card_custom_objects": tk.BooleanVar(
+            value=bool(app.show_card_custom_objects_var.get())
+        ),
+        "show_card_custom_fields": tk.BooleanVar(
+            value=bool(app.show_card_custom_fields_var.get())
+        ),
+        "show_card_flows": tk.BooleanVar(
+            value=bool(app.show_card_flows_var.get())
+        ),
+        "show_card_apex_classes_triggers": tk.BooleanVar(
+            value=bool(app.show_card_apex_classes_triggers_var.get())
+        ),
+        "show_card_omni_components": tk.BooleanVar(
+            value=bool(app.show_card_omni_components_var.get())
+        ),
+        "show_card_findings": tk.BooleanVar(
+            value=bool(app.show_card_findings_var.get())
+        ),
+        "show_card_ai_usage": tk.BooleanVar(
+            value=bool(app.show_card_ai_usage_var.get())
+        ),
+        "show_card_data_model_footprint": tk.BooleanVar(
+            value=bool(app.show_card_data_model_footprint_var.get())
+        ),
+        "show_card_adopt_adapt_posture": tk.BooleanVar(
+            value=bool(app.show_card_adopt_adapt_posture_var.get())
+        ),
+        "show_card_agents": tk.BooleanVar(
+            value=bool(app.show_card_agents_var.get())
+        ),
+        "show_card_gen_ai_prompts": tk.BooleanVar(
+            value=bool(app.show_card_gen_ai_prompts_var.get())
+        ),
+        "show_card_einstein_predictions": tk.BooleanVar(
+            value=bool(app.show_card_einstein_predictions_var.get())
+        ),
+        "show_card_test_coverage": tk.BooleanVar(
+            value=bool(app.show_card_test_coverage_var.get())
+        ),
+        "show_card_debt": tk.BooleanVar(
+            value=bool(app.show_card_debt_var.get())
+        ),
+        "show_card_innovation": tk.BooleanVar(
+            value=bool(app.show_card_innovation_var.get())
+        ),
+        "show_card_sharing_rules": tk.BooleanVar(
+            value=bool(app.show_card_sharing_rules_var.get())
+        ),
+        "show_card_duplicate_rules": tk.BooleanVar(
+            value=bool(app.show_card_duplicate_rules_var.get())
+        ),
+        "show_card_lwc": tk.BooleanVar(
+            value=bool(app.show_card_lwc_var.get())
+        ),
+        "show_card_aura": tk.BooleanVar(
+            value=bool(app.show_card_aura_var.get())
+        ),
+        "show_card_dependencies": tk.BooleanVar(
+            value=bool(app.show_card_dependencies_var.get())
+        ),
+    }
+
+    _build_documentation_tab(app, doc_tab, edit_vars)
+    _build_discussion_tab(app, discussion_tab, edit_vars)
+    analyzer_rules_panel.build_panel(app, rules_tab)
+    ai_tags_panel.build_panel(app, ai_tags_tab)
+    _build_index_cards_tab(app, index_cards_tab, edit_vars)
+    posture_capability_panel.build_panel(app, posture_tab)
+
+    buttons_row = ttk.Frame(scrollable_frame)
+    buttons_row.pack(fill="x", pady=(12, 0))
+    ttk.Button(
+        buttons_row,
+        text=app._t("configuration_cancel"),
+        command=window.destroy,
+    ).pack(side="right")
+    ttk.Button(
+        buttons_row,
+        text=app._t("configuration_save"),
+        command=lambda: _apply_configuration_changes(app, edit_vars, window),
+    ).pack(side="right", padx=(0, 8))
+
+    app.configuration_window = window
+    window.focus_set()
+
+
+def _build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
+    general = ttk.LabelFrame(parent, text=app._t("configuration_section_general"), padding=10)
+    general.pack(fill="x", pady=(0, 8))
+    _config_combo_row(
+        general,
+        app._t("language"),
+        edit_vars["language"],
+        [app._language_display(code) for code in app.LANGUAGES],
+    )
+
+    salesforce = ttk.LabelFrame(parent, text=app._t("configuration_section_salesforce"), padding=10)
+    salesforce.pack(fill="x", pady=(0, 8))
+    _config_entry_row(salesforce, app._t("alias"), edit_vars["alias"])
+    _config_combo_row(
+        salesforce,
+        app._t("environment"),
+        edit_vars["login_target"],
+        [app._login_target_display(key) for key in app.LOGIN_TARGETS],
+    )
+    _config_entry_row(salesforce, app._t("instance_url"), edit_vars["instance_url"])
+
+    paths = ttk.LabelFrame(parent, text=app._t("configuration_section_paths"), padding=10)
+    paths.pack(fill="x", pady=(0, 8))
+    _config_entry_row(paths, app._t("source_folder"), edit_vars["source"])
+    _config_entry_row(paths, app._t("output_folder"), edit_vars["output"])
+    _config_entry_row(paths, app._t("exclusion_file"), edit_vars["exclusion_file"])
+    _config_entry_row(paths, app._t("technical_debt_file"), edit_vars["technical_debt_file"])
+
+    analysis = ttk.LabelFrame(parent, text=app._t("configuration_section_analysis"), padding=10)
+    analysis.pack(fill="x", pady=(0, 8))
+    ttk.Checkbutton(
+        analysis, text=app._t("pmd_enabled"), variable=edit_vars["pmd_enabled"]
+    ).pack(anchor="w", pady=(0, 4))
+    _config_entry_row(analysis, app._t("pmd_ruleset_file"), edit_vars["pmd_ruleset"])
+    _config_entry_row(analysis, app._t("configuration_rules_file_label"), edit_vars["analyzer_rules_file"])
+    _config_combo_row(
+        analysis,
+        app._t("org_check_type"),
+        edit_vars["org_check_type"],
+        list(app.ORG_CHECK_CHOICES),
+    )
+
+    reports = ttk.LabelFrame(parent, text=app._t("configuration_section_reports"), padding=10)
+    reports.pack(fill="x", pady=(0, 8))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("menu_generate_html"),
+        variable=edit_vars["generate_html"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_excels"),
+        variable=edit_vars["generate_excels"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_org_check_reports"),
+        variable=edit_vars["generate_org_check_reports"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_data_dictionary_word"),
+        variable=edit_vars["generate_data_dictionary_word"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_summary_word"),
+        variable=edit_vars["generate_summary_word"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_audit_summary_rtf"),
+        variable=edit_vars["generate_audit_summary_rtf"],
+    ).pack(anchor="w", pady=(2, 2))
+
+    tests = ttk.LabelFrame(parent, text=app._t("configuration_section_tests"), padding=10)
+    tests.pack(fill="x", pady=(0, 8))
+    ttk.Checkbutton(
+        tests,
+        text=app._t("configuration_run_tests"),
+        variable=edit_vars["run_tests"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        tests,
+        text=app._t("configuration_calculate_coverage"),
+        variable=edit_vars["calculate_coverage"],
+    ).pack(anchor="w", pady=(2, 2))
+
+
+def _build_model_management(
+    app: Application,
+    parent: ttk.Frame,
+    model_var: tk.StringVar,
+    choices_list: list[str],
+    default_choices: list[str],
+    provider_name: str,
+) -> None:
+    """Add Add/Remove/Reset buttons for AI models."""
+    row = ttk.Frame(parent)
+    row.pack(fill="x", pady=(2, 5))
+    ttk.Label(row, text="", width=22).pack(side="left")
+
+    def add_model():
+        from tkinter import simpledialog, messagebox
+
+        name = simpledialog.askstring(
+            app._t("configuration_ai_models_add"),
+            app._t("configuration_ai_models_prompt"),
+            parent=parent,
+        )
+        if name and name.strip():
+            name = name.strip()
+            if name in choices_list:
+                messagebox.showwarning(
+                    app._t("configuration_ai_models_add"),
+                    app._t("configuration_ai_models_duplicate"),
+                )
+                return
+            choices_list.append(name)
+            # Update the combobox if possible. This is tricky because the combobox
+            # is created in _config_combo_row which doesn't return the widget.
+            # But we can find it by looking at children of parent.
+            for child in parent.winfo_children():
+                if isinstance(child, ttk.Frame):
+                    for subchild in child.winfo_children():
+                        if (
+                            isinstance(subchild, ttk.Combobox)
+                            and subchild.cget("textvariable") == str(model_var)
+                        ):
+                            subchild["values"] = list(choices_list)
+                            break
+
+    def remove_model():
+        current = model_var.get()
+        if current in choices_list:
+            choices_list.remove(current)
+            if choices_list:
+                model_var.set(choices_list[0])
+            else:
+                model_var.set("")
+            for child in parent.winfo_children():
+                if isinstance(child, ttk.Frame):
+                    for subchild in child.winfo_children():
+                        if (
+                            isinstance(subchild, ttk.Combobox)
+                            and subchild.cget("textvariable") == str(model_var)
+                        ):
+                            subchild["values"] = list(choices_list)
+                            break
+
+    def reset_models():
+        choices_list.clear()
+        choices_list.extend(default_choices)
+        if choices_list:
+            model_var.set(choices_list[0])
+        for child in parent.winfo_children():
+            if isinstance(child, ttk.Frame):
+                for subchild in child.winfo_children():
+                    if (
+                        isinstance(subchild, ttk.Combobox)
+                        and subchild.cget("textvariable") == str(model_var)
+                    ):
+                        subchild["values"] = list(choices_list)
+                        break
+
+    ttk.Button(
+        row, text=app._t("configuration_ai_models_add"), command=add_model
+    ).pack(side="left", padx=(0, 5))
+    ttk.Button(
+        row, text=app._t("configuration_ai_models_remove"), command=remove_model
+    ).pack(side="left", padx=(0, 5))
+    ttk.Button(
+        row, text=app._t("configuration_ai_models_reset"), command=reset_models
+    ).pack(side="left")
+
+
+def _build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
+    ai_frame = ttk.LabelFrame(parent, text=app._t("configuration_section_ai"), padding=10)
+    ai_frame.pack(fill="x", pady=(0, 8))
+    
+    # Active provider selection
+    provider_row = ttk.Frame(ai_frame)
+    provider_row.pack(fill="x", pady=(0, 10))
+    ttk.Label(provider_row, text=app._t("configuration_ai_provider"), width=22).pack(side="left")
+    
+    for p in app.AI_PROVIDERS:
+        ttk.Radiobutton(
+            provider_row, 
+            text=p, 
+            variable=edit_vars["ai_provider"], 
+            value=p
+        ).pack(side="left", padx=10)
+
+    # Claude (Anthropic)
+    claude_frame = ttk.LabelFrame(ai_frame, text="Claude (Anthropic)", padding=10)
+    claude_frame.pack(fill="x", pady=5)
+    _config_entry_row(
+        claude_frame, app._t("configuration_claude_key"), edit_vars["claude_key"], show="*"
+    )
+    _config_combo_row(
+        claude_frame,
+        app._t("configuration_claude_model"),
+        edit_vars["claude_model"],
+        list(app.claude_model_choices),
+    )
+    _build_model_management(
+        app,
+        claude_frame,
+        edit_vars["claude_model"],
+        app.claude_model_choices,
+        app.DEFAULT_CLAUDE_MODELS,
+        "Claude",
+    )
+
+    # Gemini (Google)
+    gemini_frame = ttk.LabelFrame(ai_frame, text="Gemini (Google)", padding=10)
+    gemini_frame.pack(fill="x", pady=5)
+    _config_entry_row(
+        gemini_frame, app._t("configuration_gemini_key"), edit_vars["gemini_key"], show="*"
+    )
+    _config_combo_row(
+        gemini_frame,
+        app._t("configuration_gemini_model"),
+        edit_vars["gemini_model"],
+        list(app.gemini_model_choices),
+    )
+    _build_model_management(
+        app,
+        gemini_frame,
+        edit_vars["gemini_model"],
+        app.gemini_model_choices,
+        app.DEFAULT_GEMINI_MODELS,
+        "Gemini",
+    )
+
+    # LLM Gateway (Salesforce)
+    gateway_frame = ttk.LabelFrame(ai_frame, text="LLM Gateway (Salesforce)", padding=10)
+    gateway_frame.pack(fill="x", pady=5)
+    _config_entry_row(
+        gateway_frame, app._t("configuration_gateway_key"), edit_vars["gateway_key"], show="*"
+    )
+    _config_combo_row(
+        gateway_frame,
+        app._t("configuration_gateway_model"),
+        edit_vars["gateway_model"],
+        list(app.gateway_model_choices),
+    )
+    _build_model_management(
+        app,
+        gateway_frame,
+        edit_vars["gateway_model"],
+        app.gateway_model_choices,
+        app.DEFAULT_GATEWAY_MODELS,
+        "Gateway",
+    )
+    _config_entry_row(
+        gateway_frame, app._t("configuration_gateway_cert"), edit_vars["gateway_cert"]
+    )
+
+    ttk.Label(
+        ai_frame,
+        text=app._t("configuration_model_hint"),
+        wraplength=640,
+        justify="left",
+        foreground="#475569",
+    ).pack(anchor="w", pady=(6, 0))
+
+    prompt_frame = ttk.LabelFrame(
+        parent, text=app._t("configuration_section_prompt"), padding=10
+    )
+    prompt_frame.pack(fill="both", expand=True, pady=(0, 8))
+
+    ttk.Label(
+        prompt_frame,
+        text=app._t("configuration_system_prompt_description"),
+        wraplength=640,
+        justify="left",
+    ).pack(anchor="w", pady=(0, 6))
+
+    prompt_widget = scrolledtext.ScrolledText(
+        prompt_frame, wrap="word", height=10, font=("Segoe UI", 10)
+    )
+    prompt_widget.pack(fill="both", expand=True)
+    prompt_widget.insert("1.0", app.system_prompt)
+    app._config_system_prompt_widget = prompt_widget
+
+    button_row = ttk.Frame(prompt_frame)
+    button_row.pack(fill="x", pady=(6, 0))
+    
+    def reset_prompt():
+        default_prompt = build_system_prompt(app.language)
+        prompt_widget.delete("1.0", "end")
+        prompt_widget.insert("1.0", default_prompt)
+
+    ttk.Button(
+        button_row,
+        text=app._t("configuration_system_prompt_reset"),
+        command=reset_prompt,
+    ).pack(side="right")
+
+
+def _build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
+    ttk.Label(
+        parent,
+        text=app._t("configuration_index_cards_title"),
+        font=("Segoe UI", 11, "bold"),
+    ).pack(anchor="w", pady=(0, 4))
+    ttk.Label(
+        parent,
+        text=app._t("configuration_index_cards_description"),
+        wraplength=640,
+        justify="left",
+        foreground="#475569",
+    ).pack(anchor="w", pady=(0, 10))
+
+    groups: list[tuple[str, list[tuple[str, str]]]] = [
+        (
+            "configuration_index_cards_section_description",
+            [
+                ("show_card_custom_objects", "configuration_card_custom_objects"),
+                ("show_card_custom_fields", "configuration_card_custom_fields"),
+                ("show_card_flows", "configuration_card_flows"),
+                ("show_card_apex_classes_triggers", "configuration_card_apex_classes_triggers"),
+                ("show_card_omni_components", "configuration_card_omni_components"),
+                ("show_card_einstein_predictions", "configuration_card_einstein_predictions"),
+                ("show_card_agents", "configuration_card_agents"),
+                ("show_card_gen_ai_prompts", "configuration_card_gen_ai_prompts"),
+                ("show_card_sharing_rules", "configuration_card_sharing_rules"),
+                ("show_card_duplicate_rules", "configuration_card_duplicate_rules"),
+                ("show_card_lwc", "configuration_card_lwc"),
+                ("show_card_aura", "configuration_card_aura"),
+            ],
+        ),
+        (
+            "configuration_index_cards_section_scoring",
+            [
+                ("show_card_customization_level", "configuration_card_customization_level"),
+                ("show_card_score", "configuration_card_score"),
+                ("show_card_adopt_vs_adapt", "configuration_card_adopt_vs_adapt"),
+                ("show_card_adopt_adapt_score", "configuration_card_adopt_adapt_score"),
+                ("show_card_test_coverage", "configuration_card_test_coverage"),
+            ],
+        ),
+        (
+            "configuration_index_cards_section_metrics",
+            [
+                ("show_card_findings", "configuration_card_findings"),
+                ("show_card_ai_usage", "configuration_card_ai_usage"),
+                ("show_card_data_model_footprint", "configuration_card_data_model_footprint"),
+                ("show_card_adopt_adapt_posture", "configuration_card_adopt_adapt_posture"),
+                ("show_card_debt", "configuration_card_debt"),
+                ("show_card_innovation", "configuration_card_innovation"),
+                ("show_card_dependencies", "configuration_card_dependencies"),
+            ],
+        ),
+        (
+            "configuration_index_cards_section_ia",
+            [
+                ("show_card_einstein_predictions", "configuration_card_einstein_predictions"),
+                ("show_card_agents", "configuration_card_agents"),
+                ("show_card_gen_ai_prompts", "configuration_card_gen_ai_prompts"),
+                ("show_card_ai_usage", "configuration_card_ai_usage"),
+            ],
+        ),
+    ]
+
+    for section_key, toggles in groups:
+        container = ttk.LabelFrame(
+            parent,
+            text=app._t(section_key),
+            padding=10,
+        )
+        container.pack(fill="x", pady=(0, 8))
+        for var_key, label_key in toggles:
+            ttk.Checkbutton(
+                container,
+                text=app._t(label_key),
+                variable=edit_vars[var_key],
+            ).pack(anchor="w", pady=(2, 2))
+
+
+def _config_entry_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, show: str | None = None) -> ttk.Frame:
+    row = ttk.Frame(parent)
+    row.pack(fill="x", pady=3)
+    ttk.Label(row, text=label_text, width=22).pack(side="left")
+    entry = ttk.Entry(row, textvariable=variable)
+    if show is not None:
+        entry.configure(show=show)
+    entry.pack(side="left", fill="x", expand=True)
+    return row
+
+
+def _config_combo_row(parent: ttk.Frame, label_text: str, variable: tk.Variable, values: list[str]) -> ttk.Frame:
+    row = ttk.Frame(parent)
+    row.pack(fill="x", pady=3)
+    ttk.Label(row, text=label_text, width=22).pack(side="left")
+    combo = ttk.Combobox(row, textvariable=variable, values=values, state="readonly", width=30)
+    combo.pack(side="left", fill="x", expand=True)
+    return row
+
+
+def _apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variable], window: tk.Toplevel) -> None:
+    new_language = app._language_code_from_display(edit_vars["language"].get())
+    language_changed = new_language != app.language
+    app.language = new_language
+
+    new_login_target = app._login_target_key_from_display(edit_vars["login_target"].get())
+    app.login_target_key = new_login_target
+
+    app.instance_url_var.set(edit_vars["instance_url"].get().strip())
+    app.alias_var.set(edit_vars["alias"].get().strip())
+    app.source_var.set(edit_vars["source"].get().strip())
+    app.output_var.set(edit_vars["output"].get().strip())
+    app.exclusion_file_var.set(edit_vars["exclusion_file"].get().strip())
+    app.technical_debt_file_var.set(edit_vars["technical_debt_file"].get().strip())
+    app.pmd_enabled_var.set(bool(edit_vars["pmd_enabled"].get()))
+    app.pmd_ruleset_var.set(edit_vars["pmd_ruleset"].get().strip())
+    app.analyzer_rules_file_var.set(edit_vars["analyzer_rules_file"].get().strip())
+    app._analyzer_rules_file = Path(edit_vars["analyzer_rules_file"].get().strip())
+
+    org_check_choice = edit_vars["org_check_type"].get().strip()
+    if org_check_choice:
+        app.org_check_choice_var.set(org_check_choice)
+
+    provider = edit_vars["ai_provider"].get().strip()
+    if provider in app.AI_PROVIDERS:
+        app.ai_provider_var.set(provider)
+
+    app.claude_api_key_var.set(edit_vars["claude_key"].get())
+    app.gemini_api_key_var.set(edit_vars["gemini_key"].get())
+    app.gateway_api_key_var.set(edit_vars["gateway_key"].get())
+    app.gateway_cert_path_var.set(edit_vars["gateway_cert"].get())
+
+    claude_model_choice = edit_vars["claude_model"].get().strip()
+    if claude_model_choice in app.claude_model_choices:
+        app.claude_model_var.set(claude_model_choice)
+    gemini_model_choice = edit_vars["gemini_model"].get().strip()
+    if gemini_model_choice in app.gemini_model_choices:
+        app.gemini_model_var.set(gemini_model_choice)
+    gateway_model_choice = edit_vars["gateway_model"].get().strip()
+    if gateway_model_choice in app.gateway_model_choices:
+        app.gateway_model_var.set(gateway_model_choice)
+    app.generate_excels_var.set(bool(edit_vars["generate_excels"].get()))
+    app.generate_org_check_reports_var.set(
+        bool(edit_vars["generate_org_check_reports"].get())
+    )
+    app.generate_data_dictionary_word_var.set(
+        bool(edit_vars["generate_data_dictionary_word"].get())
+    )
+    app.generate_summary_word_var.set(
+        bool(edit_vars["generate_summary_word"].get())
+    )
+    app.generate_audit_summary_rtf_var.set(
+        bool(edit_vars["generate_audit_summary_rtf"].get())
+    )
+    app.generate_html_var.set(
+        bool(edit_vars["generate_html"].get())
+    )
+    app.run_tests_var.set(bool(edit_vars["run_tests"].get()))
+    app.calculate_coverage_var.set(bool(edit_vars["calculate_coverage"].get()))
+    app.show_card_customization_level_var.set(
+        bool(edit_vars["show_card_customization_level"].get())
+    )
+    app.show_card_score_var.set(
+        bool(edit_vars["show_card_score"].get())
+    )
+    app.show_card_adopt_vs_adapt_var.set(
+        bool(edit_vars["show_card_adopt_vs_adapt"].get())
+    )
+    app.show_card_adopt_adapt_score_var.set(
+        bool(edit_vars["show_card_adopt_adapt_score"].get())
+    )
+    app.show_card_custom_objects_var.set(
+        bool(edit_vars["show_card_custom_objects"].get())
+    )
+    app.show_card_custom_fields_var.set(
+        bool(edit_vars["show_card_custom_fields"].get())
+    )
+    app.show_card_flows_var.set(
+        bool(edit_vars["show_card_flows"].get())
+    )
+    app.show_card_apex_classes_triggers_var.set(
+        bool(edit_vars["show_card_apex_classes_triggers"].get())
+    )
+    app.show_card_omni_components_var.set(
+        bool(edit_vars["show_card_omni_components"].get())
+    )
+    app.show_card_findings_var.set(
+        bool(edit_vars["show_card_findings"].get())
+    )
+    app.show_card_ai_usage_var.set(
+        bool(edit_vars["show_card_ai_usage"].get())
+    )
+    app.show_card_data_model_footprint_var.set(
+        bool(edit_vars["show_card_data_model_footprint"].get())
+    )
+    app.show_card_adopt_adapt_posture_var.set(
+        bool(edit_vars["show_card_adopt_adapt_posture"].get())
+    )
+    app.show_card_agents_var.set(
+        bool(edit_vars["show_card_agents"].get())
+    )
+    app.show_card_gen_ai_prompts_var.set(
+        bool(edit_vars["show_card_gen_ai_prompts"].get())
+    )
+    app.show_card_einstein_predictions_var.set(
+        bool(edit_vars["show_card_einstein_predictions"].get())
+    )
+    app.show_card_test_coverage_var.set(
+        bool(edit_vars["show_card_test_coverage"].get())
+    )
+    app.show_card_debt_var.set(
+        bool(edit_vars["show_card_debt"].get())
+    )
+    app.show_card_innovation_var.set(
+        bool(edit_vars["show_card_innovation"].get())
+    )
+    app.show_card_sharing_rules_var.set(
+        bool(edit_vars["show_card_sharing_rules"].get())
+    )
+    app.show_card_duplicate_rules_var.set(
+        bool(edit_vars["show_card_duplicate_rules"].get())
+    )
+    app.show_card_lwc_var.set(
+        bool(edit_vars["show_card_lwc"].get())
+    )
+    app.show_card_aura_var.set(
+        bool(edit_vars["show_card_aura"].get())
+    )
+    app.show_card_dependencies_var.set(
+        bool(edit_vars["show_card_dependencies"].get())
+    )
+
+    if app._config_system_prompt_widget is not None:
+        prompt_text = app._config_system_prompt_widget.get("1.0", "end").strip()
+        app.system_prompt = prompt_text or build_system_prompt(app.language)
+    app._config_system_prompt_widget = None
+
+    analyzer_rules_panel.persist_changes(app)
+    analyzer_rules_panel.reset_state(app)
+
+    raw_tags = ai_tags_panel.collect_tags(app)
+    cleaned_tags: list[str] = []
+    seen_tags: set[str] = set()
+    for value in raw_tags:
+        text = value.strip()
+        if not text:
+            continue
+        key = text.casefold()
+        if key in seen_tags:
+            continue
+        seen_tags.add(key)
+        cleaned_tags.append(text)
+    app.ai_usage_tags = cleaned_tags or list(DEFAULT_AI_USAGE_TAGS)
+    ai_tags_panel.reset_state(app)
+
+    app.posture_config = posture_capability_panel.collect_config(app)
+    posture_capability_panel.reset_state(app)
+
+    app._save_settings()
+
+    if language_changed:
+        app._apply_language()
+    else:
+        app._apply_pmd_state()
+        app._on_login_target_changed()
+
+    app._append_log(app._t("configuration_saved"))
+    window.destroy()

@@ -140,7 +140,11 @@ class SalesforceCliService:
             str(manifest_dir),
         ]
         self._emit_log(f"Generation du manifest pour l'org `{target_org}`.")
-        self._run_streaming(command, label="project generate manifest")
+        self._run_streaming(
+            command,
+            label="project generate manifest",
+            success_check=lambda: manifest_path.exists(),
+        )
         if not manifest_path.exists():
             raise RuntimeError("Le manifest n'a pas ete genere au chemin attendu.")
         self._emit_log(f"Manifest genere: {manifest_path}")
@@ -177,8 +181,14 @@ class SalesforceCliService:
             "33",
             "--ignore-conflicts"
         ]
+        retrieved_dir = project_root / "force-app" / "main" / "default"
         self._emit_log(f"Debut du retrieve depuis l'org `{target_org}` vers `{source_path}`.")
-        self._run_streaming(command, cwd=project_root, label="project retrieve start")
+        self._run_streaming(
+            command,
+            cwd=project_root,
+            label="project retrieve start",
+            success_check=lambda: any(retrieved_dir.rglob("*")),
+        )
         self._emit_log(f"Retrieve termine dans {source_path}")
         return source_path
     def delete_org(
@@ -561,21 +571,45 @@ class SalesforceCliService:
             self._emit_log(f"Erreur lors de l'execution de la commande Salesforce CLI : {exc}")
             return {}
 
-        if completed.returncode != 0:
-            raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "Commande Salesforce CLI en echec.")
+        # The sf CLI can exit with a non-zero code purely because it printed a
+        # warning to stderr (e.g. "Secrets are now hidden from ..."), even
+        # though the command itself succeeded and returned valid JSON with
+        # "status": 0. Parse stdout first and trust the JSON payload's own
+        # status field; only fall back to the process return code when the
+        # output isn't usable JSON.
+        stdout = completed.stdout.strip()
+        payload: dict | None = None
+        if stdout:
+            try:
+                payload = json.loads(stdout)
+            except json.JSONDecodeError:
+                payload = None
 
-        try:
-            payload = json.loads(completed.stdout)
-        except json.JSONDecodeError:
+        if payload is None:
+            if completed.returncode != 0:
+                raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "Commande Salesforce CLI en echec.")
             self._emit_log("Erreur : la sortie de la commande Salesforce CLI n'est pas un JSON valide.")
             return {}
 
         if payload.get("status", 0) != 0:
             message = payload.get("message") or completed.stderr.strip() or "Commande Salesforce CLI en echec."
             raise RuntimeError(message)
+
+        if completed.returncode != 0:
+            warning = completed.stderr.strip()
+            if warning:
+                self._emit_log(f"Avertissement Salesforce CLI (ignore, commande reussie) : {warning}")
+
         return payload.get("result", {})
 
-    def _run_streaming(self, command: list[str], cwd: Path | None = None, *, label: str = "sf") -> None:
+    def _run_streaming(
+        self,
+        command: list[str],
+        cwd: Path | None = None,
+        *,
+        label: str = "sf",
+        success_check: Callable[[], bool] | None = None,
+    ) -> None:
         self._track_command(label)
         try:
             process = subprocess.Popen(
@@ -599,6 +633,17 @@ class SalesforceCliService:
 
         return_code = process.wait()
         if return_code != 0:
+            # Some sf CLI commands (observed with "project generate manifest"
+            # and "project retrieve start") exit with a non-zero code even
+            # though the command genuinely succeeded. When the caller can
+            # verify success independently (e.g. an expected file/folder was
+            # produced), trust that signal over the unreliable exit code.
+            if success_check is not None and success_check():
+                self._emit_log(
+                    f"Avertissement : code de sortie non nul signale par le CLI ({return_code}), "
+                    "mais le resultat attendu est present ; poursuite du traitement."
+                )
+                return
             raise RuntimeError(f"La commande Salesforce CLI a echoue ({return_code}).")
 
     def run_apex_tests(self, org_ref: str, wait_minutes: int = 60) -> None:

@@ -4,6 +4,7 @@
 
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 User Manual \u8212- Dewey : Doc Org - Salesforce\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\i Version: April 2026 \u8212- Language: English}\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Note}: this manual documents the historical desktop application ({\b Mode A}). Dewey also offers a headless {\b Mode B} (Claude Code skill {\f1 /assess-org}) and a standalone Python module ({\f1 silent/dewey.py}) \u8212- see {\field{\*\fldinst{HYPERLINK "#13-mode-a-mode-b-and-the-silent-deweypy-module"}}{\fldrslt{\ul chapter 13}}} for details.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Lucie is a Python application ({\f1 Tkinter} UI) that extracts metadata from a Salesforce org through the {\f1 sf} CLI and produces:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab a navigable HTML documentation (objects, fields, validation rules, flows, Apex, OmniStudio, Profiles / Permission Sets, executive index);\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Excel workbooks (permission sets, profiles, metadata inventory, PMD);\par}
@@ -58,6 +59,10 @@ How to get a Gemini, Claude or Gateway API key
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 12.\tx360\tab {\field{\*\fldinst{HYPERLINK "#12-dashboard-designer"}}{\fldrslt{\ul
 Dashboard Designer
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 13.\tx360\tab {\field{\*\fldinst{HYPERLINK "#13-mode-a-mode-b-and-the-silent-deweypy-module"}}{\fldrslt{\ul
+Mode A, Mode B and the silent {\f1 dewey.py} module
 }}}
 \par}
 \sa180\par}
@@ -477,6 +482,42 @@ https://www.anthropic.com/pricing
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Multi-format Export}: PDF, PNG (transparent or opaque), PowerPoint (one slide per component), Excel, and CSV.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 12.2 Configuration Management\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 You can save multiple dashboard layouts and reload them later. Configurations are stored locally in the {\f1 dashboards.json} file.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 13. Mode A, Mode B and the silent {\f1 dewey.py} module\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Dewey can be used in three different ways, which all share the same analysis core ({\f1 src/analyzer/}, {\f1 src/parsers/}, {\f1 src/core/}): business rules, the complexity score and the {\b Adopt vs Adapt} posture are computed identically regardless of the mode.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 13.1 Mode A \u8212- Windows desktop application\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This is the application documented in chapters 1 to 12 above: the {\f1 Tkinter} desktop UI, launched with {\f1 python app.py}, producing local HTML, Excel and Word reports. It is the recommended mode for interactive, workstation-based usage.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 13.2 Mode B \u8212- Claude Code skill ({\f1 /assess-org})\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Mode B is a headless extension of the same engine, with no desktop UI, designed to be driven by the Claude Code skill {\f1 /assess-org}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Entry point}: {\f1 assess.py}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Configuration}: loaded via SOQL from the Salesforce Custom Objects {\f1 DeweyRule__c}, {\f1 DeweyConfig__c} and {\f1 DeweyExclusion__c} (falls back to {\f1 src/analyzer/rules.xml} if the org is unavailable).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Analysis}: {\f1 src/core/orchestrator_headless.py} orchestrates the same analyzers as Mode A, without any UI callback.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Results}: pushed to {\f1 OrgAnalysis__c}, {\f1 Finding__c} and {\f1 AnalysisDelta__c} (delta computed against the last analysis for the same org).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Skill parameters:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 /assess-org\line
+\ \ --org\ \ \ \ \ \ \ target SF CLI alias (default: ag2rPoc)\line
+\ \ --source\ \ \ \ local path OR GitHub URL\line
+\ \ --branch\ \ \ \ GitHub branch (default: main)\line
+\ \ --scope\ \ \ \ \ all | apex | flows | security | omni (default: all)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Output: a terminal summary (global score, top 5 critical findings, delta vs previous analysis) plus a dedicated Salesforce package {\f1 dewey-sf-assessment} (objects, permission set, reports, dashboards). See {\f1 CLAUDE.md} and {\f1 PLAN.md} in the repository for the full data model and workflow reference.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 13.3 Silent module ({\f1 silent/dewey.py})\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\f1 silent/dewey.py} exposes a {\f1 Dewey} class usable as a standalone Python library, without going through the desktop application or the Claude Code skill. It runs silently: by default no HTML/Excel/Word report is generated, data is only computed and exposed in memory (or exported to JSON/CSV).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 from silent.dewey import Dewey\line
+\line
+config = \{\line
+\ \ \ \ "source_dir": "path/to/metadata",\line
+\ \ \ \ "alias": "MyProject",\line
+\}\line
+\line
+dewey = Dewey(config, verbosity="steps", use_history=True)\line
+\line
+print(dewey.chiffres["index"]["Scoring"]["score"])\line
+dewey.export(format="json", path="export.json")\line
+dewey.export(format="csv", path="export.csv")\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Internal configuration}: {\f1 silent/dewey.json} (defaults + key mapping with {\f1 app_settings.json}).\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b History and comparisons}: via {\f1 history.db}, keyed by {\f1 alias}.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Verbosity levels}: {\f1 silent} (no logs), {\f1 steps} (major steps), {\f1 details} (technical detail).\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 See {\f1 silent/README.md} in the repository for the complete technical manual (dependencies, configuration, data access, comparisons, per-Flow test coverage).\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\i End of the user manual.}\par}
 }
