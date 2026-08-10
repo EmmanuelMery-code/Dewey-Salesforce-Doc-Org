@@ -14,3 +14,8 @@ LOGIN_TARGETS = {
 LANGUAGES = {"fr": "Francais", "en": "English"}
 ORG_CHECK_CHOICES = ["apex-classes", "global-view", "hardcoded-urls"]
 AI_PROVIDERS = ["Gemini", "Claude", "Gateway"]
+
+# Policies applied to the Source/Output folders right before an action
+# (generate documentation, retrieve, ...) reads/writes them. See
+# AppUiMixin._apply_source_dir_policy / _apply_output_dir_policy.
+FOLDER_DIR_POLICIES = ("use_as_is", "empty_and_use", "dated_subfolder")

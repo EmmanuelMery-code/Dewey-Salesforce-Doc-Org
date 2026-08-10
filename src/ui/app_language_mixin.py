@@ -28,6 +28,15 @@ class AppLanguageMixin:
                 return key
         return "production"
 
+    def _folder_policy_display(self, key: str) -> str:
+        return self._t(f"folder_policy_{key}")
+
+    def _folder_policy_key_from_display(self, display: str) -> str:
+        for key in self.FOLDER_DIR_POLICIES:
+            if self._folder_policy_display(key) == display:
+                return key
+        return self.FOLDER_DIR_POLICIES[0]
+
     def _apply_language(self, initial: bool = False) -> None:
         self._build_menu_bar()
         self.title(self._t("window_title"))

@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from threading import Thread
 from tkinter import messagebox
+from typing import Callable
 
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 from src.core.sf_cli_service import OrgSummary
@@ -102,31 +103,41 @@ class AppSfCliMixin:
 
     # ------------------------------------------------------------------ validation
 
-    def _validate_source_for_cli(self) -> Path | None:
+    def _validate_source_for_cli(
+        self, report_error: Callable[[str], None] | None = None
+    ) -> Path | None:
+        if report_error is None:
+            report_error = lambda msg: messagebox.showerror(self._t("error_title"), msg)
         source_value = self.source_var.get().strip()
         if not source_value:
-            messagebox.showerror(self._t("error_title"), self._t("source_folder_required"))
+            report_error(self._t("source_folder_required"))
             return None
         source = Path(source_value)
         if source.exists() and source.is_file():
-            messagebox.showerror(self._t("error_title"), self._t("source_must_be_dir"))
+            report_error(self._t("source_must_be_dir"))
             return None
         return source
 
-    def _validate_output_dir(self) -> Path | None:
+    def _validate_output_dir(
+        self, report_error: Callable[[str], None] | None = None
+    ) -> Path | None:
+        if report_error is None:
+            report_error = lambda msg: messagebox.showerror(self._t("error_title"), msg)
         output_value = self.output_var.get().strip()
         if not output_value:
-            messagebox.showerror(self._t("error_title"), self._t("output_folder_required"))
+            report_error(self._t("output_folder_required"))
             return None
         output = Path(output_value)
         if output.exists() and output.is_file():
-            messagebox.showerror(self._t("error_title"), self._t("output_must_be_dir"))
+            report_error(self._t("output_must_be_dir"))
             return None
         return output
 
     # ------------------------------------------------------------------ CLI actions
 
     def _generate_manifest(self) -> None:
+        if not self._apply_source_dir_policy():
+            return
         source = self._validate_source_for_cli()
         if source is None:
             return
@@ -155,6 +166,8 @@ class AppSfCliMixin:
             )
 
     def _retrieve_from_selected_org(self) -> None:
+        if not self._apply_source_dir_policy():
+            return
         source = self._validate_source_for_cli()
         if source is None:
             return
@@ -188,6 +201,10 @@ class AppSfCliMixin:
         )
 
     def _run_full_pipeline(self) -> None:
+        if not self._apply_source_dir_policy():
+            return
+        if not self._apply_output_dir_policy():
+            return
         source = self._validate_source_for_cli()
         if source is None:
             return
@@ -273,6 +290,8 @@ class AppSfCliMixin:
         check_choice = self.org_check_choice_var.get().strip()
         if not check_choice:
             messagebox.showerror(self._t("error_title"), self._t("org_check_choice_required"))
+            return
+        if not self._apply_output_dir_policy():
             return
         output = self._validate_output_dir()
         if output is None:

@@ -40,6 +40,7 @@ from src.core.models import (
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 from src.core.sf_cli_service import OrgSummary, SalesforceCliService
 from src.ui.app_ai_mixin import AppAiMixin
+from src.ui.app_cli_actions_mixin import AppCliActionsMixin
 from src.ui.app_generation_mixin import AppGenerationMixin
 from src.ui.app_language_mixin import AppLanguageMixin
 from src.ui.app_settings_mixin import AppSettingsMixin
@@ -47,6 +48,7 @@ from src.ui.app_sf_cli_mixin import AppSfCliMixin
 from src.ui.app_ui_mixin import AppUiMixin
 from src.ui.constants import (
     AI_PROVIDERS as UI_AI_PROVIDERS,
+    FOLDER_DIR_POLICIES as UI_FOLDER_DIR_POLICIES,
     LANGUAGES as UI_LANGUAGES,
     LOGIN_TARGETS as UI_LOGIN_TARGETS,
     ORG_CHECK_APP_URL as UI_ORG_CHECK_APP_URL,
@@ -71,6 +73,7 @@ class Application(
     AppLanguageMixin,
     AppSfCliMixin,
     AppGenerationMixin,
+    AppCliActionsMixin,
     AppAiMixin,
     tk.Tk,
 ):
@@ -86,6 +89,7 @@ class Application(
     LANGUAGES = UI_LANGUAGES
     ORG_CHECK_CHOICES = UI_ORG_CHECK_CHOICES
     AI_PROVIDERS = UI_AI_PROVIDERS
+    FOLDER_DIR_POLICIES = UI_FOLDER_DIR_POLICIES
 
     DEFAULT_GEMINI_MODELS = list(GEMINI_MODELS)
     DEFAULT_CLAUDE_MODELS = list(CLAUDE_MODELS)
@@ -194,13 +198,24 @@ class Application(
 
     # ------------------------------------------------------------------ init
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        config_path: str | Path | None = None,
+        cli_action: str | None = None,
+        cli_silent: bool = False,
+    ) -> None:
         super().__init__()
         self._setup_styles()
         self.geometry("980x760")
         self.minsize(900, 620)
         self.app_dir = Path(__file__).resolve().parent.parent.parent
-        self.settings_path = self.app_dir / "app_settings.json"
+        if config_path:
+            self.settings_path = Path(config_path).expanduser().resolve()
+        else:
+            self.settings_path = self.app_dir / "app_settings.json"
+        self.cli_action = cli_action
+        self.cli_silent = bool(cli_silent)
+        self.cli_exit_code: int | None = None
         self.settings = self._load_settings()
         self.language = self.settings.get("language", "fr")
 
@@ -209,6 +224,12 @@ class Application(
         )
         self.output_var = tk.StringVar(
             value=self._to_abs_path(self.settings.get("output_folder", ""))
+        )
+        self.source_dir_policy_var = tk.StringVar(
+            value=self._normalize_folder_policy(self.settings.get("source_dir_policy", ""))
+        )
+        self.output_dir_policy_var = tk.StringVar(
+            value=self._normalize_folder_policy(self.settings.get("output_dir_policy", ""))
         )
         self.exclusion_file_var = tk.StringVar(
             value=self._to_abs_path(self.settings.get("exclusion_file", ""))
@@ -425,7 +446,21 @@ class Application(
 
         self._build_ui()
         self._apply_language(initial=True)
+        self._apply_folder_policy_button_states()
         self._load_branding()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.after(150, self.task_manager.poll_queue)
-        self.after(250, self._load_orgs_in_background)
+
+        if self.cli_action and self.cli_silent:
+            # Headless run: never show the window, run the action(s)
+            # synchronously (no Tk main loop needed) and record the exit
+            # code for app.py to relay via sys.exit().
+            self.withdraw()
+            self.cli_exit_code = self.run_cli_action(self.cli_action)
+        else:
+            self.after(250, self._load_orgs_in_background)
+            if self.cli_action:
+                # Visible auto-run: window opens normally, action(s) start
+                # automatically through the usual threaded task manager, and
+                # the app stays open afterwards for interactive use.
+                self.after(300, lambda: self._run_cli_action_visible(self.cli_action))

@@ -43,6 +43,12 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     app.alias_var.set(edit_vars["alias"].get().strip())
     app.source_var.set(edit_vars["source"].get().strip())
     app.output_var.set(edit_vars["output"].get().strip())
+    app.source_dir_policy_var.set(
+        app._folder_policy_key_from_display(edit_vars["source_dir_policy"].get())
+    )
+    app.output_dir_policy_var.set(
+        app._folder_policy_key_from_display(edit_vars["output_dir_policy"].get())
+    )
     app.exclusion_file_var.set(edit_vars["exclusion_file"].get().strip())
     app.technical_debt_file_var.set(edit_vars["technical_debt_file"].get().strip())
     app.pmd_enabled_var.set(bool(edit_vars["pmd_enabled"].get()))
@@ -214,6 +220,7 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     else:
         app._apply_pmd_state()
         app._on_login_target_changed()
+    app._apply_folder_policy_button_states()
 
     app._append_log(app._t("configuration_saved"))
     window.destroy()
