@@ -67,6 +67,10 @@ Concepteur de Dashboard
 Mode A, Mode B et le module silent {\f1 dewey.py}
 }}}
 \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 14.\tx360\tab {\field{\*\fldinst{HYPERLINK "#14-ligne-de-commande-arguments-de-apppy"}}{\fldrslt{\ul
+Ligne de commande (arguments de app.py)
+}}}
+\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 1. Prerequis et installation\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Logiciels requis\par}
@@ -470,6 +474,67 @@ dewey.export(format="csv", path="export.csv")\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Historique et comparaisons} : via {\f1 history.db}, avec l'{\f1 alias} comme cle de regroupement.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b Niveaux de verbosite} : {\f1 silent} (aucun log), {\f1 steps} (grandes etapes), {\f1 details} (detail technique).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Voir {\f1 silent/README.md} dans le depot pour le manuel technique complet (dependances, configuration, acces aux donnees, comparaisons, couverture de tests par Flow).\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 14. Ligne de commande (arguments de app.py)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 L'application Mode A ({\f1 python app.py}) accepte trois arguments nommes optionnels permettant de la piloter sans interaction manuelle (tache planifiee, script d'automatisation). Sans argument, l'application demarre exactement comme decrit dans les chapitres 1 a 12.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.1 Arguments disponibles\par}
+{
+\trowd \trgaph120
+\clbrdrb\brdrs\cellx2160\clbrdrb\brdrs\cellx6480\clbrdrb\brdrs\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Argument\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Role\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Valeurs\par}
+\cell}
+}
+\intbl\row}
+{
+\trowd \trgaph120
+\cellx2160\cellx6480\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --configuration}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Chemin vers un fichier {\f1 app_settings.json} a utiliser a la place de celui du repertoire de l'application (cree automatiquement avec des valeurs par defaut s'il n'existe pas encore).\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Chemin de fichier\par}
+\cell}
+}
+\intbl\row}
+{
+\trowd \trgaph120
+\cellx2160\cellx6480\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --action}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Declenche au demarrage l'etape demandee pour la derniere org utilisee (champ {\f1 alias} du fichier de configuration).\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 manifest} / {\f1 retrieve} / {\f1 documentation} / {\f1 all}\par}
+\cell}
+}
+\intbl\row}
+{
+\trowd \trgaph120
+\cellx2160\cellx6480\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --silent}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Execute l'action sans jamais afficher la fenetre (mode automatisation). Sans effet si {\f1 --action} n'est pas fourni.\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Drapeau (aucune valeur)\par}
+\cell}
+}
+\intbl\row}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.2 Valeurs de {\f1 --action}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 manifest} : genere le manifest ({\f1 package.xml}) dans le dossier source configure.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 retrieve} : effectue le retrieve a partir du manifest present dans le dossier source ; s'il est absent, il est genere automatiquement au prealable.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 documentation} : genere la documentation (HTML / Excel / Word selon la configuration active) depuis le dossier source vers le dossier de sortie.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\f1 all} : enchaine {\f1 manifest}, {\f1 retrieve} puis {\f1 documentation} ; l'enchainement s'arrete des qu'une etape echoue.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.3 Mode visible et mode silencieux\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Sans} {\f1 --silent} : la fenetre s'ouvre normalement et l'action demandee demarre automatiquement (progression visible dans le journal), puis l'application reste ouverte pour un usage interactif, exactement comme un clic manuel sur les boutons correspondants.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b Avec} {\f1 --silent} : la fenetre ne s'affiche jamais. L'action s'execute en arriere-plan et les messages sont imprimes dans la console, puis l'application se ferme avec un code de sortie ({\f1 0} = succes, different de {\f1 0} = echec) \'97 ideal pour une tache planifiee Windows ou un script d'automatisation.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.4 Exemples\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 python app.py\line
+python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action documentation\line
+python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action all --silent\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Le code de sortie du dernier exemple peut etre teste par le script ou la tache planifiee appelante afin de declencher une alerte en cas d'echec.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\i Fin du manuel utilisateur.}\par}
 }

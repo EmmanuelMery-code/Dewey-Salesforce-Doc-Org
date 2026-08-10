@@ -63,6 +63,20 @@ pip install -r requirements.txt
 python app.py
 ```
 
+#### Ligne de commande (automatisation)
+
+L'application accepte trois arguments nommes optionnels, utiles pour l'automatiser (tache planifiee, script) sans interaction manuelle :
+
+```bash
+python app.py --configuration "C:\chemin\vers\app_settings.json" --action all --silent
+```
+
+- `--configuration <chemin>` : fichier `app_settings.json` a utiliser a la place de celui du repertoire de l'application (cree automatiquement s'il n'existe pas).
+- `--action {manifest|retrieve|documentation|all}` : declenche au demarrage l'etape demandee pour la derniere org utilisee (champ `alias` du fichier de configuration). `all` enchaine les trois etapes et s'arrete des qu'une echoue.
+- `--silent` : execute l'action sans jamais afficher la fenetre (mode automatisation) ; sans effet si `--action` n'est pas fourni. Le processus se termine avec un code de sortie (`0` = succes, different de `0` = echec).
+
+Sans argument, l'application demarre normalement, comme decrit ci-dessus. Voir le chapitre 14 de `MANUEL_UTILISATEUR.rtf` pour le detail complet.
+
 #### Fonctions principales
 
 - Connexion web Salesforce avec alias
@@ -201,6 +215,20 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
+
+#### Command line (automation)
+
+The application accepts three optional named arguments, useful to automate it (scheduled task, script) without manual interaction:
+
+```bash
+python app.py --configuration "C:\path\to\app_settings.json" --action all --silent
+```
+
+- `--configuration <path>`: `app_settings.json` file to use instead of the one in the application directory (automatically created if it does not exist yet).
+- `--action {manifest|retrieve|documentation|all}`: triggers the requested step at startup for the last used org (the `alias` field of the configuration file). `all` chains the three steps and stops as soon as one fails.
+- `--silent`: runs the action without ever showing the window (automation mode); has no effect if `--action` is not supplied. The process exits with a return code (`0` = success, non-zero = failure).
+
+Without any argument, the application starts normally, as described above. See chapter 14 of `USER_MANUAL.rtf` for the full detail.
 
 #### Main features
 
