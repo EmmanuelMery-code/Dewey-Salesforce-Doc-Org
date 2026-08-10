@@ -112,6 +112,19 @@
     <remediation>Accumuler les enregistrements dans une List puis executer un seul DML apres la boucle.</remediation>
   </rule>
 
+  <rule id="APEX-PERF-003" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
+        severity="Critical" source="PMD OperationWithLimitsInLoop"
+        reference="https://docs.pmd-code.org/latest/pmd_rules_apex_performance.html#operationwithlimitsinloop" min_api_version="10.0" max_api_version="100.0">
+    <title>Callout HTTP potentiellement execute dans une boucle</title>
+    <description>Une instance Http/HttpRequest est construite a l'interieur d'une boucle 'for' ou 'while', signe d'un callout synchrone repete.</description>
+    <rationale>
+      Les limites Apex plafonnent a 100 callouts par transaction, avec un temps cumule maximum de
+      120 secondes. Un callout emis a chaque iteration atteint rapidement ces plafonds et fait
+      echouer la transaction (CalloutException), en plus de degrader fortement la latence percue.
+    </rationale>
+    <remediation>Sortir le callout de la boucle en le bulkifiant (endpoint batch cote service externe), ou differer les appels via des Queueable/Batch Apex distincts qui respectent les limites par job.</remediation>
+  </rule>
+
   <rule id="APEX-REL-002" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
         severity="Major" source="Apex recursion anti-pattern + Well-Architected Reliable"
         reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_bestpractices.htm" min_api_version="10.0" max_api_version="100.0">

@@ -8,6 +8,7 @@ from pathlib import Path
 from src.core.models import ApexArtifact
 from src.core.utils import child_text, parse_xml
 from src.parsers.salesforce_parser.apex_helpers import (
+    _CALLOUT_IN_LOOP_RE,
     _DML_IN_LOOP_RE,
     _SOQL_IN_LOOP_RE,
     _detect_pattern_in_loop,
@@ -74,6 +75,9 @@ class _ApexMixin(_ParserState):
             _dml_loop_line = _detect_pattern_in_loop(body, _DML_IN_LOOP_RE)
             artifact.dml_in_loop = _dml_loop_line is not None
             artifact.dml_in_loop_line = _dml_loop_line
+            _callout_loop_line = _detect_pattern_in_loop(body, _CALLOUT_IN_LOOP_RE)
+            artifact.callout_in_loop = _callout_loop_line is not None
+            artifact.callout_in_loop_line = _callout_loop_line
             artifacts.append(artifact)
 
         return artifacts

@@ -29,6 +29,8 @@ class ApexArtifact:
     query_in_loop_line: int | None = None
     dml_in_loop: bool = False
     dml_in_loop_line: int | None = None
+    callout_in_loop: bool = False
+    callout_in_loop_line: int | None = None
     test_coverage: float | None = None  # Percentage 0-100
     test_coverage_lines_covered: int = 0  # Nombre de lignes couvertes
     test_coverage_lines_uncovered: int = 0  # Nombre de lignes non couvertes

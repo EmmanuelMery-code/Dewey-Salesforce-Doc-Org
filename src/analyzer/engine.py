@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import re
-import json
 from pathlib import Path
 
-from src.analyzer.apex_analyzer import (
-    _strip_comments_and_strings,
-    analyze_apex_artifact,
-)
+from src.analyzer.apex_analyzer import analyze_apex_artifact
+from src.analyzer.engine_call_graph import _detect_apex_call_cycles
+from src.analyzer.engine_rule_exclusions import RuleExclusionMixin
 from src.analyzer.flow_analyzer import analyze_flow
 from src.analyzer.lwc_analyzer import analyze_lwc
 from src.analyzer.aura_analyzer import analyze_aura
-from src.analyzer.models import Finding, Rule, SEVERITY_ORDER
+from src.analyzer.models import Finding, SEVERITY_ORDER
 from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule, analyze_duplicate_rule
 from src.analyzer.omni_analyzer import analyze_data_transform
 from src.analyzer.rule_catalog import RuleCatalog
@@ -35,10 +32,7 @@ from src.core.models import (
 )
 
 
-IDENTIFIER_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\b")
-
-
-class AnalyzerEngine:
+class AnalyzerEngine(RuleExclusionMixin):
     """Orchestrateur de l'analyse statique ; retourne un ensemble de findings par artefact."""
 
     def __init__(self, catalog: RuleCatalog | None = None, exclusion_path: Path | str | None = None) -> None:
@@ -61,80 +55,6 @@ class AnalyzerEngine:
         
         if self.exclusion_path:
             self._load_rule_exclusions()
-
-    def _load_rule_exclusions(self) -> None:
-        """Charge les exclusions de règles spécifiques par métadonnée depuis le JSON.
-        
-        Structure JSON attendue :
-        {
-          "rule_exclusions": [
-            {"type": "...", "metadata_name": "...", "rule_id": "...", "commentaire": "..."},
-            ...
-          ]
-        }
-        """
-        if not self.exclusion_path or not self.exclusion_path.exists():
-            return
-
-        try:
-            data = {}
-            # Try different encodings to be robust
-            for encoding in ("utf-8", "utf-16", "latin-1"):
-                try:
-                    with open(self.exclusion_path, "r", encoding=encoding) as f:
-                        data = json.load(f)
-                    break # Success
-                except (UnicodeDecodeError, json.JSONDecodeError):
-                    continue
-            
-            if not data:
-                return
-
-            exclusions = data.get("rule_exclusions", [])
-            # Fallback for old format or different naming
-            if not exclusions and "Exclusions regles" in data:
-                raw_list = data["Exclusions regles"]
-                for item in raw_list:
-                    if isinstance(item, list) and len(item) >= 3:
-                        metadata_name = str(item[1]).strip()
-                        rule_id = str(item[2]).strip()
-                        if metadata_name and rule_id:
-                            self.rule_exclusions.setdefault(rule_id, set()).add(metadata_name.lower())
-                return
-
-            for entry in exclusions:
-                if not isinstance(entry, dict):
-                    continue
-                
-                metadata_name = str(entry.get("metadata_name", "")).strip()
-                rule_id = str(entry.get("rule_id", "")).strip()
-                
-                if metadata_name and rule_id:
-                    self.rule_exclusions.setdefault(rule_id, set()).add(metadata_name.lower())
-                    
-        except Exception:
-            # On ignore silencieusement les erreurs de lecture JSON pour ne pas bloquer l'analyse
-            pass
-
-    def _is_rule_applicable(self, rule: Rule, metadata_name: str, api_version: str | None = None) -> bool:
-        """Vérifie si une règle doit être appliquée à une métadonnée donnée."""
-        # 1. Vérification de l'exclusion spécifique
-        if rule.id in self.rule_exclusions:
-            if metadata_name.lower() in self.rule_exclusions[rule.id]:
-                return False
-        
-        # 2. Vérification de la version d'API
-        if api_version:
-            try:
-                version = float(api_version)
-                if rule.min_api_version is not None and version < rule.min_api_version:
-                    return False
-                if rule.max_api_version is not None and version > rule.max_api_version:
-                    return False
-            except (ValueError, TypeError):
-                pass
-                
-        return True
 
     # ------------------------------------------------------------------ per-artifact API
 
@@ -410,108 +330,3 @@ class AnalyzerReport:
 
 def _sorted(findings: list[Finding]) -> list[Finding]:
     return sorted(findings, key=lambda f: (SEVERITY_ORDER.get(f.rule.severity, 99), f.rule.id))
-
-
-# ---------------------------------------------------------------------------- call-graph / cycles
-
-
-def _detect_apex_call_cycles(
-    artifacts: list[ApexArtifact], catalog: RuleCatalog
-) -> dict[str, list[Finding]]:
-    """Detecte les cycles d'appels entre classes Apex (APEX-REL-003).
-
-    La detection construit un graphe d'appels (ClassName -> {ClassName appelee}) base sur
-    les identifiants en PascalCase mentionnes dans le code (apres retrait des commentaires
-    et chaines litterales) puis applique l'algorithme de Tarjan pour extraire les SCCs.
-    Les composantes de taille >= 2, ou les auto-boucles, remontent comme findings.
-    """
-    rule = catalog.get("APEX-REL-003")
-    if not rule or not rule.enabled:
-        return {}
-
-    classes = [a for a in artifacts if a.kind == "class"]
-    class_names = {a.name for a in classes}
-    if len(class_names) < 2:
-        return {}
-
-    graph: dict[str, set[str]] = {name: set() for name in class_names}
-    for artifact in classes:
-        stripped = _strip_comments_and_strings(artifact.body)
-        mentioned = {m for m in IDENTIFIER_RE.findall(stripped) if m in class_names}
-        mentioned.discard(artifact.name)
-        graph[artifact.name] = mentioned
-
-    cycles = _find_cycles(graph)
-    if not cycles:
-        return {}
-
-    findings_by_class: dict[str, list[Finding]] = {}
-    for cycle in cycles:
-        cycle_sorted = sorted(cycle)
-        cycle_label = " -> ".join(cycle_sorted + [cycle_sorted[0]])
-        details = [
-            f"Classes participant au cycle : {', '.join(cycle_sorted)}.",
-            f"Chaine simplifiee : {cycle_label}.",
-        ]
-        for cls in cycle_sorted:
-            artifact = next((a for a in classes if a.name == cls), None)
-            others = [c for c in cycle_sorted if c != cls]
-            message = (
-                "Classe impliquee dans un cycle d'appels avec "
-                + (", ".join(others) if others else "elle-meme")
-                + "."
-            )
-            finding = Finding(
-                rule=rule,
-                target_kind="ApexClass",
-                target_name=cls,
-                message=message,
-                details=list(details),
-                source_path=artifact.source_path if artifact else None,
-            )
-            findings_by_class.setdefault(cls, []).append(finding)
-    return findings_by_class
-
-
-def _find_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
-    """Retourne les composantes fortement connexes >= 2 noeuds (ou auto-boucles) via Tarjan."""
-    index_counter = [0]
-    stack: list[str] = []
-    on_stack: dict[str, bool] = {}
-    index: dict[str, int] = {}
-    lowlink: dict[str, int] = {}
-    sccs: list[list[str]] = []
-
-    def strongconnect(node: str) -> None:
-        index[node] = index_counter[0]
-        lowlink[node] = index_counter[0]
-        index_counter[0] += 1
-        stack.append(node)
-        on_stack[node] = True
-
-        for neighbour in graph.get(node, set()):
-            if neighbour not in graph:
-                continue
-            if neighbour not in index:
-                strongconnect(neighbour)
-                lowlink[node] = min(lowlink[node], lowlink[neighbour])
-            elif on_stack.get(neighbour):
-                lowlink[node] = min(lowlink[node], index[neighbour])
-
-        if lowlink[node] == index[node]:
-            component: list[str] = []
-            while True:
-                w = stack.pop()
-                on_stack[w] = False
-                component.append(w)
-                if w == node:
-                    break
-            if len(component) >= 2:
-                sccs.append(component)
-            elif node in graph.get(node, set()):
-                sccs.append(component)
-
-    for node in list(graph.keys()):
-        if node not in index:
-            strongconnect(node)
-    return sccs

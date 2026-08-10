@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Callable
 
@@ -9,26 +8,19 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from src.core.models import ObjectInfo, PmdViolation, SecurityArtifact
+from src.reporting.excel_writer_data_dictionary import _ExcelDataDictionaryMixin
 
 LogCallback = Callable[[str], None]
 
 
-# Excel spec allows a theoretically unbounded number of sheets per workbook but
-# the file format becomes unresponsive well before that. We cap at a safe soft
-# limit (1 index sheet + N object sheets) and roll over into a "part 2"
-# workbook past the threshold.
-MAX_OBJECT_SHEETS_PER_WORKBOOK = 200
-
-# Excel forbids certain characters in sheet names and enforces a 31-char limit.
-_FORBIDDEN_SHEET_CHARS_RE = re.compile(r"[:\\/?*\[\]]")
-
-
-class ExcelReportWriter:
+class ExcelReportWriter(_ExcelDataDictionaryMixin):
     """Produce ``.xlsx`` documents from the parsed metadata snapshot.
 
     Each ``write_*`` method writes one workbook (security, inventory, data
     dictionary, PMD violations, ...) and returns the resulting path so the
     orchestrator can collect all artefacts in :class:`GenerationResult`.
+    Data Dictionary generation itself lives in
+    :class:`~src.reporting.excel_writer_data_dictionary._ExcelDataDictionaryMixin`.
     """
 
     def __init__(self, log_callback: LogCallback | None = None) -> None:
@@ -259,79 +251,6 @@ class ExcelReportWriter:
         self.log(f"Classeur PMD genere: {output}")
         return output
 
-    def write_data_dictionary_workbooks(
-        self,
-        objects: list[ObjectInfo],
-        output_dir: str | Path,
-        *,
-        max_object_sheets: int = MAX_OBJECT_SHEETS_PER_WORKBOOK,
-        filename_base: str = "data_dictionary",
-    ) -> list[Path]:
-        """Generate the Data Dictionary workbook(s).
-
-        Each workbook starts with a "Synthese" sheet listing the objects it
-        contains (general info) followed by one sheet per object describing
-        its fields. When the number of object sheets exceeds
-        ``max_object_sheets`` a new workbook is created (``{filename_base}_part_2.xlsx``,
-        ``..._part_3.xlsx`` and so on) so Excel stays responsive.
-
-        Returns the list of written file paths in order.
-        """
-        output_base = Path(output_dir)
-        output_base.mkdir(parents=True, exist_ok=True)
-
-        # Skip objects that do not declare any field: their per-object sheet
-        # would otherwise be empty (just the "Aucun champ detecte" hint) and
-        # they pollute the Synthese sheet without bringing documentation value.
-        documented_objects = [obj for obj in objects if obj.fields]
-        skipped_count = len(objects) - len(documented_objects)
-        if skipped_count > 0:
-            self.log(
-                f"Data Dictionary : {skipped_count} objet(s) sans champ ignore(s)."
-            )
-
-        if not documented_objects:
-            # Still produce an (almost) empty workbook so that the index page
-            # and the HTML preview pipeline expose the absence of data clearly.
-            path = output_base / f"{filename_base}.xlsx"
-            workbook = Workbook()
-            summary = workbook.active
-            summary.title = "Synthese"
-            self._write_sheet(
-                summary,
-                self._data_dictionary_summary_headers(),
-                [],
-            )
-            workbook.save(path)
-            self.log(f"Data Dictionary genere (aucun objet detecte) : {path}")
-            return [path]
-
-        ordered_objects = sorted(
-            documented_objects, key=lambda obj: (obj.api_name or "").lower()
-        )
-        chunks: list[list[ObjectInfo]] = [
-            ordered_objects[index : index + max_object_sheets]
-            for index in range(0, len(ordered_objects), max_object_sheets)
-        ]
-        total_parts = len(chunks)
-        written: list[Path] = []
-        for part_index, chunk in enumerate(chunks, start=1):
-            path = output_base / self._data_dictionary_filename(part_index, filename_base)
-            self._write_data_dictionary_workbook(
-                chunk,
-                path,
-                part_index=part_index,
-                total_parts=total_parts,
-            )
-            written.append(path)
-        summary = (
-            f"Data Dictionary genere ({len(ordered_objects)} objets, "
-            f"{total_parts} fichier(s)) : "
-            + ", ".join(path.name for path in written)
-        )
-        self.log(summary)
-        return written
-
     def write_picklists_workbook(
         self, objects: list[ObjectInfo], output_path: str | Path
     ) -> Path:
@@ -377,154 +296,6 @@ class ExcelReportWriter:
         workbook.save(output)
         self.log(f"Classeur Picklist genere ({len(rows)} champ(s)): {output}")
         return output
-
-    @staticmethod
-    def _data_dictionary_filename(part_index: int, filename_base: str = "data_dictionary") -> str:
-        if part_index <= 1:
-            return f"{filename_base}.xlsx"
-        return f"{filename_base}_part_{part_index}.xlsx"
-
-    @staticmethod
-    def _data_dictionary_summary_headers() -> list[str]:
-        return [
-            "API Name",
-            "Label",
-            "Label pluriel",
-            "Custom",
-            "Modele de partage",
-            "Statut deploiement",
-            "Visibilite",
-            "Nb champs",
-            "Nb champs custom",
-            "Nb record types",
-            "Nb validation rules",
-            "Nb relations",
-            "Feuille",
-            "Description",
-        ]
-
-    def _write_data_dictionary_workbook(
-        self,
-        objects_chunk: list[ObjectInfo],
-        output_path: Path,
-        *,
-        part_index: int,
-        total_parts: int,
-    ) -> None:
-        workbook = Workbook()
-        used_names: set[str] = set()
-        # Reserve the summary sheet name up front so no object collides with it.
-        summary_name = self._unique_sheet_name("Synthese", used_names)
-        summary = workbook.active
-        summary.title = summary_name
-
-        sheet_names_by_object: list[tuple[ObjectInfo, str]] = []
-        for obj in objects_chunk:
-            sheet_name = self._unique_sheet_name(
-                obj.api_name or "Objet", used_names
-            )
-            sheet_names_by_object.append((obj, sheet_name))
-
-        summary_rows = [
-            [
-                obj.api_name,
-                obj.label,
-                obj.plural_label,
-                "Oui" if obj.custom else "Non",
-                obj.sharing_model,
-                obj.deployment_status,
-                obj.visibility,
-                len(obj.fields),
-                sum(1 for field in obj.fields if field.custom),
-                len(obj.record_types),
-                len(obj.validation_rules),
-                len(obj.relationships),
-                sheet_name,
-                obj.description,
-            ]
-            for obj, sheet_name in sheet_names_by_object
-        ]
-        self._write_sheet(
-            summary,
-            self._data_dictionary_summary_headers(),
-            summary_rows,
-        )
-
-        if total_parts > 1:
-            # Add a small indicator on the summary sheet so the user knows
-            # other parts exist without having to open a file explorer.
-            note_row = summary.max_row + 2
-            summary.cell(
-                row=note_row,
-                column=1,
-                value=(
-                    f"Partie {part_index} / {total_parts}. "
-                    "Les objets suivants se trouvent dans les autres fichiers "
-                    "data_dictionary_part_*.xlsx."
-                ),
-            ).font = Font(italic=True)
-
-        for obj, sheet_name in sheet_names_by_object:
-            worksheet = workbook.create_sheet(sheet_name)
-            self._write_object_fields_sheet(worksheet, obj)
-
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        workbook.save(output_path)
-
-    def _write_object_fields_sheet(self, worksheet, obj: ObjectInfo) -> None:
-        headers = [
-            "API Name",
-            "Label",
-            "Type",
-            "Obligatoire",
-            "Custom",
-            "Reference vers",
-            "Relationship Name",
-            "Description",
-        ]
-        rows = [
-            [
-                field.api_name,
-                field.label,
-                field.data_type,
-                "Oui" if field.required else "Non",
-                "Oui" if field.custom else "Non",
-                ", ".join(field.reference_to),
-                field.relationship_name,
-                field.description,
-            ]
-            for field in obj.fields
-        ]
-        self._write_sheet(worksheet, headers, rows)
-
-        if not rows:
-            # Leave a tiny hint explaining why the sheet is empty rather than
-            # letting the user wonder if parsing failed.
-            worksheet.cell(
-                row=2,
-                column=1,
-                value="Aucun champ detecte dans la metadata pour cet objet.",
-            ).font = Font(italic=True, color="666666")
-
-    @staticmethod
-    def _unique_sheet_name(desired: str, used: set[str]) -> str:
-        """Return a unique, Excel-compliant sheet name and register it."""
-        cleaned = _FORBIDDEN_SHEET_CHARS_RE.sub("_", desired or "").strip()
-        cleaned = cleaned.strip("'")  # Excel rejects names wrapped in quotes
-        if not cleaned:
-            cleaned = "Feuille"
-        base = cleaned[:31]
-        candidate = base
-        counter = 1
-        # Case-insensitive comparison (Excel treats sheet names this way).
-        existing_lower = {name.lower() for name in used}
-        while candidate.lower() in existing_lower:
-            counter += 1
-            suffix = f"~{counter}"
-            truncated = base[: max(1, 31 - len(suffix))]
-            candidate = f"{truncated}{suffix}"
-        used.add(candidate)
-        return candidate
 
     def _write_sheet(self, worksheet, headers: list[str], rows: list[list[object]]) -> None:
         worksheet.append(headers)

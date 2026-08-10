@@ -1,4 +1,4 @@
-"""Brace-aware DML/SOQL-in-loop detection helpers for Apex bodies."""
+"""Brace-aware DML/SOQL/callout-in-loop detection helpers for Apex bodies."""
 
 from __future__ import annotations
 
@@ -12,6 +12,11 @@ _DML_IN_LOOP_RE = re.compile(
     r"|Database\.(?:insert|update|upsert|delete|undelete|merge)\s*\(",
     re.IGNORECASE,
 )
+# Flags construction of an Http/HttpRequest instance, the syntactic marker of
+# a synchronous HTTP callout (the classic `new HttpRequest(); ... http.send(req);`
+# pair). This mirrors the SOQL/DML heuristics above: it does not attempt to
+# resolve WSDL-generated web-service stub calls or Continuation callouts.
+_CALLOUT_IN_LOOP_RE = re.compile(r"\bnew\s+Http(?:Request)?\s*\(", re.IGNORECASE)
 _LOOP_KEYWORD_RE = re.compile(r"\b(for|while|do)\b", re.IGNORECASE)
 
 

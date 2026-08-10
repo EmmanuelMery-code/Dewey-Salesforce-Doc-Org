@@ -111,7 +111,13 @@ class TestAssessmentResult:
 class TestHeadlessOrchestratorRun:
 
     def _run_with_mocks(self, scope="all", findings=None, exclusions=None):
-        """Helper: patches parser + engine, runs orchestrator, returns (result, engine_mock)."""
+        """Helper: patches parser + engine, runs orchestrator, returns (result, engine_mock).
+
+        ``compute_adoption_stats`` is also patched out: these tests exercise the
+        parse → analyse → scope-filter flow, not the adoption/posture scoring
+        (which reads many more ``snapshot`` attributes than the bare
+        ``_make_snapshot()`` mock configures and has its own dedicated tests).
+        """
         snap = _make_snapshot()
         report = _make_report(findings or [])
         engine_mock = MagicMock()
@@ -119,9 +125,11 @@ class TestHeadlessOrchestratorRun:
         engine_mock.rule_exclusions = {}
 
         with patch("src.parsers.salesforce_parser.SalesforceMetadataParser") as MockParser, \
-             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine:
+             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine, \
+             patch("src.core.customization_metrics.compute_adoption_stats") as mock_adoption:
             MockParser.return_value.parse.return_value = snap
             MockEngine.return_value = engine_mock
+            mock_adoption.return_value = MagicMock()
 
             orch = _make_orchestrator(scope=scope, exclusions=exclusions or {})
             result = orch.run()
@@ -161,9 +169,11 @@ class TestHeadlessOrchestratorRun:
         engine_mock.rule_exclusions = {}
 
         with patch("src.parsers.salesforce_parser.SalesforceMetadataParser") as MockParser, \
-             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine:
+             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine, \
+             patch("src.core.customization_metrics.compute_adoption_stats") as mock_adoption:
             MockParser.return_value.parse.return_value = snap
             MockEngine.return_value = engine_mock
+            mock_adoption.return_value = MagicMock()
             _make_orchestrator(scope="all").run()
 
         engine_mock.analyze_snapshot.assert_called_once_with(snap)
@@ -196,9 +206,11 @@ class TestScopeFiltering:
         engine_mock.rule_exclusions = {}
 
         with patch("src.parsers.salesforce_parser.SalesforceMetadataParser") as MockParser, \
-             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine:
+             patch("src.analyzer.engine.AnalyzerEngine") as MockEngine, \
+             patch("src.core.customization_metrics.compute_adoption_stats") as mock_adoption:
             MockParser.return_value.parse.return_value = snap
             MockEngine.return_value = engine_mock
+            mock_adoption.return_value = MagicMock()
             orch = _make_orchestrator(scope=scope)
             return orch.run()
 

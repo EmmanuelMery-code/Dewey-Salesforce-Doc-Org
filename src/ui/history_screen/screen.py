@@ -17,6 +17,8 @@ from src.reporting.html.renderers.history_reports import (
     render_comparison,
     write_history_report,
 )
+from src.ui.history_screen.columns import build_entry_columns_config, build_entry_row_values
+from src.ui.history_screen.csv_export import build_csv_data_row, build_csv_header_row
 from src.ui.history_screen.dialogs import show_edit_dialog, show_entry_detail_dialog
 
 if TYPE_CHECKING:
@@ -91,43 +93,9 @@ def show_history_screen(app: Application) -> None:
         try:
             with open(file_path, "w", newline="", encoding="utf-8-sig") as f:
                 writer = csv.writer(f, delimiter=";")
-                # Header
-                writer.writerow([
-                    "#", app._t("history_col_date"), app._t("scoring_overall_score"),
-                    app._t("adopt_adapt_overall_score"), "Couverture Apex", "Couverture Flows",
-                    app._t("scoring_component_custom_objects"),
-                    app._t("scoring_component_custom_fields"), app._t("scoring_component_flows"),
-                    app._t("configuration_card_apex_classes_triggers"),
-                    app._t("history_col_apex_triggers"),
-                    app._t("history_col_apex_test_classes"),
-                    app._t("history_col_apex_business_classes"),
-                    "LWC", "Aura", app._t("configuration_card_omni_components"),
-                    "Sharing Rules", "Duplicate Rules",
-                    app._t("configuration_card_findings"),
-                    app._t("configuration_rules_severity_critical"),
-                    app._t("configuration_rules_severity_major"),
-                    app._t("configuration_rules_severity_minor"),
-                    app._t("configuration_rules_severity_info"),
-                    app._t("configuration_card_ai_usage"),
-                    app._t("history_col_dm_custom"), app._t("history_col_dm_standard"),
-                    app._t("history_col_adoption"), app._t("history_col_adaptation"),
-                    "Commentaire"
-                ])
+                writer.writerow(build_csv_header_row(app))
                 for e in entries:
-                    writer.writerow([
-                        e.generation_number, e.timestamp, e.score, e.adopt_adapt_score,
-                        f"{e.test_coverage_apex:.1f}%" if e.test_coverage_apex is not None else "N/A",
-                        f"{e.test_coverage_flows:.1f}%" if e.test_coverage_flows is not None else "N/A",
-                        e.custom_objects, e.custom_fields, e.flows, e.apex_classes_triggers,
-                        e.apex_triggers, e.apex_test_classes, e.apex_business_classes,
-                        e.lwc_count, e.aura_count,
-                        e.omni_components, e.sharing_rules, e.duplicate_rules, e.findings_total,
-                        e.findings_critical, e.findings_major, e.findings_minor, e.findings_info,
-                        f"{e.ai_usage_pct:.1f}%",
-                        f"{e.data_model_custom_pct:.1f}%", f"{e.data_model_standard_pct:.1f}%",
-                        f"{e.adoption_pct:.1f}%", f"{e.adaptation_pct:.1f}%",
-                        e.comment
-                    ])
+                    writer.writerow(build_csv_data_row(e))
             messagebox.showinfo(app._t("success_title"), app._t("history_export_done"))
         except Exception as exc:
             messagebox.showerror(app._t("error_title"), f"Erreur export : {exc}")
@@ -238,37 +206,7 @@ def show_history_screen(app: Application) -> None:
     entry_tree = ttk.Treeview(entry_container, columns=columns, show="headings", selectmode="extended")
 
     # Configure columns
-    col_config = {
-        "num": ("#", 40),
-        "timestamp": (app._t("history_col_date"), 130),
-        "score": (app._t("scoring_overall_score"), 60),
-        "adopt_adapt": (app._t("adopt_adapt_overall_score"), 80),
-        "coverage_apex": ("Couverture Apex", 90),
-        "coverage_flows": ("Couverture Flows", 90),
-        "objects": (app._t("scoring_component_custom_objects"), 70),
-        "fields": (app._t("scoring_component_custom_fields"), 70),
-        "flows": (app._t("scoring_component_flows"), 60),
-        "apex": (app._t("configuration_card_apex_classes_triggers"), 80),
-        "apex_triggers": (app._t("history_col_apex_triggers"), 70),
-        "apex_test_classes": (app._t("history_col_apex_test_classes"), 90),
-        "apex_business_classes": (app._t("history_col_apex_business_classes"), 90),
-        "lwc": ("LWC", 60),
-        "aura": ("Aura", 60),
-        "omni": (app._t("configuration_card_omni_components"), 80),
-        "sharing_rules": ("Sharing Rules", 80),
-        "duplicate_rules": ("Duplicate Rules", 90),
-        "findings": (app._t("configuration_card_findings"), 70),
-        "crit": (app._t("configuration_rules_severity_critical"), 50),
-        "maj": (app._t("configuration_rules_severity_major"), 50),
-        "min": (app._t("configuration_rules_severity_minor"), 50),
-        "inf": (app._t("configuration_rules_severity_info"), 50),
-        "ai": (app._t("configuration_card_ai_usage"), 60),
-        "dm_custom": (app._t("history_col_dm_custom"), 80),
-        "dm_standard": (app._t("history_col_dm_standard"), 80),
-        "adoption": (app._t("history_col_adoption"), 80),
-        "adaptation": (app._t("history_col_adaptation"), 80),
-        "comment": ("Commentaire", 160),
-    }
+    col_config = build_entry_columns_config(app)
 
     for col, (label, width) in col_config.items():
         entry_tree.heading(col, text=label)
@@ -487,38 +425,7 @@ def show_history_screen(app: Application) -> None:
 
         alias = item["text"]
         for e in service.list_entries_for_alias(alias):
-            entry_tree.insert("", "end", values=(
-                e.generation_number,
-                e.timestamp,
-                e.score,
-                e.adopt_adapt_score,
-                f"{e.test_coverage_apex:.1f}%" if e.test_coverage_apex is not None else "N/A",
-                f"{e.test_coverage_flows:.1f}%" if e.test_coverage_flows is not None else "N/A",
-                e.custom_objects,
-                e.custom_fields,
-                e.flows,
-                e.apex_classes_triggers,
-                e.apex_triggers,
-                e.apex_test_classes,
-                e.apex_business_classes,
-                e.lwc_count,
-                e.aura_count,
-                e.omni_components,
-                e.sharing_rules,
-                e.duplicate_rules,
-                e.findings_total,
-                e.findings_critical,
-                e.findings_major,
-                e.findings_minor,
-                e.findings_info,
-                f"{e.ai_usage_pct:.1f}%",
-                f"{e.data_model_custom_pct:.1f}%",
-                f"{e.data_model_standard_pct:.1f}%",
-                f"{e.adoption_pct:.1f}%",
-                f"{e.adaptation_pct:.1f}%",
-                (e.comment[:45] + "…") if len(e.comment) > 45 else e.comment,
-                e.id # Hidden ID
-            ))
+            entry_tree.insert("", "end", values=build_entry_row_values(e))
 
     alias_tree.bind("<<TreeviewSelect>>", refresh_entries)
     alias_tree.tag_configure("report", foreground="blue")

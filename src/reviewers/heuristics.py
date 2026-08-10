@@ -41,6 +41,11 @@ def review_apex_artifact(artifact: ApexArtifact) -> ReviewResult:
     else:
         improvements.append("DML potentiellement execute dans une boucle.")
 
+    if not artifact.callout_in_loop:
+        positives.append("Aucun callout HTTP dans une boucle n'a ete detecte par l'analyse heuristique.")
+    else:
+        improvements.append("Callout HTTP (Http/HttpRequest) potentiellement execute dans une boucle.")
+
     if artifact.line_count > 400:
         improvements.append("La taille du composant est elevee; une decomposition en services ou helpers serait a envisager.")
     elif artifact.line_count < 200:
