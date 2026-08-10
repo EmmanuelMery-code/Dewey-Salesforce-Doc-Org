@@ -93,6 +93,12 @@ def show_configuration_screen(app: Application) -> None:
         "alias": tk.StringVar(value=app.alias_var.get()),
         "source": tk.StringVar(value=app.source_var.get()),
         "output": tk.StringVar(value=app.output_var.get()),
+        "source_dir_policy": tk.StringVar(
+            value=app._folder_policy_display(app.source_dir_policy_var.get())
+        ),
+        "output_dir_policy": tk.StringVar(
+            value=app._folder_policy_display(app.output_dir_policy_var.get())
+        ),
         "exclusion_file": tk.StringVar(value=app.exclusion_file_var.get()),
         "technical_debt_file": tk.StringVar(value=app.technical_debt_file_var.get()),
         "pmd_enabled": tk.BooleanVar(value=bool(app.pmd_enabled_var.get())),

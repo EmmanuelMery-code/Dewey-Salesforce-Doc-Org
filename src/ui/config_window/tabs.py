@@ -69,8 +69,21 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
 
     paths = ttk.LabelFrame(parent, text=app._t("configuration_section_paths"), padding=10)
     paths.pack(fill="x", pady=(0, 8))
+    folder_policy_labels = [app._folder_policy_display(key) for key in app.FOLDER_DIR_POLICIES]
     config_entry_row(paths, app._t("source_folder"), edit_vars["source"])
+    config_combo_row(
+        paths,
+        app._t("configuration_source_dir_policy"),
+        edit_vars["source_dir_policy"],
+        folder_policy_labels,
+    )
     config_entry_row(paths, app._t("output_folder"), edit_vars["output"])
+    config_combo_row(
+        paths,
+        app._t("configuration_output_dir_policy"),
+        edit_vars["output_dir_policy"],
+        folder_policy_labels,
+    )
     config_entry_row(paths, app._t("exclusion_file"), edit_vars["exclusion_file"])
     config_entry_row(paths, app._t("technical_debt_file"), edit_vars["technical_debt_file"])
 

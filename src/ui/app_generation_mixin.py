@@ -35,6 +35,10 @@ class AppGenerationMixin:
         generate_data_dictionary_word_override: bool | None = None,
         generate_summary_word_override: bool | None = None,
     ) -> None:
+        if not self._apply_source_dir_policy():
+            return
+        if not self._apply_output_dir_policy():
+            return
         source_value = self.source_var.get().strip()
         if not source_value:
             messagebox.showerror(self._t("error_title"), self._t("source_folder_required"))

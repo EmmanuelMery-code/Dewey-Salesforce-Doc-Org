@@ -80,6 +80,8 @@ class AppSettingsMixin:
             "alias": self.alias_var.get().strip(),
             "source_folder": self._to_rel_path(self.source_var.get().strip()),
             "output_folder": self._to_rel_path(self.output_var.get().strip()),
+            "source_dir_policy": self.source_dir_policy_var.get(),
+            "output_dir_policy": self.output_dir_policy_var.get(),
             "exclusion_file": self._to_rel_path(self.exclusion_file_var.get().strip()),
             "technical_debt_file": self._to_rel_path(self.technical_debt_file_var.get().strip()),
             "innovation_file": self._to_rel_path(self.innovation_file_var.get().strip()),
@@ -175,6 +177,10 @@ class AppSettingsMixin:
         except Exception:
             pass
         return path_str
+
+    def _normalize_folder_policy(self, value: str) -> str:
+        """Return ``value`` if it is a known folder policy, else the default."""
+        return value if value in self.FOLDER_DIR_POLICIES else self.FOLDER_DIR_POLICIES[0]
 
     def _to_abs_path(self, path_str: str) -> str:
         """Convert a relative path string to an absolute path string."""
