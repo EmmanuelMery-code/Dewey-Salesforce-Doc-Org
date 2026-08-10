@@ -124,7 +124,7 @@
 \pard\sa120\sl276\slmult1\fs22 In addition to the interactive desktop usage described above, Dewey (python app.py) can also be launched with command-line arguments to automate a generation without any manual interaction (Windows scheduled task, shell script).\par
 \pard\sb200\sa100\keepn\f0\fs30\b\cf2 9.1 Available arguments\b0\cf1\fs22\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab --configuration <path>: path to an app_settings.json file to use instead of the one in the application directory (created automatically with default values if missing).\par
-\pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab --action {manifest|retrieve|documentation|all}: triggers the requested step at startup for the last used org (the alias field of the configuration file).\par
+\pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab --action {manifest|retrieve|documentation|all|retrivation}: triggers the requested step at startup for the last used org (the alias field of the configuration file); retrivation chains retrieve then documentation, generating the manifest beforehand only if it is missing.\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab --silent: runs the action without ever showing the window (has no effect without --action).\par
 \pard\sb200\sa100\keepn\f0\fs30\b\cf2 9.2 Recommended use for Tech Leads\b0\cf1\fs22\par
 \pard\fi-360\li720\sa80\sl276\slmult1\fs22 \bullet\tab Schedule a nightly Windows task running: python app.py --configuration "\\\\share\\dewey\\_config\\app_settings.json" --action all --silent, so a fresh documentation is always available in the shared folder ahead of the sprint review.\par
