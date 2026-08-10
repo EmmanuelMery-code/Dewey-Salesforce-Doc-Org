@@ -12,6 +12,7 @@ Covers:
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 import webbrowser
 from pathlib import Path
@@ -167,10 +168,18 @@ class AppUiMixin:
         self.doc_frame.pack(fill="x", pady=(0, 12))
 
         self.source_folder_widgets = self._folder_picker(
-            self.doc_frame, self.source_var, self._choose_source, self._open_source_folder
+            self.doc_frame,
+            self.source_var,
+            self._choose_source,
+            self._open_source_folder,
+            self._clear_source_folder,
         )
         self.output_folder_widgets = self._folder_picker(
-            self.doc_frame, self.output_var, self._choose_output, self._open_output_folder
+            self.doc_frame,
+            self.output_var,
+            self._choose_output,
+            self._open_output_folder,
+            self._clear_output_folder,
         )
         self.exclusion_file_widgets = self._file_picker(
             self.doc_frame,
@@ -412,8 +421,9 @@ class AppUiMixin:
         variable: tk.StringVar,
         browse_command: Callable[[], None],
         open_command: Callable[[], None],
+        clear_command: Callable[[], None] | None = None,
     ) -> dict[str, ttk.Widget]:
-        return self._path_picker(parent, variable, browse_command, open_command)
+        return self._path_picker(parent, variable, browse_command, open_command, clear_command)
 
     def _file_picker(
         self,
@@ -430,6 +440,7 @@ class AppUiMixin:
         variable: tk.StringVar,
         browse_command: Callable[[], None],
         open_command: Callable[[], None],
+        clear_command: Callable[[], None] | None = None,
     ) -> dict[str, ttk.Widget]:
         wrapper = ttk.Frame(parent)
         wrapper.pack(fill="x", pady=6)
@@ -441,7 +452,16 @@ class AppUiMixin:
         browse_button.pack(side="left", padx=(0, 8))
         open_button = self._track_button(ttk.Button(wrapper, command=open_command))
         open_button.pack(side="left")
-        return {"label": label, "browse_button": browse_button, "open_button": open_button}
+        widgets: dict[str, ttk.Widget] = {
+            "label": label,
+            "browse_button": browse_button,
+            "open_button": open_button,
+        }
+        if clear_command is not None:
+            clear_button = self._track_button(ttk.Button(wrapper, command=clear_command))
+            clear_button.pack(side="left", padx=(8, 0))
+            widgets["clear_button"] = clear_button
+        return widgets
 
     def _track_button(self, button: ttk.Button) -> ttk.Button:
         self.action_buttons.append(button)
@@ -501,6 +521,42 @@ class AppUiMixin:
 
     def _open_output_folder(self) -> None:
         self._open_folder(self.output_var)
+
+    def _clear_folder(self, variable: tk.StringVar) -> None:
+        folder = variable.get().strip()
+        if not folder or not Path(folder).is_dir():
+            messagebox.showerror(
+                self._t("error_title"), self._t("directory_missing_to_open")
+            )
+            return
+        path = Path(folder)
+        if not messagebox.askyesno(
+            self._t("confirmation_delete"),
+            self._t("confirm_clear_folder_message", path=str(path)),
+        ):
+            return
+        errors: list[str] = []
+        for item in path.iterdir():
+            try:
+                if item.is_dir() and not item.is_symlink():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+            except OSError as exc:
+                errors.append(f"{item.name}: {exc}")
+        if errors:
+            messagebox.showerror(
+                self._t("error_title"),
+                self._t("clear_folder_error") + "\n" + "\n".join(errors),
+            )
+        else:
+            messagebox.showinfo(self._t("info_title"), self._t("folder_cleared"))
+
+    def _clear_source_folder(self) -> None:
+        self._clear_folder(self.source_var)
+
+    def _clear_output_folder(self) -> None:
+        self._clear_folder(self.output_var)
 
     def _open_exclusion_file(self) -> None:
         file_path = self.exclusion_file_var.get().strip()
