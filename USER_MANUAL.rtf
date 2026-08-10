@@ -65,6 +65,10 @@ Dashboard Designer
 Mode A, Mode B and the silent {\f1 dewey.py} module
 }}}
 \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 14.\tx360\tab {\field{\*\fldinst{HYPERLINK "#14-command-line-apppy-arguments"}}{\fldrslt{\ul
+Command line ({\f1 app.py} arguments)
+}}}
+\par}
 \sa180\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 1. Prerequisites and installation\par}
@@ -518,6 +522,67 @@ dewey.export(format="csv", path="export.csv")\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b History and comparisons}: via {\f1 history.db}, keyed by {\f1 alias}.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Verbosity levels}: {\f1 silent} (no logs), {\f1 steps} (major steps), {\f1 details} (technical detail).\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 See {\f1 silent/README.md} in the repository for the complete technical manual (dependencies, configuration, data access, comparisons, per-Flow test coverage).\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 14. Command line ({\f1 app.py} arguments)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Mode A application ({\f1 python app.py}) accepts three optional named arguments that let you drive it without manual interaction (scheduled task, automation script). Without any argument, the application starts exactly as described in chapters 1 to 12.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.1 Available arguments\par}
+{
+\trowd \trgaph120
+\clbrdrb\brdrs\cellx2160\clbrdrb\brdrs\cellx6480\clbrdrb\brdrs\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Argument\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Role\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Values\par}
+\cell}
+}
+\intbl\row}
+{
+\trowd \trgaph120
+\cellx2160\cellx6480\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --configuration}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Path to an {\f1 app_settings.json} file to use instead of the one in the application directory (automatically created with default values if it does not exist yet).\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 File path\par}
+\cell}
+}
+\intbl\row}
+{
+\trowd \trgaph120
+\cellx2160\cellx6480\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --action}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Triggers the requested step at startup for the last used org (the {\f1 alias} field of the configuration file).\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 manifest} / {\f1 retrieve} / {\f1 documentation} / {\f1 all}\par}
+\cell}
+}
+\intbl\row}
+{
+\trowd \trgaph120
+\cellx2160\cellx6480\cellx9360
+\trkeep\intbl
+{
+{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --silent}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Runs the action without ever showing the window (automation mode). Has no effect if {\f1 --action} is not supplied.\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Flag (no value)\par}
+\cell}
+}
+\intbl\row}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.2 {\f1 --action} values\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 manifest}: generates the manifest ({\f1 package.xml}) in the configured source folder.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 retrieve}: performs the retrieve from the manifest present in the source folder; if missing, it is generated automatically beforehand.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 documentation}: generates the documentation (HTML / Excel / Word depending on the active configuration) from the source folder to the output folder.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\f1 all}: chains {\f1 manifest}, {\f1 retrieve} then {\f1 documentation}; the chain stops as soon as a step fails.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.3 Visible mode vs. silent mode\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Without} {\f1 --silent}: the window opens normally and the requested action starts automatically (progress visible in the log), then the application stays open for interactive use, exactly like a manual click on the corresponding buttons.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b With} {\f1 --silent}: the window is never shown. The action runs in the background and messages are printed to the console, then the application exits with a return code ({\f1 0} = success, non-zero = failure) \u8212- ideal for a Windows scheduled task or an automation script.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.4 Examples\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 python app.py\line
+python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action documentation\line
+python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action all --silent\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The exit code of the last example can be checked by the calling script or scheduled task to trigger an alert on failure.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\i End of the user manual.}\par}
 }
