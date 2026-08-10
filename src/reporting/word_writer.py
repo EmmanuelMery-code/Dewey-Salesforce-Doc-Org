@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections import Counter
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
@@ -15,40 +13,22 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
 
-from src.analyzer.models import SEVERITY_ORDER, Finding
 from src.core.models import MetadataSnapshot, ObjectInfo
-from src.reporting.word_writer_labels import ADVICE_TARGET_LIMIT as _ADVICE_TARGET_LIMIT
+from src.reporting.word_writer_advice import _WordAdviceMixin
 from src.reporting.word_writer_labels import LABELS as _LABELS
 
 if TYPE_CHECKING:
     from src.analyzer.engine import AnalyzerReport
 
 
-@dataclass(slots=True)
-class _AdviceItem:
-    """Aggregated advice for a single rule across all findings.
-
-    Sorting key: (severity rank, -occurrences) so the most severe and most
-    frequent issues bubble up first.
-    """
-
-    rule_id: str
-    title: str
-    severity: str
-    description: str
-    rationale: str
-    remediation: str
-    targets: list[str]
-    occurrences: int
-
-
-class WordReportWriter:
+class WordReportWriter(_WordAdviceMixin):
     """Generates the Word counterparts of the documentation.
 
     The writer is intentionally decoupled from the rest of the reporting
     pipeline: it only consumes plain dataclasses (`MetadataSnapshot`,
     `AnalyzerReport`) and writes ``.docx`` files into the directory that
-    callers specify.
+    callers specify. Advice-section aggregation/rendering lives in
+    :class:`~src.reporting.word_writer_advice._WordAdviceMixin`.
     """
 
     def __init__(
@@ -383,99 +363,6 @@ class WordReportWriter:
             self._set_cell_text(table.cell(index, 0), label, bold=True)
             self._set_cell_text(table.cell(index, 1), value)
         self._set_table_column_widths(table, [Cm(7.0), Cm(8.0)])
-
-    def _build_advice_items(
-        self, analyzer_report: "AnalyzerReport | None"
-    ) -> list[_AdviceItem]:
-        if analyzer_report is None:
-            return []
-
-        findings_by_rule: dict[str, list[Finding]] = {}
-        for finding in analyzer_report.all_findings():
-            findings_by_rule.setdefault(finding.rule.id, []).append(finding)
-
-        items: list[_AdviceItem] = []
-        for rule_id, findings in findings_by_rule.items():
-            rule = findings[0].rule
-            target_counter: Counter[str] = Counter()
-            for finding in findings:
-                key = f"{finding.target_kind}: {finding.target_name}"
-                target_counter[key] += 1
-            ordered_targets = [
-                target for target, _ in target_counter.most_common(_ADVICE_TARGET_LIMIT)
-            ]
-            items.append(
-                _AdviceItem(
-                    rule_id=rule_id,
-                    title=rule.title or rule_id,
-                    severity=rule.severity,
-                    description=rule.description,
-                    rationale=rule.rationale,
-                    remediation=rule.remediation,
-                    targets=ordered_targets,
-                    occurrences=len(findings),
-                )
-            )
-
-        items.sort(
-            key=lambda item: (
-                SEVERITY_ORDER.get(item.severity, 99),
-                -item.occurrences,
-                item.rule_id,
-            )
-        )
-        return items
-
-    def _add_advice_section(
-        self, document: Document, advice: _AdviceItem, index: int
-    ) -> None:
-        document.add_heading(
-            self._t("advice_action", index=index, title=advice.title),
-            level=2,
-        )
-
-        meta_paragraph = document.add_paragraph()
-        meta_paragraph.add_run(
-            f"{self._t('advice_severity')}: "
-        ).bold = True
-        meta_paragraph.add_run(self._severity_label(advice.severity))
-        meta_paragraph.add_run("    ")
-        meta_paragraph.add_run(
-            f"{self._t('advice_occurrences')}: "
-        ).bold = True
-        meta_paragraph.add_run(str(advice.occurrences))
-
-        if advice.description:
-            self._add_labelled_paragraph(
-                document, self._t("advice_description"), advice.description
-            )
-        if advice.rationale:
-            self._add_labelled_paragraph(
-                document, self._t("advice_rationale"), advice.rationale
-            )
-        if advice.remediation:
-            self._add_labelled_paragraph(
-                document, self._t("advice_remediation"), advice.remediation
-            )
-
-        if advice.targets:
-            document.add_paragraph(self._t("advice_examples"), style="Heading 3")
-            for target in advice.targets:
-                document.add_paragraph(target, style="List Bullet")
-            remaining = advice.occurrences - len(advice.targets)
-            if remaining > 0:
-                document.add_paragraph(
-                    self._t("advice_examples_more", count=remaining)
-                ).runs[0].italic = True
-
-    def _severity_label(self, severity: str) -> str:
-        mapping = {
-            "Critical": self._t("severity_critical"),
-            "Major": self._t("severity_major"),
-            "Minor": self._t("severity_minor"),
-            "Info": self._t("severity_info"),
-        }
-        return mapping.get(severity, severity)
 
     @staticmethod
     def _add_labelled_paragraph(document: Document, label: str, body: str) -> None:

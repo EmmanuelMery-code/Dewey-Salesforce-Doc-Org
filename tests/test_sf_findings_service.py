@@ -18,6 +18,7 @@ Key behavioural contract (new model):
   - DeweyDelta__c.ResolvedFindings__c = count of findings marked Disparu in this run.
 """
 import json
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 
@@ -47,13 +48,35 @@ def _make_report(findings: list):
     return report
 
 
+def _make_metrics(score: int = 75, **overrides):
+    """A plain namespace (not a MagicMock) for ``snapshot.metrics``.
+
+    ``_compute_score_max`` sums ~20 numeric fields (see
+    ``src/core/sf_findings_service_helpers.py``); a bare MagicMock would
+    auto-generate a child Mock for every unconfigured one, which then
+    poisons the score/ratio arithmetic in ``push()``. Real ``int`` zeros
+    keep that computation realistic while ``score`` stays directly
+    settable for assertions.
+    """
+    fields = {
+        "apex_classes": 0, "apex_triggers": 0, "flows": 0,
+        "custom_objects": 0, "custom_fields": 0, "record_types": 0,
+        "validation_rules": 0, "layouts": 0, "custom_tabs": 0,
+        "custom_apps": 0, "omni_scripts": 0, "omni_integration_procedures": 0,
+        "omni_ui_cards": 0, "omni_data_transforms": 0,
+        "bre_decision_matrices": 0, "bre_expression_sets": 0,
+        "agents": 0, "gen_ai_prompts": 0, "einstein_predictions": 0,
+        "lwc_count": 0, "flexipage_count": 0,
+    }
+    fields.update(overrides)
+    return SimpleNamespace(score=score, **fields)
+
+
 def _make_snapshot(score: int = 75):
     snap = MagicMock()
-    snap.metrics.score = score
-    snap.metrics.apex_classes = 3
-    snap.metrics.apex_triggers = 1
-    snap.metrics.flows = 5
-    snap.metrics.lwc_count = 2
+    snap.metrics = _make_metrics(
+        score=score, apex_classes=3, apex_triggers=1, flows=5, lwc_count=2,
+    )
     return snap
 
 
@@ -119,9 +142,22 @@ class _MockedService:
         def _run_side_effect(cmd, **kwargs):
             joined = " ".join(str(c) for c in cmd)
 
-            # SOQL: fetch active findings for org
-            if "DeweyFinding__c" in joined and "OrgAlias__c" in joined and "data query" in joined:
-                return _soql_response(self.existing_findings)
+            # SOQL: fetch active findings for the project (scoped via the
+            # DeweyAnalysisFinding__c junction, see _fetch_active_findings).
+            # The real query projects the rule id through the Rule__r lookup
+            # relationship, so the flat `RuleId__c` used by this fixture's
+            # `existing_findings` is nested into `Rule__r` here to match.
+            if "FROM DeweyFinding__c" in joined and "data query" in joined:
+                records = [
+                    {
+                        "Id": r["Id"],
+                        "Rule__r": {"RuleId__c": r["RuleId__c"]},
+                        "ComponentName__c": r["ComponentName__c"],
+                        "Status__c": r["Status__c"],
+                    }
+                    for r in self.existing_findings
+                ]
+                return _soql_response(records)
 
             # SOQL: fetch previous analysis (excludes current)
             if "DeweyAnalysis__c" in joined and "ORDER BY" in joined and "data query" in joined:
@@ -384,7 +420,9 @@ class TestDeltaSummary:
             prev_counts={"ScoreGlobal__c": 70, "FindingCritical__c": 0, "FindingMajor__c": 2},
         ) as m:
             _, delta = m.service.push(result, "ag2rPoc", "/path")
-        assert "score" in delta
+        # The score delta is reported as a "ratio" percentage (see
+        # sf_findings_service.py's delta_summary construction).
+        assert "ratio" in delta
 
 
 # ══════════════════════════════════════════════════════════════════════════════
