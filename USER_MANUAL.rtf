@@ -555,7 +555,7 @@ dewey.export(format="csv", path="export.csv")\par}
 {
 {{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 --action}\par}
 \cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 Triggers the requested step at startup for the last used org (the {\f1 alias} field of the configuration file).\par}
-\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 manifest} / {\f1 retrieve} / {\f1 documentation} / {\f1 all}\par}
+\cell}{{\pard\intbl \ql \f0 \sa0 \li0 \fi0 {\f1 manifest} / {\f1 retrieve} / {\f1 documentation} / {\f1 all} / {\f1 retrivation}\par}
 \cell}
 }
 \intbl\row}
@@ -574,14 +574,16 @@ dewey.export(format="csv", path="export.csv")\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 manifest}: generates the manifest ({\f1 package.xml}) in the configured source folder.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 retrieve}: performs the retrieve from the manifest present in the source folder; if missing, it is generated automatically beforehand.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 documentation}: generates the documentation (HTML / Excel / Word depending on the active configuration) from the source folder to the output folder.\par}
-{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\f1 all}: chains {\f1 manifest}, {\f1 retrieve} then {\f1 documentation}; the chain stops as soon as a step fails.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\f1 all}: chains {\f1 manifest}, {\f1 retrieve} then {\f1 documentation}; the chain stops as soon as a step fails.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\f1 retrivation}: chains {\f1 retrieve} then {\f1 documentation}. If no manifest is present in the source folder, it is generated automatically beforehand (same behavior as the standalone {\f1 retrieve} step); otherwise the existing manifest is reused as-is.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.3 Visible mode vs. silent mode\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Without} {\f1 --silent}: the window opens normally and the requested action starts automatically (progress visible in the log), then the application stays open for interactive use, exactly like a manual click on the corresponding buttons.\par}
 {\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b With} {\f1 --silent}: the window is never shown. The action runs in the background and messages are printed to the console, then the application exits with a return code ({\f1 0} = success, non-zero = failure) \u8212- ideal for a Windows scheduled task or an automation script.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 14.4 Examples\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \f1 python app.py\line
 python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action documentation\line
-python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action all --silent\par}
+python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action all --silent\line
+python app.py --configuration "C:\\Dewey\\squad-alpha\\app_settings.json" --action retrivation --silent\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 The exit code of the last example can be checked by the calling script or scheduled task to trigger an alert on failure.\par}
 {\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 {\i End of the user manual.}\par}

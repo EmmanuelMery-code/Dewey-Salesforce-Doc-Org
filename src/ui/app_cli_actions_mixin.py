@@ -27,7 +27,22 @@ from typing import Callable
 
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 
-CLI_ACTIONS: tuple[str, ...] = ("manifest", "retrieve", "documentation", "all")
+CLI_ACTIONS: tuple[str, ...] = ("manifest", "retrieve", "documentation", "all", "retrivation")
+
+# Steps chained for each multi-step --action value. Single-step actions
+# (manifest / retrieve / documentation) are not listed here; see
+# `_action_steps()`. "retrivation" relies on `_cli_run_retrieve` /
+# `_run_cli_retrieve_visible` auto-generating the manifest when it is
+# missing from the source directory, so it does not need its own
+# "manifest" step.
+_MULTI_STEP_ACTIONS: dict[str, list[str]] = {
+    "all": ["manifest", "retrieve", "documentation"],
+    "retrivation": ["retrieve", "documentation"],
+}
+
+
+def _action_steps(action: str) -> list[str]:
+    return list(_MULTI_STEP_ACTIONS.get(action, [action]))
 
 
 class AppCliActionsMixin:
@@ -222,7 +237,7 @@ class AppCliActionsMixin:
             )
             return 1
 
-        steps = ["manifest", "retrieve", "documentation"] if action == "all" else [action]
+        steps = _action_steps(action)
         self._cli_headless_log(f"[CLI] Org : {alias} | Action demandee : {action}")
         for step in steps:
             self._cli_headless_log(f"[CLI] Etape : {step}...")
@@ -253,7 +268,7 @@ class AppCliActionsMixin:
         if not alias:
             messagebox.showerror(self._t("error_title"), self._t("alias_required"))
             return
-        steps = ["manifest", "retrieve", "documentation"] if action == "all" else [action]
+        steps = _action_steps(action)
         self._append_log(f"[CLI] Org : {alias} | Action demandee : {action}")
         self._run_cli_visible_step(steps, alias, 0)
 

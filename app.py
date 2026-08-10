@@ -28,7 +28,9 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=CLI_ACTIONS,
         help=(
             "Action a executer au demarrage pour la derniere org utilisee du "
-            "fichier de configuration : manifest, retrieve, documentation ou all."
+            "fichier de configuration : manifest, retrieve, documentation, all "
+            "ou retrivation (retrieve puis documentation ; genere aussi le "
+            "manifest au prealable s'il est absent)."
         ),
     )
     parser.add_argument(
