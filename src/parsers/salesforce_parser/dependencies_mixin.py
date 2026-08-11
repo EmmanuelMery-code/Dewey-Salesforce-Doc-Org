@@ -98,6 +98,17 @@ class _DependenciesMixin(_ParserState):
                     target_kind="Object"
                 ))
 
+            # A Flow called as a "Subflow" element by another Flow is a
+            # dependency target, not an orphan, even when it has no
+            # trigger/screen of its own (see orphan detection in section 9).
+            for called_flow_name in flow.called_flow_names:
+                snapshot.dependencies.append(Dependency(
+                    source_name=flow.name,
+                    source_kind="Flow",
+                    target_name=called_flow_name,
+                    target_kind="Flow"
+                ))
+
             # Scan elements for object references
             for element in flow.elements:
                 if element.element_type in ("recordLookups", "recordCreates", "recordUpdates", "recordDeletes"):
