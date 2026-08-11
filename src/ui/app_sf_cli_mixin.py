@@ -251,6 +251,7 @@ class AppSfCliMixin:
                 generate_excels=generate_excels,
                 generate_data_dictionary_word=bool(self.generate_data_dictionary_word_var.get()),
                 generate_summary_word=bool(self.generate_summary_word_var.get()),
+                generate_sarif=bool(self.generate_sarif_var.get()),
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),

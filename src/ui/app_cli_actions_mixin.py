@@ -64,6 +64,7 @@ class AppCliActionsMixin:
         generate_dd_word = bool(self.generate_data_dictionary_word_var.get())
         generate_summary_word = bool(self.generate_summary_word_var.get())
         generate_audit_summary_rtf = bool(self.generate_audit_summary_rtf_var.get())
+        generate_sarif = bool(self.generate_sarif_var.get())
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
 
@@ -102,6 +103,7 @@ class AppCliActionsMixin:
                 generate_data_dictionary_word=generate_dd_word,
                 generate_summary_word=generate_summary_word,
                 generate_audit_summary_rtf=generate_audit_summary_rtf,
+                generate_sarif=generate_sarif,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),

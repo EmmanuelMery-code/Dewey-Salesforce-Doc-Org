@@ -320,6 +320,7 @@ EN_PART1: dict[str, str] = {
     "configuration_generate_data_dictionary_word": "Generate the Data Dictionary Word document",
     "configuration_generate_summary_word": "Generate the summary Word document",
     "configuration_generate_audit_summary_rtf": "Generate the audit summary (RTF)",
+    "configuration_generate_sarif": "Generate the SARIF export (CI/CD integration)",
     "configuration_section_comparison": "Comparison with a previous generation",
     "configuration_include_comparison": "Include a comparison page in the documentation",
     "configuration_comparison_target": "Comparison target",

@@ -227,7 +227,12 @@ chapter 11
     permission_sets.xlsx\line
     profiles.xlsx\line
     metadata_inventory.xlsx\line
-    pmd_violations.xlsx         # only if PMD is enabled\par}
+    pmd_violations.xlsx         # only if PMD is enabled\line
+  dewey.sarif                   # only if the SARIF export is enabled\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 SARIF export (CI/CD integration)\par}
+{\pard \ql \f0 \sa0 \li0 \fi0 When the {\b Generate the SARIF export} checkbox is enabled (Configuration > Documentation tab > Reports to generate), Dewey writes a {\f1 dewey.sarif} file (SARIF 2.1.0 format) at the root of the output folder.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Every static analyzer finding becomes a SARIF {\i result}, carrying the matching Dewey rule ({\f1 ruleId}), the converted severity ({\f1 Critical}/{\f1 Major} -> {\f1 error}, {\f1 Minor} -> {\f1 warning}, {\f1 Info} -> {\f1 note}), the source file path (relative to the source folder) and the line number when known.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab This file can be imported directly into GitHub Code Scanning, Azure DevOps, SonarQube or any other SARIF-compatible tool to track Dewey findings from a CI/CD pipeline.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel2 \b \fs28 Interactive HTML pages\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Relationship / dependency graphs}: pan & zoom, drag nodes, double-click to zoom in, Shift + double-click to zoom out.\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\b Mermaid}: used on Object pages and Validation Rules tabs. Outcome nodes are {\b green} (record saved) or {\b red} (record blocked).\par}

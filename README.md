@@ -102,6 +102,7 @@ Dans le dossier de sortie, l'application genere notamment :
 - `html/index.html`
 - `word/data_dictionary.docx`
 - `word/summary.docx`
+- `dewey.sarif` (optionnel, si la case "Generer l'export SARIF" est activee) : export des findings de l'analyseur au format [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html), pour integration CI/CD (GitHub Code Scanning, Azure DevOps, SonarQube, etc.)
 
 #### Notes
 
@@ -255,6 +256,7 @@ In the output folder, the application notably generates:
 - `html/index.html`
 - `word/data_dictionary.docx`
 - `word/summary.docx`
+- `dewey.sarif` (optional, when the "Generate the SARIF export" checkbox is enabled): analyzer findings exported as [SARIF 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html), for CI/CD integration (GitHub Code Scanning, Azure DevOps, SonarQube, etc.)
 
 #### Notes
 
