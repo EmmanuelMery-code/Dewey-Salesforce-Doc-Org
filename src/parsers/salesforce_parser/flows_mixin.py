@@ -52,6 +52,7 @@ class _FlowsMixin(_ParserState):
             structural_types = {"decisions", "loops", "subflows"}
             nodes_by_name: dict[str, str] = {}
             api_action_names: list[str] = []
+            called_flow_names: list[str] = []
 
             for tag in interesting_tags:
                 for node in root.findall(f"sf:{tag}", SF_NS):
@@ -72,6 +73,15 @@ class _FlowsMixin(_ParserState):
                                 api_action_names.append(name)
                         nodes_by_name[name] = node_tag
                         adjacency.setdefault(name, [])
+
+                    if tag == "subflows":
+                        # <subflows> is the "Subflow" element in Flow Builder;
+                        # <flowName> holds the API name of the called Flow.
+                        # A Flow reachable only through this reference is not
+                        # an orphan (see _DependenciesMixin._analyze_dependencies).
+                        called_flow_name = child_text(node, "flowName")
+                        if called_flow_name:
+                            called_flow_names.append(called_flow_name)
 
                     target = ""
                     element_targets = []
@@ -248,6 +258,7 @@ class _FlowsMixin(_ParserState):
                 soql_in_loop=soql_in_loop,
                 api_call_in_loop=api_call_in_loop,
                 api_call_in_loop_actions=api_call_in_loop_actions,
+                called_flow_names=called_flow_names,
             )
             flows.append(flow)
 

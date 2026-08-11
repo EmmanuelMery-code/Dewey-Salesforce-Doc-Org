@@ -85,6 +85,7 @@ class FlowInfo:
     soql_in_loop: bool = False
     api_call_in_loop: bool = False
     api_call_in_loop_actions: list[str] = field(default_factory=list)
+    called_flow_names: list[str] = field(default_factory=list)
 
     @property
     def complexity_score(self) -> int:

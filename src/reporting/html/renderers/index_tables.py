@@ -404,9 +404,10 @@ _ORPHAN_KIND_DESCRIPTIONS: dict[str, str] = {
         "et les composants OmniStudio."
     ),
     "Flow": (
-        "Flow autonome (type Flow ou AutoLaunchedFlow) sans declencheur ni ecran d'entree detecte. "
-        "Attention : cette detection est heuristique et ne verifie pas encore les appels explicites "
-        "(Subflow, Flow.Interview en Apex, action Flow depuis un LWC ou un composant OmniStudio) ; "
-        "une verification manuelle est recommandee avant suppression."
+        "Flow autonome (type Flow ou AutoLaunchedFlow) sans declencheur ni ecran d'entree detecte, "
+        "et jamais appele comme Sous-flux (element Subflow) par un autre Flow. "
+        "Attention : cette detection est heuristique et ne verifie pas encore les autres appels "
+        "explicites possibles (Flow.Interview en Apex, action Flow depuis un LWC ou un composant "
+        "OmniStudio) ; une verification manuelle est recommandee avant suppression."
     ),
 }
