@@ -7,15 +7,27 @@ Covers resolving the `sf` executable and running subprocess commands
 from __future__ import annotations
 
 import json
+import platform
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Callable
 
+# Extensions that Windows' CreateProcess cannot launch directly when passed
+# as the first element of an argument list (it only accepts native PE
+# executables / .com files). Batch scripts require a command interpreter.
+_WINDOWS_BATCH_EXTENSIONS = (".cmd", ".bat")
+
+_SF_CLI_INSTALLER_URL = "https://developer.salesforce.com/tools/salesforcecli"
+
 
 class _ProcessMixin:
     def _resolve_sf_executable(self) -> str:
-        for candidate in ("sf", "sf.cmd"):
+        # Prefer a native "sf.exe" (official Windows installer) over the
+        # "sf.cmd" npm shim ("npm install -g @salesforce/cli"): the latter
+        # requires routing through cmd.exe (see _prepare_command) and is a
+        # more fragile setup on some machines.
+        for candidate in ("sf.exe", "sf.cmd", "sf"):
             resolved = shutil.which(candidate)
             if resolved:
                 return resolved
@@ -31,6 +43,58 @@ class _ProcessMixin:
 
         return ""
 
+    def _prepare_command(self, command: list[str]) -> list[str]:
+        """Route batch-script executables (``sf.cmd``, ``sf.bat``) through
+        ``cmd.exe /c`` before handing the command to :mod:`subprocess`.
+
+        On Windows, ``CreateProcess`` (used internally by
+        ``subprocess.Popen``/``subprocess.run`` when ``shell=False``) can
+        only launch native executables. When the Salesforce CLI was
+        installed via ``npm install -g @salesforce/cli``, the ``sf`` command
+        resolves to a ``.cmd`` shim, and invoking it directly raises
+        ``OSError: [WinError 193] %1 is not a valid Win32 application``.
+        Wrapping the call in ``cmd.exe /c`` lets the shell interpret the
+        batch file correctly, without resorting to ``shell=True``.
+        """
+        if not command:
+            return command
+        executable = command[0]
+        if platform.system() == "Windows" and executable.lower().endswith(
+            _WINDOWS_BATCH_EXTENSIONS
+        ):
+            return ["cmd.exe", "/c", *command]
+        return command
+
+    def _describe_cli_launch_error(self, exc: OSError, command: list[str]) -> str:
+        """Build an actionable log message for a failure to launch the CLI.
+
+        ``OSError: [WinError 193] %1 is not a valid Win32 application`` is
+        raised when the resolved ``sf`` executable is not a native Windows
+        binary (typically a ``.cmd``/``.bat`` shim from an npm install that
+        could not be routed through ``cmd.exe``, or a corrupted/incomplete
+        installation). The default message is kept for every other error.
+        """
+        executable = command[0] if command else "sf"
+        base = f"Erreur lors de l'execution de la commande Salesforce CLI : {exc}"
+        if getattr(exc, "winerror", None) == 193:
+            return (
+                f"{base}\n"
+                f"  Cause probable : \"{executable}\" n'est pas un executable Windows valide.\n"
+                "  Il s'agit le plus souvent d'un script .cmd/.bat genere par "
+                "\"npm install -g @salesforce/cli\", que Dewey n'a pas pu lancer "
+                "correctement sur ce poste (installation incomplete, executable "
+                "corrompu, ou droits insuffisants sur le fichier).\n"
+                "  Solutions recommandees :\n"
+                "    1) Reinstallez le Salesforce CLI avec l'installateur officiel "
+                f"Windows (sf.exe natif) : {_SF_CLI_INSTALLER_URL}\n"
+                "    2) Ou, si le CLI a ete installe via npm, ouvrez une invite de "
+                "commandes (cmd) et verifiez que \"sf --version\" fonctionne, "
+                "puis fermez et relancez Dewey.\n"
+                "    3) Si le probleme persiste, verifiez qu'aucun antivirus ne "
+                f"bloque l'execution de \"{executable}\"."
+            )
+        return base
+
     def _emit_log(self, message: str) -> None:
         try:
             self.log(message)
@@ -41,7 +105,7 @@ class _ProcessMixin:
         self._track_command(label)
         try:
             completed = subprocess.run(
-                command,
+                self._prepare_command(command),
                 cwd=self.project_dir,
                 capture_output=True,
                 text=True,
@@ -49,7 +113,7 @@ class _ProcessMixin:
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
         except (FileNotFoundError, OSError) as exc:
-            self._emit_log(f"Erreur lors de l'execution de la commande Salesforce CLI : {exc}")
+            self._emit_log(self._describe_cli_launch_error(exc, command))
             return {}
 
         # The sf CLI can exit with a non-zero code purely because it printed a
@@ -94,7 +158,7 @@ class _ProcessMixin:
         self._track_command(label)
         try:
             process = subprocess.Popen(
-                command,
+                self._prepare_command(command),
                 cwd=(cwd or self.project_dir),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -103,7 +167,7 @@ class _ProcessMixin:
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
         except (FileNotFoundError, OSError) as exc:
-            self._emit_log(f"Erreur lors du lancement de la commande Salesforce CLI : {exc}")
+            self._emit_log(self._describe_cli_launch_error(exc, command))
             return
 
         assert process.stdout is not None
