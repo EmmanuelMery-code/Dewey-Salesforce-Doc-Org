@@ -83,6 +83,8 @@ class FlowInfo:
     test_coverage_elements_uncovered: int = 0  # Nombre d'éléments non couverts
     dml_in_loop: bool = False
     soql_in_loop: bool = False
+    api_call_in_loop: bool = False
+    api_call_in_loop_actions: list[str] = field(default_factory=list)
 
     @property
     def complexity_score(self) -> int:

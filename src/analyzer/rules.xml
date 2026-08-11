@@ -336,6 +336,19 @@
     <remediation>Accumuler les changements dans une variable de collection et effectuer un seul 'Update Records' ou 'Create Records' a la sortie de la boucle.</remediation>
   </rule>
 
+  <rule id="FLOW-PERF-004" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
+        severity="Critical" source="Salesforce Flow Best Practices"
+        reference="https://help.salesforce.com/s/articleView?id=sf.flow_concepts_design_best_practices.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>Appel d'action externe (External Service) dans une boucle de Flow</title>
+    <description>Une action de type External Service (appel HTTP vers un systeme externe) apparait dans une boucle.</description>
+    <rationale>
+      Chaque iteration declenche un appel HTTP synchrone vers un systeme externe. Les limites Apex/Flow
+      plafonnent a 100 callouts par transaction (120 secondes cumulees) ; un appel repete a chaque
+      iteration atteint rapidement ces plafonds et degrade fortement la latence percue.
+    </rationale>
+    <remediation>Sortir l'appel externe de la boucle en bulkifiant la requete (endpoint batch cote systeme externe) ou en accumulant les entrees pour un seul appel groupe a la sortie de la boucle.</remediation>
+  </rule>
+
   <!-- ==================== LIGHTNING COMPONENTS ==================== -->
 
   <rule id="LWC-MAINT-001" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"

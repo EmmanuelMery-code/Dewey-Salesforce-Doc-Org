@@ -10,6 +10,13 @@ from src.core.utils import SF_NS, child_text, parse_xml, to_bool
 from src.parsers.salesforce_parser.base import _ParserState
 
 
+# InvocableActionType values that make an actual HTTP request to a system
+# outside the org (Metadata API Developer Guide, FlowActionCall.actionType).
+# "apex" invocable actions may also perform callouts, but that can only be
+# confirmed by cross-referencing the target Apex class (out of scope here).
+_API_ACTION_TYPES: frozenset[str] = frozenset({"externalService"})
+
+
 class _FlowsMixin(_ParserState):
     """Parse the ``flows/`` folder and compute complexity metrics."""
 
@@ -44,6 +51,7 @@ class _FlowsMixin(_ParserState):
             adjacency: dict[str, list[str]] = {}
             structural_types = {"decisions", "loops", "subflows"}
             nodes_by_name: dict[str, str] = {}
+            api_action_names: list[str] = []
 
             for tag in interesting_tags:
                 for node in root.findall(f"sf:{tag}", SF_NS):
@@ -56,7 +64,13 @@ class _FlowsMixin(_ParserState):
 
                     name = child_text(node, "name")
                     if name:
-                        nodes_by_name[name] = tag
+                        node_tag = tag
+                        if tag == "actionCalls":
+                            action_type = child_text(node, "actionType")
+                            if action_type in _API_ACTION_TYPES:
+                                node_tag = "actionCalls:api"
+                                api_action_names.append(name)
+                        nodes_by_name[name] = node_tag
                         adjacency.setdefault(name, [])
 
                     target = ""
@@ -163,6 +177,8 @@ class _FlowsMixin(_ParserState):
             max_depth = 0
             dml_in_loop = False
             soql_in_loop = False
+            api_call_in_loop = False
+            api_call_in_loop_actions: list[str] = []
 
             if start_node and start_node in nodes_by_name:
                 paths = self._flow_paths(start_node, adjacency)
@@ -177,9 +193,10 @@ class _FlowsMixin(_ParserState):
                         )
                         max_depth = max(max_depth, depth)
 
-            # Check for DML/SOQL in loops
+            # Check for DML/SOQL/API-action in loops
             dml_ops = {"recordCreates", "recordUpdates", "recordDeletes"}
             soql_ops = {"recordLookups"}
+            api_ops = {"actionCalls:api"}
 
             for loop_node in root.findall("sf:loops", SF_NS):
                 loop_name = child_text(loop_node, "name")
@@ -191,8 +208,13 @@ class _FlowsMixin(_ParserState):
                         dml_in_loop = True
                     if self._is_node_reachable(next_target, soql_ops, loop_name, nodes_by_name, adjacency):
                         soql_in_loop = True
+                    if api_action_names and self._is_node_reachable(
+                        next_target, api_ops, loop_name, nodes_by_name, adjacency,
+                        collect_matches=api_call_in_loop_actions,
+                    ):
+                        api_call_in_loop = True
 
-                if dml_in_loop and soql_in_loop:
+                if dml_in_loop and soql_in_loop and api_call_in_loop:
                     break
 
             flow = FlowInfo(
@@ -224,6 +246,8 @@ class _FlowsMixin(_ParserState):
                 elements=elements,
                 dml_in_loop=dml_in_loop,
                 soql_in_loop=soql_in_loop,
+                api_call_in_loop=api_call_in_loop,
+                api_call_in_loop_actions=api_call_in_loop_actions,
             )
             flows.append(flow)
 
@@ -259,12 +283,22 @@ class _FlowsMixin(_ParserState):
         end_node: str,
         nodes_by_name: dict[str, str],
         adjacency: dict[str, list[str]],
+        collect_matches: list[str] | None = None,
     ) -> bool:
+        """Depth-first search for a node whose tag is in ``target_types``.
+
+        Traversal stops at ``end_node`` (the loop element itself), which
+        marks the boundary of one iteration of the loop body. If
+        ``collect_matches`` is provided, every matching node name is
+        appended instead of returning on the first hit (used to report
+        *which* actions triggered the finding).
+        """
         if not start_node or start_node not in nodes_by_name:
             return False
 
         visited = set()
         stack = [start_node]
+        found = False
 
         while stack:
             current = stack.pop()
@@ -275,10 +309,13 @@ class _FlowsMixin(_ParserState):
             visited.add(current)
 
             if nodes_by_name.get(current) in target_types:
-                return True
+                if collect_matches is None:
+                    return True
+                collect_matches.append(current)
+                found = True
 
             for neighbor in adjacency.get(current, []):
                 if neighbor:
                     stack.append(neighbor)
 
-        return False
+        return found
