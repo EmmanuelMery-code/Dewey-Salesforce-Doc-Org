@@ -14,6 +14,7 @@ from src.core.pmd_service import PmdService
 from src.core.utils import safe_slug
 from src.reporting.excel_writer import ExcelReportWriter
 from src.reporting.html_writer import HtmlReportWriter
+from src.reporting.sarif_writer import write_sarif_report
 from src.reporting.word_writer import WordReportWriter
 
 
@@ -142,6 +143,21 @@ class _StepsMixin(_OrchestratorState):
                     snapshot, snapshot.metrics, word_dir / "audit_summary.rtf"
                 ),
             )
+
+    def _generate_sarif(
+        self,
+        analyzer_report: AnalyzerReport,
+        result: GenerationResult,
+    ) -> None:
+        self.log("Generation de l'export SARIF (integration CI/CD).")
+        result.sarif_path = self._safe_run(
+            "dewey.sarif",
+            lambda: write_sarif_report(
+                analyzer_report,
+                self.output_dir / "dewey.sarif",
+                source_root=self.source_dir,
+            ),
+        )
 
     def _generate_html(
         self,

@@ -30,6 +30,7 @@ class GenerationResult:
     pmd_excel: Path | None = None
     data_dictionary_word: Path | None = None
     summary_word: Path | None = None
+    sarif_path: Path | None = None
     index: Path | None = None
     ai_usage_page: Path | None = None
     ai_usage_entries: list[AIUsageEntry] = field(default_factory=list)

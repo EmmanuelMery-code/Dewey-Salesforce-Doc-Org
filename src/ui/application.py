@@ -343,6 +343,9 @@ class Application(
         self.generate_html_var = tk.BooleanVar(
             value=bool(self.settings.get("generate_html", True))
         )
+        self.generate_sarif_var = tk.BooleanVar(
+            value=bool(self.settings.get("generate_sarif", False))
+        )
         self.run_tests_var = tk.BooleanVar(
             value=bool(self.settings.get("run_tests", False))
         )

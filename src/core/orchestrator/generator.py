@@ -41,6 +41,7 @@ class SalesforceDocumentationGenerator(
         generate_data_dictionary_word: bool = True,
         generate_summary_word: bool = True,
         generate_audit_summary_rtf: bool = True,
+        generate_sarif: bool = False,
         scoring_weights: dict[str, int] | None = None,
         adopt_adapt_weights: dict[str, int] | None = None,
         scoring_thresholds: tuple[int, int, int] | None = None,
@@ -77,6 +78,7 @@ class SalesforceDocumentationGenerator(
         self.generate_data_dictionary_word = generate_data_dictionary_word
         self.generate_summary_word = generate_summary_word
         self.generate_audit_summary_rtf = generate_audit_summary_rtf
+        self.generate_sarif = generate_sarif
         self.scoring_weights = scoring_weights
         self.adopt_adapt_weights = adopt_adapt_weights
         self.scoring_thresholds = scoring_thresholds
@@ -190,6 +192,11 @@ class SalesforceDocumentationGenerator(
         self.log(
             f"Analyseur : {len(analyzer_report.all_findings())} finding(s) detecte(s)."
         )
+
+        if self.generate_sarif:
+            self._generate_sarif(analyzer_report, result)
+        else:
+            self.log("Export SARIF desactive dans la configuration.")
 
         if self.ai_usage_tags:
             result.ai_usage_entries = scan_ai_usage(snapshot, self.ai_usage_tags)

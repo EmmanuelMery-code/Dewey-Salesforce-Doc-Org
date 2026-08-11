@@ -143,6 +143,11 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
         text=app._t("configuration_generate_audit_summary_rtf"),
         variable=edit_vars["generate_audit_summary_rtf"],
     ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_sarif"),
+        variable=edit_vars["generate_sarif"],
+    ).pack(anchor="w", pady=(2, 2))
 
     comparison = ttk.LabelFrame(
         parent, text=app._t("configuration_section_comparison"), padding=10

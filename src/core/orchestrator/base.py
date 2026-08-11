@@ -36,6 +36,7 @@ class _OrchestratorState:
     generate_data_dictionary_word: bool
     generate_summary_word: bool
     generate_audit_summary_rtf: bool
+    generate_sarif: bool
     scoring_weights: dict[str, int] | None
     adopt_adapt_weights: dict[str, int] | None
     scoring_thresholds: tuple[int, int, int] | None

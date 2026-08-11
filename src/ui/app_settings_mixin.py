@@ -109,6 +109,7 @@ class AppSettingsMixin:
             "generate_summary_word": bool(self.generate_summary_word_var.get()),
             "generate_audit_summary_rtf": bool(self.generate_audit_summary_rtf_var.get()),
             "generate_html": bool(self.generate_html_var.get()),
+            "generate_sarif": bool(self.generate_sarif_var.get()),
             "scoring_weights": dict(self.scoring_weights),
             "adopt_adapt_weights": dict(self.adopt_adapt_weights),
             "scoring_thresholds": list(self.scoring_thresholds),

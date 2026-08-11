@@ -129,6 +129,9 @@ def show_configuration_screen(app: Application) -> None:
         "generate_html": tk.BooleanVar(
             value=bool(app.generate_html_var.get())
         ),
+        "generate_sarif": tk.BooleanVar(
+            value=bool(app.generate_sarif_var.get())
+        ),
         "run_tests": tk.BooleanVar(value=bool(app.run_tests_var.get())),
         "calculate_coverage": tk.BooleanVar(value=bool(app.calculate_coverage_var.get())),
         "include_comparison": tk.BooleanVar(value=bool(app.include_comparison_var.get())),

@@ -304,6 +304,7 @@ FR_PART1: dict[str, str] = {
     "configuration_generate_data_dictionary_word": "Generer le Data Dictionary Word",
     "configuration_generate_summary_word": "Generer le resume Word",
     "configuration_generate_audit_summary_rtf": "Generer l'audit summary (RTF)",
+    "configuration_generate_sarif": "Generer l'export SARIF (integration CI/CD)",
     "configuration_section_comparison": "Comparaison avec une generation precedente",
     "configuration_include_comparison": "Inclure une page de comparaison dans la documentation",
     "configuration_comparison_target": "Generation de comparaison",
