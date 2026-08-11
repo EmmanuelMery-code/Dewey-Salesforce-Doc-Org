@@ -112,6 +112,21 @@ def analyze_flow(flow: FlowInfo, catalog: RuleCatalog) -> list[Finding]:
             )
         )
 
+    # FLOW-PERF-004 : External Service action call in loop
+    rule = catalog.get("FLOW-PERF-004")
+    if rule and rule.enabled and flow.api_call_in_loop:
+        actions = ", ".join(flow.api_call_in_loop_actions) or "action non identifiee"
+        findings.append(
+            Finding(
+                rule=rule,
+                target_kind="Flow",
+                target_name=flow.name,
+                message="Un appel d'action External Service apparait potentiellement dans une boucle.",
+                details=[f"Action(s) concernee(s) : {actions}."],
+                source_path=flow.source_path,
+            )
+        )
+
     rule = catalog.get("FLOW-MAINT-003")
     if rule and rule.enabled and flow.max_depth > 4:
         findings.append(

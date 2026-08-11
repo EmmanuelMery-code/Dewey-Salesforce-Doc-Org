@@ -141,6 +141,21 @@ def review_flow(flow: FlowInfo) -> ReviewResult:
     else:
         improvements.append("Le flow enchaine plusieurs operations de donnees; verifier l'impact sur les performances et la lisibilite.")
 
+    if not flow.soql_in_loop:
+        positives.append("Aucune lecture de donnees (Get Records) dans une boucle n'a ete detectee.")
+    else:
+        improvements.append("Une operation de lecture (Get Records) apparait potentiellement dans une boucle.")
+
+    if not flow.dml_in_loop:
+        positives.append("Aucune ecriture de donnees (Create/Update/Delete) dans une boucle n'a ete detectee.")
+    else:
+        improvements.append("Une operation d'ecriture (Create/Update/Delete) apparait potentiellement dans une boucle.")
+
+    if not flow.api_call_in_loop:
+        positives.append("Aucun appel d'action External Service dans une boucle n'a ete detecte.")
+    else:
+        improvements.append("Un appel d'action External Service apparait potentiellement dans une boucle.")
+
     if flow.variable_total == 0:
         positives.append("Aucune variable de flow n'a ete detectee.")
     elif flow.variable_input + flow.variable_output > max(1, flow.variable_total // 2):

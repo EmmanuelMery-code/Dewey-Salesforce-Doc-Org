@@ -236,7 +236,7 @@ def render_flow_panel(
         f"<tr><td><a href='{href_relative(current_path, flow_pages[item.name])}'>{html_value(item.name)}</a></td>"
         f"<td>{html_value(item.process_type)}</td>{flow_status_cell(item.status)}"
         f"<td>{html_value(item.complexity_level)}</td><td>{item.complexity_score}</td><td>{item.total_elements}</td>"
-        f"<td>{'⚠' if item.soql_in_loop or item.dml_in_loop else 'OK'}</td>"
+        f"<td>{'⚠' if item.soql_in_loop or item.dml_in_loop or item.api_call_in_loop else 'OK'}</td>"
         f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_elements_covered}/{item.test_coverage_elements_covered + item.test_coverage_elements_uncovered} blocs API)') if item.test_coverage is not None else 'N/A'}</td>"
         f"{elements_coverage_cell(item)}</tr>"
         for item in snapshot.flows
@@ -258,7 +258,12 @@ def render_flow_panel(
         "une classe Apex, c'est-a-dire marques 'Oui' dans la colonne Teste par. "
         "Calcul : nombre d'elements 'Oui' / nombre total d'elements du flow."
     )
-    flow_list_table = f"<table><thead><tr><th>Nom</th><th>Type</th><th>Statut</th><th>Complexite</th><th>Score</th><th>Elements</th><th>DML/SOQL Boucle</th><th title=\"{coverage_header_tooltip}\">% Couverture</th><th title=\"{elements_coverage_header_tooltip}\">% elements couverts</th></tr></thead><tbody>{flow_rows}</tbody></table>"
+    perf_header_tooltip = (
+        "Alerte si une operation de lecture (Get Records), d'ecriture "
+        "(Create/Update/Delete) ou un appel d'action External Service "
+        "apparait potentiellement dans une boucle du flow."
+    )
+    flow_list_table = f"<table><thead><tr><th>Nom</th><th>Type</th><th>Statut</th><th>Complexite</th><th>Score</th><th>Elements</th><th title=\"{perf_header_tooltip}\">DML/SOQL/API Boucle</th><th title=\"{coverage_header_tooltip}\">% Couverture</th><th title=\"{elements_coverage_header_tooltip}\">% elements couverts</th></tr></thead><tbody>{flow_rows}</tbody></table>"
     flow_redundancy_table = f"<table><thead><tr><th>Objet</th><th>Evenement</th><th>Flows</th></tr></thead><tbody>{redundant_flow_rows}</tbody></table>"
     return tabbed_sections("index-flows", [
         ("Liste", flow_list_table),
