@@ -79,7 +79,7 @@ class _ObjectsMixin(_ParserState):
         return parsed
 
     def _parse_field(
-        self, field_file: Path, global_value_sets: dict[str, list[str]] | None = None
+        self, field_file: Path, global_value_sets: dict[str, list[tuple[str, str]]] | None = None
     ) -> FieldInfo:
         root = parse_xml(field_file)
         api_name = child_text(root, "fullName") or field_file.stem.replace(".field-meta", "")
@@ -101,7 +101,7 @@ class _ObjectsMixin(_ParserState):
         self,
         root,
         field_info: FieldInfo,
-        global_value_sets: dict[str, list[str]],
+        global_value_sets: dict[str, list[tuple[str, str]]],
     ) -> None:
         """Populate ``field_info`` picklist attributes from its ``valueSet`` node."""
         value_set = root.find("sf:valueSet", SF_NS)
@@ -112,7 +112,9 @@ class _ObjectsMixin(_ParserState):
         if global_name:
             field_info.picklist_is_global = True
             field_info.picklist_global_name = global_name
-            field_info.picklist_values = list(global_value_sets.get(global_name, []))
+            pairs = global_value_sets.get(global_name, [])
+            field_info.picklist_values = [label for label, _api_name in pairs]
+            field_info.picklist_api_names = [api_name for _label, api_name in pairs]
             return
 
         value_def = value_set.find("sf:valueSetDefinition", SF_NS)
@@ -120,15 +122,19 @@ class _ObjectsMixin(_ParserState):
             value_def = value_set
 
         values: list[str] = []
+        api_names: list[str] = []
         for value_node in value_def.findall("sf:value", SF_NS):
-            label = child_text(value_node, "label") or child_text(value_node, "fullName")
+            api_name = child_text(value_node, "fullName")
+            label = child_text(value_node, "label") or api_name
             if label and label not in values:
                 values.append(label)
+                api_names.append(api_name or label)
         field_info.picklist_values = values
+        field_info.picklist_api_names = api_names
 
-    def _load_global_value_sets(self, package_root: Path) -> dict[str, list[str]]:
-        """Parse ``globalValueSets/*.globalValueSet-meta.xml`` into a name->values map."""
-        global_value_sets: dict[str, list[str]] = {}
+    def _load_global_value_sets(self, package_root: Path) -> dict[str, list[tuple[str, str]]]:
+        """Parse ``globalValueSets/*.globalValueSet-meta.xml`` into a name -> [(label, api_name)] map."""
+        global_value_sets: dict[str, list[tuple[str, str]]] = {}
         gvs_dir = package_root / "globalValueSets"
         if not gvs_dir.exists():
             return global_value_sets
@@ -142,11 +148,14 @@ class _ObjectsMixin(_ParserState):
             except Exception:
                 continue
 
-            values: list[str] = []
+            values: list[tuple[str, str]] = []
+            seen_labels: set[str] = set()
             for value_node in root.findall("sf:customValue", SF_NS):
-                label = child_text(value_node, "label") or child_text(value_node, "fullName")
-                if label and label not in values:
-                    values.append(label)
+                api_name = child_text(value_node, "fullName")
+                label = child_text(value_node, "label") or api_name
+                if label and label not in seen_labels:
+                    seen_labels.add(label)
+                    values.append((label, api_name or label))
             global_value_sets[gvs_name] = values
 
         return global_value_sets

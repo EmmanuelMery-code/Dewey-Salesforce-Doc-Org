@@ -10,6 +10,7 @@ from src.parsers.salesforce_parser import SalesforceMetadataParser
 from src.reporting.excel_writer import ExcelReportWriter
 from src.reporting.html_writer import HtmlReportWriter
 from src.reporting.word_writer import WordReportWriter
+from src.ui.picklist_csv_export import export_picklist_csvs
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -114,7 +115,13 @@ class DataDictionaryScreen:
             text=self.app._t("configuration_close"),
             command=self.window.destroy,
         ).pack(side="right")
-        
+
+        ttk.Button(
+            footer_frame,
+            text=self.app._t("data_dictionary_picklist_csv_button"),
+            command=self._export_picklist_csv,
+        ).pack(side="right", padx=(0, 8))
+
         ttk.Button(
             footer_frame,
             text=self.app._t("data_dictionary_generate"),
@@ -244,6 +251,18 @@ class DataDictionaryScreen:
             success_message=self.app._t("data_dictionary_success"),
         )
         self.window.destroy()
+
+    def _export_picklist_csv(self) -> None:
+        """Same export as "Documentation > Creer les CSV des picklists", but
+        restricted to the objects currently selected in this screen."""
+        if not self.selected_objects:
+            messagebox.showwarning(self.app._t("info_title"), "Veuillez sélectionner au moins un objet.")
+            return
+
+        self.app.settings["dd_selected_objects"] = list(self.selected_objects)
+        self.app._save_settings()
+
+        export_picklist_csvs(self.app, selected_objects=set(self.selected_objects))
 
     def _run_generation(self) -> None:
         source_dir = Path(self.app.source_var.get())
