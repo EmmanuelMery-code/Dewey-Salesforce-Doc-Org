@@ -17,6 +17,7 @@ class FieldInfo:
     reference_to: list[str] = field(default_factory=list)
     relationship_name: str = ""
     picklist_values: list[str] = field(default_factory=list)
+    picklist_api_names: list[str] = field(default_factory=list)
     picklist_is_global: bool = False
     picklist_global_name: str = ""
 

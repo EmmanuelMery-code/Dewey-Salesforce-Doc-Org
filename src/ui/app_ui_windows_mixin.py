@@ -15,6 +15,7 @@ from src.ui.dashboard_designer_screen import show_dashboard_designer_screen
 from src.ui.data_dictionary_screen import show_data_dictionary_screen
 from src.ui.exclusion_screen import show_exclusion_screen
 from src.ui.history_screen import show_history_screen
+from src.ui.picklist_csv_export import export_picklist_csvs
 from src.ui.scoring_screens import show_adopt_adapt_screen, show_scoring_screen
 from src.ui.threshold_screen import show_threshold_screen
 
@@ -53,6 +54,9 @@ class _AppUiWindowsMixin:
 
     def _show_data_dictionary_screen(self) -> None:
         show_data_dictionary_screen(self)
+
+    def _menu_export_picklist_csvs(self) -> None:
+        export_picklist_csvs(self)
 
     def _show_dashboard_designer_screen(self) -> None:
         show_dashboard_designer_screen(self)
