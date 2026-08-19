@@ -3,7 +3,7 @@
 Contract tested:
   export_picklist_csvs(app, selected_objects={...}) only exports picklists
   for the given object API names, used by the "PickList CSV" button on the
-  Data Dictionary screen (src/ui/data_dictionary_screen.py).
+  Data Dictionary screen (src/ui/data_dictionary_screen/generation.py).
 """
 
 from __future__ import annotations
