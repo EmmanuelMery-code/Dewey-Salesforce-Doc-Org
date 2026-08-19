@@ -6,6 +6,8 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import TYPE_CHECKING, Any, Dict, List
 
+from src.ui import theme
+
 if TYPE_CHECKING:
     from src.ui.application import Application
 
@@ -37,17 +39,17 @@ class InnovationScreen:
 
     def _build_ui(self) -> None:
         # Main container
-        main_frame = ttk.Frame(self.window, padding=16)
+        main_frame = ttk.Frame(self.window, padding=theme.SPACE_LG)
         main_frame.pack(fill="both", expand=True)
 
         # 1. Header (Title + Description)
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill="x", pady=(0, 10))
+        header_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
         
         ttk.Label(
             header_frame,
             text=self.app._t('innovation_title'),
-            font=("Segoe UI", 14, "bold"),
+            style=theme.TITLE_LABEL,
         ).pack(anchor="w")
         
         ttk.Label(
@@ -59,9 +61,9 @@ class InnovationScreen:
 
         # 2. Filter row
         filter_row = ttk.Frame(main_frame)
-        filter_row.pack(fill="x", pady=(0, 10))
+        filter_row.pack(fill="x", pady=(0, theme.SPACE_MD))
         
-        ttk.Label(filter_row, text=self.app._t("innovation_filter_alias")).pack(side="left", padx=(0, 10))
+        ttk.Label(filter_row, text=self.app._t("innovation_filter_alias")).pack(side="left", padx=(0, theme.SPACE_MD))
         
         self.filter_combo = ttk.Combobox(
             filter_row, 
@@ -109,7 +111,7 @@ class InnovationScreen:
         self.tree.bind("<Button-3>", self._show_context_menu)
 
         # 4. Footer buttons (Actions)
-        footer_frame = ttk.Frame(main_frame, padding=(0, 12, 0, 0))
+        footer_frame = ttk.Frame(main_frame, padding=(0, theme.SPACE_MD, 0, 0))
         footer_frame.pack(fill="x")
         
         # Right aligned buttons
@@ -123,7 +125,8 @@ class InnovationScreen:
             footer_frame,
             text=self.app._t("innovation_save"),
             command=self._save_data,
-        ).pack(side="right", padx=(0, 8))
+            style=theme.PRIMARY_BUTTON,
+        ).pack(side="right", padx=(0, theme.SPACE_SM))
 
         # Left aligned buttons
         ttk.Button(
@@ -136,13 +139,14 @@ class InnovationScreen:
             footer_frame,
             text=self.app._t("innovation_edit"),
             command=self._on_edit,
-        ).pack(side="left", padx=(8, 0))
+        ).pack(side="left", padx=(theme.SPACE_SM, 0))
 
         ttk.Button(
             footer_frame,
             text=self.app._t("innovation_delete"),
             command=self._on_delete,
-        ).pack(side="left", padx=(8, 0))
+            style=theme.DANGER_BUTTON,
+        ).pack(side="left", padx=(theme.SPACE_SM, 0))
 
     def _show_context_menu(self, event) -> None:
         item = self.tree.identify_row(event.y)
@@ -289,7 +293,7 @@ class InnovationScreen:
         entries = {}
         for i, field in enumerate(fields):
             label_text = "Alias" if field == "alias" else self.app._t(f"innovation_column_{field}")
-            ttk.Label(dialog, text=label_text).grid(row=i, column=0, padx=10, pady=10, sticky="nw")
+            ttk.Label(dialog, text=label_text).grid(row=i, column=0, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="nw")
             val = initial_values.get(field, "") if initial_values else ""
             
             if field == "alias":
@@ -298,12 +302,12 @@ class InnovationScreen:
                     aliases = [self.app.alias_var.get() or "Default"]
                 var = tk.StringVar(value=val or aliases[0])
                 combo = ttk.Combobox(dialog, textvariable=var, values=aliases, state="readonly", width=37)
-                combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                combo.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 entries[field] = var
             elif field == "not_started":
                 var = tk.BooleanVar(value=bool(val))
                 chk = ttk.Checkbutton(dialog, variable=var)
-                chk.grid(row=i, column=1, padx=10, pady=10, sticky="w")
+                chk.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="w")
                 entries[field] = var
             elif field == "color":
                 color_keys = ["", "positive", "neutral", "negative"]
@@ -316,7 +320,7 @@ class InnovationScreen:
                 color_labels = [c_none, c_pos, c_neu, c_neg]
                 
                 combo = ttk.Combobox(dialog, values=color_labels, state="readonly", width=37)
-                combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                combo.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 
                 # Set current selection based on the stored key
                 try:
@@ -333,7 +337,7 @@ class InnovationScreen:
                 entries[field] = combo
             elif field in ("description", "conclusion"):
                 container = ttk.Frame(dialog)
-                container.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                container.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 
                 txt = tk.Text(container, height=6, width=50)
                 txt.insert("1.0", val)
@@ -350,7 +354,7 @@ class InnovationScreen:
             else:
                 var = tk.StringVar(value=val)
                 ent = ttk.Entry(dialog, textvariable=var, width=50)
-                ent.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                ent.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 entries[field] = var
         
         def save(event=None):
@@ -382,7 +386,7 @@ class InnovationScreen:
             on_save(alias, result)
             dialog.destroy()
             
-        ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=20)
+        ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=theme.SPACE_XL)
         dialog.columnconfigure(1, weight=1)
 
     def _save_data(self) -> None:

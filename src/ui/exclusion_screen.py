@@ -6,6 +6,8 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import TYPE_CHECKING
 
+from src.ui import theme
+
 if TYPE_CHECKING:
     from src.ui.application import Application
 
@@ -39,17 +41,17 @@ class ExclusionScreen:
 
     def _build_ui(self) -> None:
         # Main container
-        main_frame = ttk.Frame(self.window, padding=16)
+        main_frame = ttk.Frame(self.window, padding=theme.SPACE_LG)
         main_frame.pack(fill="both", expand=True)
 
         # Header
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill="x", pady=(0, 12))
+        header_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
         
         ttk.Label(
             header_frame,
             text=self.app._t("exclusions_title"),
-            font=("Segoe UI", 14, "bold"),
+            style=theme.TITLE_LABEL,
         ).pack(anchor="w")
         
         ttk.Label(
@@ -60,21 +62,21 @@ class ExclusionScreen:
         ).pack(anchor="w", pady=(4, 0))
 
         # File selection
-        file_frame = ttk.LabelFrame(main_frame, text=self.app._t("exclusions_file_label"), padding=10)
-        file_frame.pack(fill="x", pady=(0, 12))
+        file_frame = ttk.LabelFrame(main_frame, text=self.app._t("exclusions_file_label"), padding=theme.SPACE_MD)
+        file_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
         
         file_row = ttk.Frame(file_frame)
         file_row.pack(fill="x")
         
-        ttk.Entry(file_row, textvariable=self.current_file).pack(side="left", fill="x", expand=True, padx=(0, 8))
+        ttk.Entry(file_row, textvariable=self.current_file).pack(side="left", fill="x", expand=True, padx=(0, theme.SPACE_SM))
         ttk.Button(file_row, text=self.app._t("exclusions_browse"), command=self._browse_file).pack(side="left")
 
         # Tabs
         self.notebook = ttk.Notebook(main_frame)
         self.notebook.pack(fill="both", expand=True)
 
-        self.metadata_tab = ttk.Frame(self.notebook, padding=10)
-        self.rules_tab = ttk.Frame(self.notebook, padding=10)
+        self.metadata_tab = ttk.Frame(self.notebook, padding=theme.SPACE_MD)
+        self.rules_tab = ttk.Frame(self.notebook, padding=theme.SPACE_MD)
         
         self.notebook.add(self.metadata_tab, text=self.app._t("exclusions_tab_metadata"))
         self.notebook.add(self.rules_tab, text=self.app._t("exclusions_tab_rules"))
@@ -83,7 +85,7 @@ class ExclusionScreen:
         self._build_rules_tab()
 
         # Footer buttons
-        footer_frame = ttk.Frame(main_frame, padding=(0, 12, 0, 0))
+        footer_frame = ttk.Frame(main_frame, padding=(0, theme.SPACE_MD, 0, 0))
         footer_frame.pack(fill="x")
         
         ttk.Button(
@@ -96,20 +98,22 @@ class ExclusionScreen:
             footer_frame,
             text=self.app._t("exclusions_save"),
             command=self._save_data,
-        ).pack(side="right", padx=(0, 8))
+            style=theme.PRIMARY_BUTTON,
+        ).pack(side="right", padx=(0, theme.SPACE_SM))
 
         # Add/Edit/Delete buttons in the footer
         ttk.Button(
             footer_frame,
             text=self.app._t("exclusions_delete"),
             command=self._on_delete,
-        ).pack(side="left", padx=(0, 8))
+            style=theme.DANGER_BUTTON,
+        ).pack(side="left", padx=(0, theme.SPACE_SM))
 
         ttk.Button(
             footer_frame,
             text=self.app._t("configuration_ai_tags_edit"),
             command=self._on_edit,
-        ).pack(side="left", padx=(0, 8))
+        ).pack(side="left", padx=(0, theme.SPACE_SM))
 
         ttk.Button(
             footer_frame,
@@ -138,9 +142,9 @@ class ExclusionScreen:
     def _build_metadata_tab(self) -> None:
         # Filter row
         filter_frame = ttk.Frame(self.metadata_tab)
-        filter_frame.pack(fill="x", pady=(0, 8))
+        filter_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
         
-        ttk.Label(filter_frame, text=self.app._t("exclusions_filter_label")).pack(side="left", padx=(0, 8))
+        ttk.Label(filter_frame, text=self.app._t("exclusions_filter_label")).pack(side="left", padx=(0, theme.SPACE_SM))
         ttk.Entry(filter_frame, textvariable=self.filter_var).pack(side="left", fill="x", expand=True)
 
         # Table
@@ -170,9 +174,9 @@ class ExclusionScreen:
     def _build_rules_tab(self) -> None:
         # Filter row
         filter_frame = ttk.Frame(self.rules_tab)
-        filter_frame.pack(fill="x", pady=(0, 8))
+        filter_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
         
-        ttk.Label(filter_frame, text=self.app._t("exclusions_filter_label")).pack(side="left", padx=(0, 8))
+        ttk.Label(filter_frame, text=self.app._t("exclusions_filter_label")).pack(side="left", padx=(0, theme.SPACE_SM))
         self.rules_filter_var = tk.StringVar()
         self.rules_filter_var.trace_add("write", lambda *args: self._apply_rules_filter())
         ttk.Entry(filter_frame, textvariable=self.rules_filter_var).pack(side="left", fill="x", expand=True)
@@ -401,7 +405,7 @@ class ExclusionScreen:
         
         vars = {}
         for i, field in enumerate(fields):
-            ttk.Label(dialog, text=self.app._t(f"exclusions_column_{field}")).grid(row=i, column=0, padx=10, pady=10, sticky="w")
+            ttk.Label(dialog, text=self.app._t(f"exclusions_column_{field}")).grid(row=i, column=0, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="w")
             
             initial_val = initial_values[i] if initial_values and i < len(initial_values) else ""
             
@@ -410,11 +414,11 @@ class ExclusionScreen:
                 categories = sorted(set(SalesforceMetadataParser.CATEGORY_ALIASES.values()))
                 var = tk.StringVar(value=initial_val)
                 combo = ttk.Combobox(dialog, textvariable=var, values=categories, state="readonly", width=30)
-                combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                combo.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 vars[field] = var
             else:
                 var = tk.StringVar(value=initial_val)
-                ttk.Entry(dialog, textvariable=var).grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                ttk.Entry(dialog, textvariable=var).grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 vars[field] = var
         
         def save(event=None):
@@ -428,7 +432,7 @@ class ExclusionScreen:
                     tree.insert("", "end", values=values)
             dialog.destroy()
             
-        ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=20)
+        ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=theme.SPACE_XL)
         dialog.bind("<Return>", save)
         dialog.columnconfigure(1, weight=1)
 
@@ -438,16 +442,28 @@ class ExclusionScreen:
             return
 
         try:
-            data = {
-                "metadata_exclusions": [
-                    {"type": r[0], "element": r[1], "commentaire": r[2]}
-                    for r in self.metadata_data
-                ],
-                "rule_exclusions": [
-                    {"type": r[0], "metadata_name": r[1], "rule_id": r[2], "commentaire": r[3]}
-                    for r in self.rules_data
-                ]
-            }
+            # Preserve any other top-level key already present in the file
+            # (e.g. "flow_coverage_exclusions" managed by the flow coverage
+            # exclusion screen) instead of overwriting the whole file.
+            data: dict = {}
+            existing_path = Path(path)
+            if existing_path.exists():
+                for encoding in ("utf-8", "utf-16", "latin-1"):
+                    try:
+                        with open(existing_path, "r", encoding=encoding) as f:
+                            data = json.load(f)
+                        break
+                    except (UnicodeDecodeError, json.JSONDecodeError):
+                        continue
+
+            data["metadata_exclusions"] = [
+                {"type": r[0], "element": r[1], "commentaire": r[2]}
+                for r in self.metadata_data
+            ]
+            data["rule_exclusions"] = [
+                {"type": r[0], "metadata_name": r[1], "rule_id": r[2], "commentaire": r[3]}
+                for r in self.rules_data
+            ]
 
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)

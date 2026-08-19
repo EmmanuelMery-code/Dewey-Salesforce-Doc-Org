@@ -8,6 +8,7 @@ from tkinter import scrolledtext, ttk
 from typing import TYPE_CHECKING
 
 from src.ai import build_system_prompt
+from src.ui import theme
 from src.ui.config_window.tabs_display_settings import (
     build_index_cards_tab,
     build_parametrage_tab,
@@ -57,8 +58,8 @@ def _comparison_target_choices(app: Application) -> tuple[list[str], str]:
 
 
 def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
-    general = ttk.LabelFrame(parent, text=app._t("configuration_section_general"), padding=10)
-    general.pack(fill="x", pady=(0, 8))
+    general = ttk.LabelFrame(parent, text=app._t("configuration_section_general"), padding=theme.SPACE_MD)
+    general.pack(fill="x", pady=(0, theme.SPACE_SM))
     config_combo_row(
         general,
         app._t("language"),
@@ -66,8 +67,8 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
         [app._language_display(code) for code in app.LANGUAGES],
     )
 
-    salesforce = ttk.LabelFrame(parent, text=app._t("configuration_section_salesforce"), padding=10)
-    salesforce.pack(fill="x", pady=(0, 8))
+    salesforce = ttk.LabelFrame(parent, text=app._t("configuration_section_salesforce"), padding=theme.SPACE_MD)
+    salesforce.pack(fill="x", pady=(0, theme.SPACE_SM))
     config_entry_row(salesforce, app._t("alias"), edit_vars["alias"])
     config_combo_row(
         salesforce,
@@ -77,8 +78,8 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
     )
     config_entry_row(salesforce, app._t("instance_url"), edit_vars["instance_url"])
 
-    paths = ttk.LabelFrame(parent, text=app._t("configuration_section_paths"), padding=10)
-    paths.pack(fill="x", pady=(0, 8))
+    paths = ttk.LabelFrame(parent, text=app._t("configuration_section_paths"), padding=theme.SPACE_MD)
+    paths.pack(fill="x", pady=(0, theme.SPACE_SM))
     folder_policy_labels = [app._folder_policy_display(key) for key in app.FOLDER_DIR_POLICIES]
     config_entry_row(paths, app._t("source_folder"), edit_vars["source"])
     config_combo_row(
@@ -97,11 +98,11 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
     config_entry_row(paths, app._t("exclusion_file"), edit_vars["exclusion_file"])
     config_entry_row(paths, app._t("technical_debt_file"), edit_vars["technical_debt_file"])
 
-    analysis = ttk.LabelFrame(parent, text=app._t("configuration_section_analysis"), padding=10)
-    analysis.pack(fill="x", pady=(0, 8))
+    analysis = ttk.LabelFrame(parent, text=app._t("configuration_section_analysis"), padding=theme.SPACE_MD)
+    analysis.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Checkbutton(
         analysis, text=app._t("pmd_enabled"), variable=edit_vars["pmd_enabled"]
-    ).pack(anchor="w", pady=(0, 4))
+    ).pack(anchor="w", pady=(0, theme.SPACE_XS))
     config_entry_row(analysis, app._t("pmd_ruleset_file"), edit_vars["pmd_ruleset"])
     config_entry_row(analysis, app._t("configuration_rules_file_label"), edit_vars["analyzer_rules_file"])
     config_combo_row(
@@ -111,8 +112,8 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
         list(app.ORG_CHECK_CHOICES),
     )
 
-    reports = ttk.LabelFrame(parent, text=app._t("configuration_section_reports"), padding=10)
-    reports.pack(fill="x", pady=(0, 8))
+    reports = ttk.LabelFrame(parent, text=app._t("configuration_section_reports"), padding=theme.SPACE_MD)
+    reports.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Checkbutton(
         reports,
         text=app._t("menu_generate_html"),
@@ -150,14 +151,14 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
     ).pack(anchor="w", pady=(2, 2))
 
     comparison = ttk.LabelFrame(
-        parent, text=app._t("configuration_section_comparison"), padding=10
+        parent, text=app._t("configuration_section_comparison"), padding=theme.SPACE_MD
     )
-    comparison.pack(fill="x", pady=(0, 8))
+    comparison.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Checkbutton(
         comparison,
         text=app._t("configuration_include_comparison"),
         variable=edit_vars["include_comparison"],
-    ).pack(anchor="w", pady=(2, 4))
+    ).pack(anchor="w", pady=(2, theme.SPACE_XS))
     cmp_values, cmp_selected = _comparison_target_choices(app)
     edit_vars["comparison_target"].set(cmp_selected)
     config_combo_row(
@@ -167,8 +168,8 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
         cmp_values,
     )
 
-    tests = ttk.LabelFrame(parent, text=app._t("configuration_section_tests"), padding=10)
-    tests.pack(fill="x", pady=(0, 8))
+    tests = ttk.LabelFrame(parent, text=app._t("configuration_section_tests"), padding=theme.SPACE_MD)
+    tests.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Checkbutton(
         tests,
         text=app._t("configuration_run_tests"),
@@ -191,7 +192,7 @@ def build_model_management(
 ) -> None:
     """Add Add/Remove/Reset buttons for AI models."""
     row = ttk.Frame(parent)
-    row.pack(fill="x", pady=(2, 5))
+    row.pack(fill="x", pady=(2, theme.SPACE_SM))
     ttk.Label(row, text="", width=22).pack(side="left")
 
     def add_model():
@@ -259,22 +260,28 @@ def build_model_management(
 
     ttk.Button(
         row, text=app._t("configuration_ai_models_add"), command=add_model
-    ).pack(side="left", padx=(0, 5))
+    ).pack(side="left", padx=(0, theme.SPACE_SM))
     ttk.Button(
-        row, text=app._t("configuration_ai_models_remove"), command=remove_model
-    ).pack(side="left", padx=(0, 5))
+        row,
+        text=app._t("configuration_ai_models_remove"),
+        command=remove_model,
+        style=theme.DANGER_BUTTON,
+    ).pack(side="left", padx=(0, theme.SPACE_SM))
     ttk.Button(
-        row, text=app._t("configuration_ai_models_reset"), command=reset_models
+        row,
+        text=app._t("configuration_ai_models_reset"),
+        command=reset_models,
+        style=theme.DANGER_BUTTON,
     ).pack(side="left")
 
 
 def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
-    ai_frame = ttk.LabelFrame(parent, text=app._t("configuration_section_ai"), padding=10)
-    ai_frame.pack(fill="x", pady=(0, 8))
+    ai_frame = ttk.LabelFrame(parent, text=app._t("configuration_section_ai"), padding=theme.SPACE_MD)
+    ai_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
 
     # Active provider selection
     provider_row = ttk.Frame(ai_frame)
-    provider_row.pack(fill="x", pady=(0, 10))
+    provider_row.pack(fill="x", pady=(0, theme.SPACE_MD))
     ttk.Label(provider_row, text=app._t("configuration_ai_provider"), width=22).pack(side="left")
 
     for p in app.AI_PROVIDERS:
@@ -283,11 +290,11 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
             text=p,
             variable=edit_vars["ai_provider"],
             value=p
-        ).pack(side="left", padx=10)
+        ).pack(side="left", padx=theme.SPACE_MD)
 
     # Claude (Anthropic)
-    claude_frame = ttk.LabelFrame(ai_frame, text="Claude (Anthropic)", padding=10)
-    claude_frame.pack(fill="x", pady=5)
+    claude_frame = ttk.LabelFrame(ai_frame, text="Claude (Anthropic)", padding=theme.SPACE_MD)
+    claude_frame.pack(fill="x", pady=theme.SPACE_SM)
     config_entry_row(
         claude_frame, app._t("configuration_claude_key"), edit_vars["claude_key"], show="*"
     )
@@ -307,8 +314,8 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
     )
 
     # Gemini (Google)
-    gemini_frame = ttk.LabelFrame(ai_frame, text="Gemini (Google)", padding=10)
-    gemini_frame.pack(fill="x", pady=5)
+    gemini_frame = ttk.LabelFrame(ai_frame, text="Gemini (Google)", padding=theme.SPACE_MD)
+    gemini_frame.pack(fill="x", pady=theme.SPACE_SM)
     config_entry_row(
         gemini_frame, app._t("configuration_gemini_key"), edit_vars["gemini_key"], show="*"
     )
@@ -328,8 +335,8 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
     )
 
     # LLM Gateway (Salesforce)
-    gateway_frame = ttk.LabelFrame(ai_frame, text="LLM Gateway (Salesforce)", padding=10)
-    gateway_frame.pack(fill="x", pady=5)
+    gateway_frame = ttk.LabelFrame(ai_frame, text="LLM Gateway (Salesforce)", padding=theme.SPACE_MD)
+    gateway_frame.pack(fill="x", pady=theme.SPACE_SM)
     config_entry_row(
         gateway_frame, app._t("configuration_gateway_key"), edit_vars["gateway_key"], show="*"
     )
@@ -356,13 +363,13 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
         text=app._t("configuration_model_hint"),
         wraplength=640,
         justify="left",
-        foreground="#475569",
+        style=theme.MUTED_LABEL,
     ).pack(anchor="w", pady=(6, 0))
 
     prompt_frame = ttk.LabelFrame(
-        parent, text=app._t("configuration_section_prompt"), padding=10
+        parent, text=app._t("configuration_section_prompt"), padding=theme.SPACE_MD
     )
-    prompt_frame.pack(fill="both", expand=True, pady=(0, 8))
+    prompt_frame.pack(fill="both", expand=True, pady=(0, theme.SPACE_SM))
 
     ttk.Label(
         prompt_frame,
@@ -390,6 +397,7 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
         button_row,
         text=app._t("configuration_system_prompt_reset"),
         command=reset_prompt,
+        style=theme.DANGER_BUTTON,
     ).pack(side="right")
 
 

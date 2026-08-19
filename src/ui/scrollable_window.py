@@ -12,6 +12,8 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
+from src.ui import theme
+
 if TYPE_CHECKING:
     from src.ui.application import Application
 
@@ -36,7 +38,10 @@ def build_scrollable_window(
     window.geometry(geometry)
     app._configure_secondary_window(window)
 
-    footer = ttk.Frame(window, padding=(16, 8, 16, 12))
+    footer = ttk.Frame(
+        window,
+        padding=(theme.SPACE_LG, theme.SPACE_SM, theme.SPACE_LG, theme.SPACE_MD),
+    )
     footer.pack(side="bottom", fill="x")
 
     outer = ttk.Frame(window)
@@ -44,7 +49,7 @@ def build_scrollable_window(
 
     canvas = tk.Canvas(outer, highlightthickness=0)
     scrollbar = ttk.Scrollbar(outer, orient="vertical", command=canvas.yview)
-    body = ttk.Frame(canvas, padding=16)
+    body = ttk.Frame(canvas, padding=theme.SPACE_LG)
 
     body.bind(
         "<Configure>",

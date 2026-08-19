@@ -6,6 +6,8 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import TYPE_CHECKING, Any, Dict, List
 
+from src.ui import theme
+
 if TYPE_CHECKING:
     from src.ui.application import Application
 
@@ -38,17 +40,17 @@ class DebtScreen:
 
     def _build_ui(self) -> None:
         # Main container
-        main_frame = ttk.Frame(self.window, padding=16)
+        main_frame = ttk.Frame(self.window, padding=theme.SPACE_LG)
         main_frame.pack(fill="both", expand=True)
 
         # Header
         header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill="x", pady=(0, 12))
+        header_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
         
         ttk.Label(
             header_frame,
             text=self.app._t('debt_title'),
-            font=("Segoe UI", 14, "bold"),
+            style=theme.TITLE_LABEL,
         ).pack(anchor="w")
         
         ttk.Label(
@@ -60,9 +62,9 @@ class DebtScreen:
 
         # Filter row
         filter_row = ttk.Frame(main_frame)
-        filter_row.pack(fill="x", pady=(0, 10))
+        filter_row.pack(fill="x", pady=(0, theme.SPACE_MD))
         
-        ttk.Label(filter_row, text=self.app._t("debt_filter_alias")).pack(side="left", padx=(0, 10))
+        ttk.Label(filter_row, text=self.app._t("debt_filter_alias")).pack(side="left", padx=(0, theme.SPACE_MD))
         
         self.filter_combo = ttk.Combobox(
             filter_row, 
@@ -77,8 +79,8 @@ class DebtScreen:
         self.notebook = ttk.Notebook(main_frame)
         self.notebook.pack(fill="both", expand=True)
 
-        self.technical_tab = ttk.Frame(self.notebook, padding=10)
-        self.deviations_tab = ttk.Frame(self.notebook, padding=10)
+        self.technical_tab = ttk.Frame(self.notebook, padding=theme.SPACE_MD)
+        self.deviations_tab = ttk.Frame(self.notebook, padding=theme.SPACE_MD)
         
         self.notebook.add(self.technical_tab, text=self.app._t("debt_tab_technical"))
         self.notebook.add(self.deviations_tab, text=self.app._t("debt_tab_deviations"))
@@ -87,7 +89,7 @@ class DebtScreen:
         self._build_deviations_tab()
 
         # Footer buttons
-        footer_frame = ttk.Frame(main_frame, padding=(0, 12, 0, 0))
+        footer_frame = ttk.Frame(main_frame, padding=(0, theme.SPACE_MD, 0, 0))
         footer_frame.pack(fill="x")
         
         ttk.Button(
@@ -100,20 +102,22 @@ class DebtScreen:
             footer_frame,
             text=self.app._t("debt_save"),
             command=self._save_data,
-        ).pack(side="right", padx=(0, 8))
+            style=theme.PRIMARY_BUTTON,
+        ).pack(side="right", padx=(0, theme.SPACE_SM))
 
         # Add/Edit/Delete buttons in the footer
         ttk.Button(
             footer_frame,
             text=self.app._t("debt_delete"),
             command=self._on_delete,
-        ).pack(side="left", padx=(0, 8))
+            style=theme.DANGER_BUTTON,
+        ).pack(side="left", padx=(0, theme.SPACE_SM))
 
         ttk.Button(
             footer_frame,
             text=self.app._t("debt_edit"),
             command=self._on_edit,
-        ).pack(side="left", padx=(0, 8))
+        ).pack(side="left", padx=(0, theme.SPACE_SM))
 
         ttk.Button(
             footer_frame,
@@ -310,7 +314,7 @@ class DebtScreen:
         entries = {}
         for i, field in enumerate(fields):
             label_text = "Alias" if field == "alias" else self.app._t(f"debt_column_{field}")
-            ttk.Label(dialog, text=label_text).grid(row=i, column=0, padx=10, pady=10, sticky="nw")
+            ttk.Label(dialog, text=label_text).grid(row=i, column=0, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="nw")
             val = initial_values.get(field, "") if initial_values else ""
             
             if field == "alias":
@@ -319,11 +323,11 @@ class DebtScreen:
                     aliases = [self.app.alias_var.get() or "Default"]
                 var = tk.StringVar(value=val or aliases[0])
                 combo = ttk.Combobox(dialog, textvariable=var, values=aliases, state="readonly", width=37)
-                combo.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                combo.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 entries[field] = var
             elif field in ("accepted_solution", "target_solution", "explanation"):
                 container = ttk.Frame(dialog)
-                container.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                container.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 
                 txt = tk.Text(container, height=6, width=50)
                 txt.insert("1.0", val)
@@ -340,7 +344,7 @@ class DebtScreen:
             else:
                 var = tk.StringVar(value=val)
                 ent = ttk.Entry(dialog, textvariable=var, width=50)
-                ent.grid(row=i, column=1, padx=10, pady=10, sticky="ew")
+                ent.grid(row=i, column=1, padx=theme.SPACE_MD, pady=theme.SPACE_MD, sticky="ew")
                 entries[field] = var
         
         def save(event=None):
@@ -355,7 +359,7 @@ class DebtScreen:
             on_save(alias, result)
             dialog.destroy()
             
-        ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=20)
+        ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=theme.SPACE_XL)
         # Note: we don't bind <Return> to save here because we have multiline text fields
         dialog.columnconfigure(1, weight=1)
 

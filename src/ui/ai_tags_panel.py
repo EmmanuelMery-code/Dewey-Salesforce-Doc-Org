@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 from typing import TYPE_CHECKING
 
+from src.ui import theme
 from src.ui.settings import DEFAULT_AI_USAGE_TAGS
 
 if TYPE_CHECKING:
@@ -30,9 +31,9 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
     title = ttk.Label(
         parent,
         text=app._t("configuration_ai_tags_title"),
-        font=("Segoe UI", 12, "bold"),
+        style=theme.SECTION_LABEL,
     )
-    title.pack(anchor="w", pady=(0, 4))
+    title.pack(anchor="w", pady=(0, theme.SPACE_XS))
 
     description = ttk.Label(
         parent,
@@ -40,7 +41,7 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
         wraplength=820,
         justify="left",
     )
-    description.pack(anchor="w", pady=(0, 10))
+    description.pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     list_frame = ttk.Frame(parent)
     list_frame.pack(fill="both", expand=True)
@@ -55,7 +56,7 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
         listbox.insert(tk.END, tag)
 
     button_row = ttk.Frame(parent)
-    button_row.pack(fill="x", pady=(8, 0))
+    button_row.pack(fill="x", pady=(theme.SPACE_SM, 0))
 
     ttk.Button(
         button_row,
@@ -66,12 +67,13 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
         button_row,
         text=app._t("configuration_ai_tags_edit"),
         command=lambda: _edit_tag(app, listbox),
-    ).pack(side="left", padx=(8, 0))
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
     ttk.Button(
         button_row,
+        style=theme.DANGER_BUTTON,
         text=app._t("configuration_ai_tags_remove"),
         command=lambda: _remove_tag(app, listbox),
-    ).pack(side="left", padx=(8, 0))
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
     ttk.Button(
         button_row,
         text=app._t("configuration_ai_tags_reset"),
@@ -83,9 +85,9 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
         text=app._t("configuration_ai_tags_hint"),
         wraplength=820,
         justify="left",
-        foreground="#475569",
+        style=theme.MUTED_LABEL,
     )
-    hint.pack(anchor="w", pady=(8, 0))
+    hint.pack(anchor="w", pady=(theme.SPACE_SM, 0))
 
     app._ai_tags_listbox = listbox
 

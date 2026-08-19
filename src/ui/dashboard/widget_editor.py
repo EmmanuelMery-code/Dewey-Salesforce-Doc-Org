@@ -3,6 +3,7 @@ from tkinter import ttk, colorchooser, filedialog
 from typing import List, Dict, Any, Optional
 from src.core.dashboard_service import DashboardWidget
 from src.ui.dashboard.sql_builder import open_query_builder
+from src.ui import theme
 
 def build_widget_editor(container, widgets, saved_configs, service, app, window, update_preview_callback, refresh_callback):
     """Construit l'éditeur de propriétés des widgets sur la gauche."""
@@ -12,8 +13,8 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
     widget_ui_elements = []
     
     for i, w in enumerate(widgets):
-        f = ttk.LabelFrame(container, text=app._t("designer_widget_label", i=i+1, label=w.label), padding=5)
-        f.pack(fill="x", pady=5, padx=5)
+        f = ttk.LabelFrame(container, text=app._t("designer_widget_label", i=i+1, label=w.label), padding=theme.SPACE_SM)
+        f.pack(fill="x", pady=theme.SPACE_SM, padx=theme.SPACE_SM)
         
         row1 = ttk.Frame(f); row1.pack(fill="x")
         t_var = tk.StringVar(value=w.label)
@@ -23,7 +24,7 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
         type_cb = ttk.Combobox(row1, textvariable=type_var, 
                                values=["bar", "pie", "donut", "line", "area", "stacked_bar", "kpi", "text", "table", "image", "dashboard"], 
                                width=9, state="readonly")
-        type_cb.pack(side="left", padx=5)
+        type_cb.pack(side="left", padx=theme.SPACE_SM)
         
         c_var = tk.StringVar(value=w.color)
         ttk.Entry(row1, textvariable=c_var, width=12).pack(side="left")
@@ -35,13 +36,13 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
                 choice_win.title(app._t("designer_color_action_title"))
                 choice_win.geometry("300x150")
                 app._configure_secondary_window(choice_win)
-                ttk.Label(choice_win, text=app._t("designer_color_label", color=color)).pack(pady=10)
-                bf = ttk.Frame(choice_win); bf.pack(pady=10)
-                ttk.Button(bf, text=app._t("designer_color_replace"), command=lambda: [var.set(color), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=5)
-                ttk.Button(bf, text=app._t("designer_color_append"), command=lambda: [var.set(f"{var.get()},{color}" if var.get() else color), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=5)
-                ttk.Button(bf, text=app._t("designer_color_transparent"), command=lambda: [var.set("none"), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=5)
+                ttk.Label(choice_win, text=app._t("designer_color_label", color=color)).pack(pady=theme.SPACE_MD)
+                bf = ttk.Frame(choice_win); bf.pack(pady=theme.SPACE_MD)
+                ttk.Button(bf, text=app._t("designer_color_replace"), command=lambda: [var.set(color), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=theme.SPACE_SM)
+                ttk.Button(bf, text=app._t("designer_color_append"), command=lambda: [var.set(f"{var.get()},{color}" if var.get() else color), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=theme.SPACE_SM)
+                ttk.Button(bf, text=app._t("designer_color_transparent"), command=lambda: [var.set("none"), choice_win.destroy(), update_preview_callback()]).pack(side="left", padx=theme.SPACE_SM)
 
-        ttk.Button(row1, text="🎨", width=3, command=pick_color).pack(side="left", padx=2)
+        ttk.Button(row1, text="🎨", width=3, command=pick_color).pack(side="left", padx=theme.SPACE_XS)
         
         def remove_widget(idx=i):
             if 0 <= idx < len(widgets):
@@ -49,34 +50,34 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
                 refresh_callback()
                 update_preview_callback()
         
-        ttk.Button(row1, text="X", width=2, command=remove_widget).pack(side="right")
+        ttk.Button(row1, text="X", width=2, command=remove_widget, style=theme.DANGER_BUTTON).pack(side="right")
         
-        row2 = ttk.Frame(f); row2.pack(fill="x", pady=5)
+        row2 = ttk.Frame(f); row2.pack(fill="x", pady=theme.SPACE_SM)
         xv, yv, wv, hv, zv = (tk.StringVar(value=str(w.x)), tk.StringVar(value=str(w.y)), 
                               tk.StringVar(value=str(w.w)), tk.StringVar(value=str(w.h)), 
                               tk.StringVar(value=str(w.z_order)))
         for lbl, var in [("X:", xv), (" Y:", yv), (" W:", wv), (" H:", hv), (" Z:", zv)]:
             ttk.Label(row2, text=lbl).pack(side="left")
-            ttk.Entry(row2, textvariable=var, width=3).pack(side="left", padx=2)
+            ttk.Entry(row2, textvariable=var, width=3).pack(side="left", padx=theme.SPACE_XS)
         
         q_var = tk.StringVar(value=w.query); q_row = ttk.Frame(f); q_row.pack(fill="x")
-        ttk.Entry(q_row, textvariable=q_var, font=("Consolas", 8)).pack(side="left", fill="x", expand=True)
-        ttk.Button(q_row, text=app._t("designer_sql_builder"), command=lambda v=q_var: open_query_builder(window, app, service, v)).pack(side="right", padx=2)
+        ttk.Entry(q_row, textvariable=q_var, font=theme.FONT_MONO).pack(side="left", fill="x", expand=True)
+        ttk.Button(q_row, text=app._t("designer_sql_builder"), command=lambda v=q_var: open_query_builder(window, app, service, v)).pack(side="right", padx=theme.SPACE_XS)
         
-        cond_var = tk.StringVar(value=w.condition); cond_row = ttk.Frame(f); cond_row.pack(fill="x", pady=2)
+        cond_var = tk.StringVar(value=w.condition); cond_row = ttk.Frame(f); cond_row.pack(fill="x", pady=theme.SPACE_XS)
         ttk.Label(cond_row, text=app._t("designer_condition")).pack(side="left")
-        ttk.Entry(cond_row, textvariable=cond_var, font=("Consolas", 8)).pack(side="left", fill="x", expand=True)
+        ttk.Entry(cond_row, textvariable=cond_var, font=theme.FONT_MONO).pack(side="left", fill="x", expand=True)
         
         # Outils spécifiques selon type
         kpi_tools = ttk.Frame(f)
         kpi_dec_var = tk.StringVar(value=str(w.kpi_decimals))
         ttk.Label(kpi_tools, text=app._t("designer_decimals")).pack(side="left")
-        ttk.Combobox(kpi_tools, textvariable=kpi_dec_var, values=["0", "1", "2", "3"], width=3, state="readonly").pack(side="left", padx=2)
+        ttk.Combobox(kpi_tools, textvariable=kpi_dec_var, values=["0", "1", "2", "3"], width=3, state="readonly").pack(side="left", padx=theme.SPACE_XS)
 
         dash_tools = ttk.Frame(f)
         linked_dash_var = tk.StringVar(value=w.linked_dashboard)
         ttk.Label(dash_tools, text=app._t("designer_dashboard_linked")).pack(side="left")
-        ttk.Combobox(dash_tools, textvariable=linked_dash_var, values=list(saved_configs.keys()), width=20, state="readonly").pack(side="left", padx=2)
+        ttk.Combobox(dash_tools, textvariable=linked_dash_var, values=list(saved_configs.keys()), width=20, state="readonly").pack(side="left", padx=theme.SPACE_XS)
 
         image_tools = ttk.Frame(f)
         img_path_var = tk.StringVar(value=w.image_path)
@@ -91,14 +92,14 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
         row_i1 = ttk.Frame(image_tools); row_i1.pack(fill="x")
         ttk.Button(row_i1, text=app._t("designer_image_btn"), command=browse_image).pack(side="left")
         all_emojis = ["☀️", "⛅", "☁️", "🌧️", "⛈️", "😊", "😐", "☹️", "🚀", "📊", "✅", "❌", "⚠️", "💡", "🔥", "⭐", "🎯", "🏆", "⚙️", "🔒", "🌍"]
-        ttk.Combobox(row_i1, textvariable=emoji_var, values=all_emojis, width=3, state="readonly").pack(side="left", padx=2)
+        ttk.Combobox(row_i1, textvariable=emoji_var, values=all_emojis, width=3, state="readonly").pack(side="left", padx=theme.SPACE_XS)
 
         table_tools = ttk.Frame(f)
         t_font_var = tk.StringVar(value=w.table_font_name)
         t_size_var = tk.StringVar(value=str(w.table_font_size))
         ttk.Label(table_tools, text=app._t("designer_font")).pack(side="left")
-        ttk.Combobox(table_tools, textvariable=t_font_var, values=["Arial", "Courier New", "Verdana", "Times New Roman"], width=10).pack(side="left", padx=2)
-        ttk.Combobox(table_tools, textvariable=t_size_var, values=["6", "7", "8", "9", "10", "12"], width=3).pack(side="left", padx=2)
+        ttk.Combobox(table_tools, textvariable=t_font_var, values=["Arial", "Courier New", "Verdana", "Times New Roman"], width=10).pack(side="left", padx=theme.SPACE_XS)
+        ttk.Combobox(table_tools, textvariable=t_size_var, values=["6", "7", "8", "9", "10", "12"], width=3).pack(side="left", padx=theme.SPACE_XS)
 
         text_tools = ttk.Frame(f)
         def open_rich_text():
@@ -109,11 +110,11 @@ def build_widget_editor(container, widgets, saved_configs, service, app, window,
         def show_tools(*args):
             for t in [kpi_tools, dash_tools, image_tools, table_tools, text_tools]: t.pack_forget()
             vt = type_var.get()
-            if vt == "kpi": kpi_tools.pack(fill="x", pady=2)
-            elif vt == "dashboard": dash_tools.pack(fill="x", pady=2)
-            elif vt == "image": image_tools.pack(fill="x", pady=2)
-            elif vt == "table": table_tools.pack(fill="x", pady=2)
-            elif vt == "text": text_tools.pack(fill="x", pady=2)
+            if vt == "kpi": kpi_tools.pack(fill="x", pady=theme.SPACE_XS)
+            elif vt == "dashboard": dash_tools.pack(fill="x", pady=theme.SPACE_XS)
+            elif vt == "image": image_tools.pack(fill="x", pady=theme.SPACE_XS)
+            elif vt == "table": table_tools.pack(fill="x", pady=theme.SPACE_XS)
+            elif vt == "text": text_tools.pack(fill="x", pady=theme.SPACE_XS)
         
         type_var.trace_add("write", show_tools)
         show_tools()

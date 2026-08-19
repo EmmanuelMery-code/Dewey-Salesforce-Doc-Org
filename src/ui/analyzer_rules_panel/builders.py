@@ -17,6 +17,7 @@ from src.ui.analyzer_rules_panel.logic import (
     _set_all_api_versions,
     _set_all_rules,
 )
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -24,23 +25,23 @@ if TYPE_CHECKING:
 
 def _build_header(app: Application, parent: ttk.Frame) -> None:
     header = ttk.Frame(parent)
-    header.pack(fill="x", pady=(0, 6))
+    header.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Label(
         header,
         text=app._t("configuration_rules_title"),
-        font=("Segoe UI", 11, "bold"),
+        style=theme.SECTION_LABEL,
     ).pack(anchor="w")
     ttk.Label(
         header,
         text=app._t("configuration_rules_description"),
         wraplength=880,
         justify="left",
-    ).pack(anchor="w", pady=(2, 6))
+    ).pack(anchor="w", pady=(theme.SPACE_XS, theme.SPACE_SM))
 
 
 def _build_file_row(app: Application, parent: ttk.Frame) -> None:
     file_row = ttk.Frame(parent)
-    file_row.pack(fill="x", pady=(0, 8))
+    file_row.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Label(
         file_row,
         text=app._t("configuration_rules_file_label"),
@@ -49,13 +50,13 @@ def _build_file_row(app: Application, parent: ttk.Frame) -> None:
     ttk.Label(
         file_row,
         text=str(app._analyzer_rules_file),
-        foreground="#334155",
-    ).pack(side="left", padx=(6, 0))
+        style=theme.MUTED_LABEL,
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
 
 
 def _build_controls(app: Application, parent: ttk.Frame) -> None:
     controls = ttk.Frame(parent)
-    controls.pack(fill="x", pady=(0, 6))
+    controls.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Button(
         controls,
         text=app._t("configuration_rules_enable_all"),
@@ -65,26 +66,26 @@ def _build_controls(app: Application, parent: ttk.Frame) -> None:
         controls,
         text=app._t("configuration_rules_disable_all"),
         command=lambda: _set_all_rules(app, False),
-    ).pack(side="left", padx=(6, 0))
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
     ttk.Button(
         controls,
         text=app._t("configuration_rules_reload"),
         command=lambda: _reload_rules(app),
-    ).pack(side="left", padx=(6, 0))
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
     ttk.Button(
         controls,
         text=app._t("configuration_rules_set_all_min"),
         command=lambda: _set_all_api_versions(app, "min"),
-    ).pack(side="left", padx=(6, 0))
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
     ttk.Button(
         controls,
         text=app._t("configuration_rules_set_all_max"),
         command=lambda: _set_all_api_versions(app, "max"),
-    ).pack(side="left", padx=(6, 0))
+    ).pack(side="left", padx=(theme.SPACE_SM, 0))
 
     count_var = tk.StringVar(value="")
     app._analyzer_rule_count_var = count_var
-    ttk.Label(controls, textvariable=count_var, foreground="#475569").pack(side="right")
+    ttk.Label(controls, textvariable=count_var, style=theme.MUTED_LABEL).pack(side="right")
 
 
 def _build_filters(app: Application, filters: ttk.Frame) -> ttk.Combobox:
@@ -111,7 +112,7 @@ def _build_filters(app: Application, filters: ttk.Frame) -> ttk.Combobox:
     scopes_labels = [app._t("configuration_rules_filter_all")]
     app._analyzer_rule_filter_scope = tk.StringVar(value=scopes_labels[0])
     scope_combo_container = ttk.Frame(filters)
-    scope_combo_container.pack(side="left", padx=(8, 0))
+    scope_combo_container.pack(side="left", padx=(theme.SPACE_SM, 0))
     ttk.Label(
         scope_combo_container,
         text=app._t("configuration_rules_filter_scope"),
@@ -123,7 +124,7 @@ def _build_filters(app: Application, filters: ttk.Frame) -> ttk.Combobox:
         state="readonly",
         width=22,
     )
-    scope_combo.pack(side="left", padx=(4, 0))
+    scope_combo.pack(side="left", padx=(theme.SPACE_XS, 0))
 
     for var in (
         app._analyzer_rule_filter_severity,
@@ -142,7 +143,7 @@ def _filter_combo_row(
     values: list[str],
 ) -> None:
     container = ttk.Frame(parent)
-    container.pack(side="left", padx=(0, 8))
+    container.pack(side="left", padx=(0, theme.SPACE_SM))
     ttk.Label(container, text=label_text).pack(side="left")
     combo = ttk.Combobox(
         container,
@@ -151,7 +152,7 @@ def _filter_combo_row(
         state="readonly",
         width=18,
     )
-    combo.pack(side="left", padx=(4, 0))
+    combo.pack(side="left", padx=(theme.SPACE_XS, 0))
 
 
 def _build_list_pane(app: Application, parent: ttk.Frame) -> ttk.Frame:
@@ -164,7 +165,7 @@ def _build_list_pane(app: Application, parent: ttk.Frame) -> ttk.Frame:
     detail_frame = ttk.LabelFrame(
         paned,
         text=app._t("configuration_rules_detail_title"),
-        padding=8,
+        padding=theme.SPACE_SM,
     )
     paned.add(detail_frame, weight=2)
 
@@ -202,17 +203,17 @@ def _build_list_pane(app: Application, parent: ttk.Frame) -> ttk.Frame:
 
     # API Version fields
     api_version_row = ttk.Frame(detail_frame)
-    api_version_row.pack(fill="x", pady=(6, 0))
+    api_version_row.pack(fill="x", pady=(theme.SPACE_SM, 0))
 
     ttk.Label(api_version_row, text=app._t("configuration_rules_min_api_version")).pack(side="left")
     app._analyzer_rule_min_api_entry_var = tk.StringVar()
     min_entry = ttk.Entry(api_version_row, textvariable=app._analyzer_rule_min_api_entry_var, width=10)
-    min_entry.pack(side="left", padx=(4, 12))
+    min_entry.pack(side="left", padx=(theme.SPACE_XS, theme.SPACE_MD))
 
     ttk.Label(api_version_row, text=app._t("configuration_rules_max_api_version")).pack(side="left")
     app._analyzer_rule_max_api_entry_var = tk.StringVar()
     max_entry = ttk.Entry(api_version_row, textvariable=app._analyzer_rule_max_api_entry_var, width=10)
-    max_entry.pack(side="left", padx=(4, 0))
+    max_entry.pack(side="left", padx=(theme.SPACE_XS, 0))
 
     # Sync entry fields back to the rule-specific vars
     def _sync_min(*_args):
@@ -229,7 +230,7 @@ def _build_list_pane(app: Application, parent: ttk.Frame) -> ttk.Frame:
     app._analyzer_rule_max_api_entry_var.trace_add("write", _sync_max)
 
     ref_row = ttk.Frame(detail_frame)
-    ref_row.pack(fill="x", pady=(6, 0))
+    ref_row.pack(fill="x", pady=(theme.SPACE_SM, 0))
     app._analyzer_rule_selected_reference = ""
     ttk.Button(
         ref_row,

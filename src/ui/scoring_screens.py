@@ -22,6 +22,7 @@ from src.core.models import (
     CustomizationMetrics,
 )
 from src.ui.scrollable_window import build_scrollable_window
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -169,37 +170,37 @@ def _show_weight_screen(app: Application, spec: WeightScreenSpec) -> None:
     ttk.Label(
         container,
         text=app._t(spec.title_key),
-        font=("Segoe UI", 13, "bold"),
+        style=theme.TITLE_LABEL,
     ).pack(anchor="w")
     ttk.Label(
         container,
         text=app._t(spec.description_key),
         wraplength=760,
         justify="left",
-    ).pack(anchor="w", pady=(4, 4))
+    ).pack(anchor="w", pady=(theme.SPACE_XS, theme.SPACE_XS))
     ttk.Label(
         container,
         text=app._t("scoring_edit_hint"),
         wraplength=760,
         justify="left",
-        foreground="#64748b",
-    ).pack(anchor="w", pady=(0, 10))
+        style=theme.MUTED_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_MD))
 
     score_header = ttk.Frame(container)
-    score_header.pack(fill="x", pady=(0, 10))
-    score_label = ttk.Label(score_header, font=("Segoe UI", 11, "bold"))
+    score_header.pack(fill="x", pady=(0, theme.SPACE_MD))
+    score_label = ttk.Label(score_header, style=theme.SECTION_LABEL)
     score_label.pack(side="left")
-    level_label = ttk.Label(score_header, font=("Segoe UI", 11, "bold"))
-    level_label.pack(side="left", padx=(16, 0))
+    level_label = ttk.Label(score_header, style=theme.SECTION_LABEL)
+    level_label.pack(side="left", padx=(theme.SPACE_LG, 0))
 
     ttk.Label(
         container,
         text=app._t(spec.formula_title_key),
-        font=("Segoe UI", 11, "bold"),
+        style=theme.SECTION_LABEL,
     ).pack(anchor="w")
 
     table_frame = ttk.Frame(container)
-    table_frame.pack(fill="both", expand=True, pady=(4, 10))
+    table_frame.pack(fill="both", expand=True, pady=(theme.SPACE_XS, theme.SPACE_MD))
     for column_index, weight in enumerate((3, 1, 1, 1, 5)):
         table_frame.grid_columnconfigure(column_index, weight=weight)
 
@@ -214,8 +215,8 @@ def _show_weight_screen(app: Application, spec: WeightScreenSpec) -> None:
         ttk.Label(
             table_frame,
             text=header,
-            font=("Segoe UI", 10, "bold"),
-        ).grid(row=0, column=column_index, sticky="w", padx=4, pady=(0, 4))
+            style=theme.SUBSECTION_LABEL,
+        ).grid(row=0, column=column_index, sticky="w", padx=theme.SPACE_XS, pady=(0, theme.SPACE_XS))
 
     weight_vars: dict[str, tk.StringVar] = {}
     contribution_labels: dict[str, ttk.Label] = {}
@@ -223,20 +224,20 @@ def _show_weight_screen(app: Application, spec: WeightScreenSpec) -> None:
 
     for row_index, (attr, label_key, desc_key) in enumerate(components, start=1):
         ttk.Label(table_frame, text=app._t(label_key)).grid(
-            row=row_index, column=0, sticky="w", padx=4, pady=2
+            row=row_index, column=0, sticky="w", padx=theme.SPACE_XS, pady=2
         )
         weight_var = tk.StringVar(
             value=str(weights_dict.get(attr, spec.defaults[attr]))
         )
         ttk.Entry(table_frame, textvariable=weight_var, width=6, justify="center").grid(
-            row=row_index, column=1, sticky="w", padx=4, pady=2
+            row=row_index, column=1, sticky="w", padx=theme.SPACE_XS, pady=2
         )
         count_lbl = ttk.Label(table_frame, text="", anchor="center")
-        count_lbl.grid(row=row_index, column=2, sticky="ew", padx=4, pady=2)
+        count_lbl.grid(row=row_index, column=2, sticky="ew", padx=theme.SPACE_XS, pady=2)
         contribution_lbl = ttk.Label(table_frame, text="", anchor="center")
-        contribution_lbl.grid(row=row_index, column=3, sticky="ew", padx=4, pady=2)
+        contribution_lbl.grid(row=row_index, column=3, sticky="ew", padx=theme.SPACE_XS, pady=2)
         ttk.Label(table_frame, text=app._t(desc_key), wraplength=320, justify="left").grid(
-            row=row_index, column=4, sticky="w", padx=4, pady=2
+            row=row_index, column=4, sticky="w", padx=theme.SPACE_XS, pady=2
         )
         weight_vars[attr] = weight_var
         count_labels[attr] = count_lbl
@@ -246,20 +247,20 @@ def _show_weight_screen(app: Application, spec: WeightScreenSpec) -> None:
     ttk.Label(
         table_frame,
         text=app._t("scoring_total_row"),
-        font=("Segoe UI", 10, "bold"),
-    ).grid(row=total_row_index, column=0, sticky="w", padx=4, pady=(6, 2))
+        style=theme.SUBSECTION_LABEL,
+    ).grid(row=total_row_index, column=0, sticky="w", padx=theme.SPACE_XS, pady=(6, 2))
     total_value_label = ttk.Label(
-        table_frame, text="", font=("Segoe UI", 10, "bold"), anchor="center"
+        table_frame, text="", style=theme.SUBSECTION_LABEL, anchor="center"
     )
-    total_value_label.grid(row=total_row_index, column=3, sticky="ew", padx=4, pady=(6, 2))
+    total_value_label.grid(row=total_row_index, column=3, sticky="ew", padx=theme.SPACE_XS, pady=(6, 2))
 
     ttk.Label(
         container,
         text=app._t(spec.levels_title_key),
-        font=("Segoe UI", 11, "bold"),
+        style=theme.SECTION_LABEL,
     ).pack(anchor="w")
     levels_frame = ttk.Frame(container)
-    levels_frame.pack(fill="x", pady=(2, 10))
+    levels_frame.pack(fill="x", pady=(2, theme.SPACE_MD))
     thresholds = (
         getattr(app, spec.threshold_attr, None) or spec.threshold_defaults
     )
@@ -363,12 +364,14 @@ def _show_weight_screen(app: Application, spec: WeightScreenSpec) -> None:
         footer,
         text=app._t("scoring_save"),
         command=save_weights,
-    ).pack(side="right", padx=(0, 8))
+        style=theme.PRIMARY_BUTTON,
+    ).pack(side="right", padx=(0, theme.SPACE_SM))
     ttk.Button(
         footer,
         text=app._t("scoring_reset"),
         command=reset_weights,
-    ).pack(side="right", padx=(0, 8))
+        style=theme.DANGER_BUTTON,
+    ).pack(side="right", padx=(0, theme.SPACE_SM))
 
     setattr(app, spec.window_attr, window)
     window.focus_set()

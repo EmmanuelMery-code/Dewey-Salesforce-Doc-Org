@@ -39,6 +39,7 @@ from src.core.models import (
 )
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 from src.core.sf_cli_service import OrgSummary, SalesforceCliService
+from src.ui import theme
 from src.ui.app_ai_mixin import AppAiMixin
 from src.ui.app_cli_actions_mixin import AppCliActionsMixin
 from src.ui.app_generation_mixin import AppGenerationMixin
@@ -113,11 +114,15 @@ class Application(
     TRANSLATIONS = UI_TRANSLATIONS
 
     ANALYZER_SEVERITY_ORDER: list[str] = ["Critical", "Major", "Minor", "Info"]
+    # Values come from src.ui.theme (single source of truth for the semantic
+    # color palette): COLOR_DANGER/WARNING/CAUTION/INFO mirror these exactly
+    # so the analyzer severity colors and the rest of the UI's danger/warning
+    # colors never drift apart.
     ANALYZER_SEVERITY_COLORS: dict[str, str] = {
-        "Critical": "#991b1b",
-        "Major": "#9a3412",
-        "Minor": "#854d0e",
-        "Info": "#1e3a8a",
+        "Critical": theme.COLOR_DANGER,
+        "Major": theme.COLOR_WARNING,
+        "Minor": theme.COLOR_CAUTION,
+        "Info": theme.COLOR_INFO,
     }
 
     SCORING_COMPONENTS: list[tuple[str, str, str]] = [

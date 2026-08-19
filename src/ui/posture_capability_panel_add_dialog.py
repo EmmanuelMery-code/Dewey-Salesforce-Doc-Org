@@ -19,6 +19,7 @@ from src.core.customization_metrics import (
     PostureCapabilityConfig,
     SNAPSHOT_METRIC_KEYS,
 )
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -50,7 +51,7 @@ def _add_capability_dialog(app: "Application") -> None:
     dialog.transient(parent)
     dialog.grab_set()
 
-    container = ttk.Frame(dialog, padding=16)
+    container = ttk.Frame(dialog, padding=theme.SPACE_LG)
     container.pack(fill="both", expand=True)
 
     ttk.Label(
@@ -58,10 +59,10 @@ def _add_capability_dialog(app: "Application") -> None:
         text=app._t("configuration_posture_add_description"),
         wraplength=480,
         justify="left",
-    ).pack(anchor="w", pady=(0, 10))
+    ).pack(anchor="w", pady=(0, theme.SPACE_MD))
 
     label_frame = ttk.Frame(container)
-    label_frame.pack(fill="x", pady=(0, 8))
+    label_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Label(label_frame, text=app._t("configuration_posture_field_label"), width=22).pack(side="left")
     label_var = tk.StringVar()
     ttk.Entry(label_frame, textvariable=label_var).pack(
@@ -69,7 +70,7 @@ def _add_capability_dialog(app: "Application") -> None:
     )
 
     metric_frame = ttk.Frame(container)
-    metric_frame.pack(fill="x", pady=(0, 8))
+    metric_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Label(
         metric_frame, text=app._t("configuration_posture_field_metadata"), width=22
     ).pack(side="left")
@@ -90,7 +91,7 @@ def _add_capability_dialog(app: "Application") -> None:
     metric_combo.pack(side="left", fill="x", expand=True)
 
     weight_frame = ttk.Frame(container)
-    weight_frame.pack(fill="x", pady=(0, 8))
+    weight_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Label(
         weight_frame, text=app._t("configuration_posture_field_weight"), width=22
     ).pack(side="left")
@@ -98,7 +99,7 @@ def _add_capability_dialog(app: "Application") -> None:
     ttk.Entry(weight_frame, textvariable=weight_var, width=6).pack(side="left")
 
     level_frame = ttk.Frame(container)
-    level_frame.pack(fill="x", pady=(0, 8))
+    level_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
     ttk.Label(
         level_frame, text=app._t("configuration_posture_field_level"), width=22
     ).pack(side="left")
@@ -117,9 +118,9 @@ def _add_capability_dialog(app: "Application") -> None:
         text="",
         wraplength=480,
         justify="left",
-        foreground="#475569",
+        style=theme.MUTED_LABEL,
     )
-    suggestion_label.pack(anchor="w", pady=(4, 8))
+    suggestion_label.pack(anchor="w", pady=(theme.SPACE_XS, theme.SPACE_SM))
 
     def _apply_suggestion(*_args: object) -> None:
         try:
@@ -151,7 +152,7 @@ def _add_capability_dialog(app: "Application") -> None:
     metric_var.trace_add("write", _apply_suggestion)
 
     button_row = ttk.Frame(container)
-    button_row.pack(fill="x", pady=(8, 0))
+    button_row.pack(fill="x", pady=(theme.SPACE_SM, 0))
 
     def _save() -> None:
         raw_label = label_var.get().strip()
@@ -202,11 +203,11 @@ def _add_capability_dialog(app: "Application") -> None:
         _render_table(app)
         dialog.destroy()
 
-    ttk.Button(button_row, text=app._t("configuration_save"), command=_save).pack(
+    ttk.Button(button_row, text=app._t("configuration_save"), command=_save, style=theme.PRIMARY_BUTTON).pack(
         side="right"
     )
     ttk.Button(button_row, text=app._t("configuration_cancel"), command=dialog.destroy).pack(
-        side="right", padx=(0, 8)
+        side="right", padx=(0, theme.SPACE_SM)
     )
 
     dialog.focus_set()

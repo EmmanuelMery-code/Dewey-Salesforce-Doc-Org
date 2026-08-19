@@ -18,6 +18,7 @@ from src.ui.analyzer_rules_panel.logic import (
     _load_rules_for_editor,
     _render_rule_rows,
 )
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -30,7 +31,7 @@ def build_panel(app: Application, parent: ttk.Frame) -> None:
     _build_file_row(app, parent)
     _build_controls(app, parent)
     filters = ttk.Frame(parent)
-    filters.pack(fill="x", pady=(0, 8))
+    filters.pack(fill="x", pady=(0, theme.SPACE_SM))
     scope_combo = _build_filters(app, filters)
 
     list_inner = _build_list_pane(app, parent)

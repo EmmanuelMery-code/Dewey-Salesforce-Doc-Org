@@ -14,6 +14,7 @@ from src.ui.config_window import show_configuration_screen
 from src.ui.dashboard_designer_screen import show_dashboard_designer_screen
 from src.ui.data_dictionary_screen import show_data_dictionary_screen
 from src.ui.exclusion_screen import show_exclusion_screen
+from src.ui.flow_coverage_exclusion_screen import show_flow_coverage_exclusion_screen
 from src.ui.history_screen import show_history_screen
 from src.ui.picklist_csv_export import export_picklist_csvs
 from src.ui.scoring_screens import show_adopt_adapt_screen, show_scoring_screen
@@ -43,6 +44,9 @@ class _AppUiWindowsMixin:
 
     def _show_exclusion_screen(self) -> None:
         show_exclusion_screen(self)
+
+    def _show_flow_coverage_exclusion_screen(self) -> None:
+        show_flow_coverage_exclusion_screen(self)
 
     def _show_debt_screen(self) -> None:
         from src.ui.debt_screen import show_debt_screen

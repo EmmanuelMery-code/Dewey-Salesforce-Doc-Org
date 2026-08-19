@@ -13,6 +13,8 @@ from typing import Callable
 
 import tkinter as tk
 
+from src.ui import theme
+
 
 class _AppUiPickersMixin:
     """Build and interact with path/folder/file picker widgets."""
@@ -47,13 +49,13 @@ class _AppUiPickersMixin:
         clear_command: Callable[[], None] | None = None,
     ) -> dict[str, ttk.Widget]:
         wrapper = ttk.Frame(parent)
-        wrapper.pack(fill="x", pady=6)
+        wrapper.pack(fill="x", pady=theme.SPACE_SM)
         label = ttk.Label(wrapper, width=18)
         label.pack(side="left")
         entry = ttk.Entry(wrapper, textvariable=variable)
-        entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        entry.pack(side="left", fill="x", expand=True, padx=(0, theme.SPACE_SM))
         browse_button = self._track_button(ttk.Button(wrapper, command=browse_command))
-        browse_button.pack(side="left", padx=(0, 8))
+        browse_button.pack(side="left", padx=(0, theme.SPACE_SM))
         open_button = self._track_button(ttk.Button(wrapper, command=open_command))
         open_button.pack(side="left")
         widgets: dict[str, ttk.Widget] = {
@@ -62,8 +64,12 @@ class _AppUiPickersMixin:
             "open_button": open_button,
         }
         if clear_command is not None:
-            clear_button = self._track_button(ttk.Button(wrapper, command=clear_command))
-            clear_button.pack(side="left", padx=(8, 0))
+            # Destructive action (empties the folder) — flagged with the
+            # shared "danger" style instead of a plain button.
+            clear_button = self._track_button(
+                ttk.Button(wrapper, style=theme.DANGER_BUTTON, command=clear_command)
+            )
+            clear_button.pack(side="left", padx=(theme.SPACE_SM, 0))
             widgets["clear_button"] = clear_button
         return widgets
 

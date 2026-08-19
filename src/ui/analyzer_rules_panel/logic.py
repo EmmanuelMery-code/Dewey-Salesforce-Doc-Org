@@ -15,6 +15,7 @@ from src.ui.analyzer_rules_panel.helpers import (
     _set_detail_text,
     _severity_display,
 )
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -59,15 +60,15 @@ def _render_rule_rows(app: Application, parent: ttk.Frame, rules: list[Rule]) ->
         grouped.keys(), key=lambda s: _scope_display(app, s).lower()
     )
     for scope in ordered_scopes:
-        section = ttk.LabelFrame(parent, text=_scope_display(app, scope), padding=6)
-        section.pack(fill="x", pady=(2, 4), padx=2)
+        section = ttk.LabelFrame(parent, text=_scope_display(app, scope), padding=theme.SPACE_SM)
+        section.pack(fill="x", pady=(theme.SPACE_XS, theme.SPACE_XS), padx=theme.SPACE_XS)
         for rule in grouped[scope]:
             _render_single_rule_row(app, section, rule)
 
 
 def _render_single_rule_row(app: Application, parent: ttk.Frame, rule: Rule) -> None:
     row = ttk.Frame(parent)
-    row.pack(fill="x", pady=1)
+    row.pack(fill="x", pady=theme.SPACE_XS)
 
     var = tk.BooleanVar(value=rule.enabled)
     app._analyzer_rule_vars[rule.id] = var
@@ -82,22 +83,22 @@ def _render_single_rule_row(app: Application, parent: ttk.Frame, rule: Rule) -> 
     app._analyzer_rule_max_api_vars[rule.id] = tk.StringVar(value=max_val)
 
     check = ttk.Checkbutton(row, variable=var)
-    check.pack(side="left", padx=(0, 4))
+    check.pack(side="left", padx=(0, theme.SPACE_XS))
 
-    severity_color = app.ANALYZER_SEVERITY_COLORS.get(rule.severity, "#1e293b")
+    severity_color = app.ANALYZER_SEVERITY_COLORS.get(rule.severity, theme.COLOR_TEXT)
     severity_label = tk.Label(
         row,
         text=_severity_display(app, rule.severity),
         foreground="white",
         background=severity_color,
-        font=("Segoe UI", 8, "bold"),
-        padx=6,
-        pady=1,
+        font=(*theme.FONT_SMALL, "bold"),
+        padx=theme.SPACE_SM,
+        pady=theme.SPACE_XS,
     )
-    severity_label.pack(side="left", padx=(0, 4))
+    severity_label.pack(side="left", padx=(0, theme.SPACE_XS))
 
-    id_label = ttk.Label(row, text=rule.id, font=("Consolas", 9), foreground="#334155")
-    id_label.pack(side="left", padx=(0, 6))
+    id_label = ttk.Label(row, text=rule.id, style=theme.MONO_LABEL, foreground=theme.COLOR_TEXT)
+    id_label.pack(side="left", padx=(0, theme.SPACE_SM))
 
     title_label = ttk.Label(row, text=rule.title, font=("Segoe UI", 9))
     title_label.pack(side="left", fill="x", expand=True)
@@ -106,9 +107,9 @@ def _render_single_rule_row(app: Application, parent: ttk.Frame, rule: Rule) -> 
     if rule.subcategory:
         category_text = f"{rule.category} / {rule.subcategory}"
     category_label = ttk.Label(
-        row, text=category_text, foreground="#475569", font=("Segoe UI", 8, "italic")
+        row, text=category_text, foreground=theme.COLOR_MUTED, font=("Segoe UI", 8, "italic")
     )
-    category_label.pack(side="right", padx=(6, 0))
+    category_label.pack(side="right", padx=(theme.SPACE_SM, 0))
 
     def _select(_event=None, _rule: Rule = rule) -> None:
         _select_rule(app, _rule)
@@ -176,7 +177,7 @@ def _apply_filters(app: Application) -> None:
         rule: Rule = entry["rule"]  # type: ignore[assignment]
         row = entry["row"]
         if _rule_visible(app, rule):
-            row.pack(fill="x", pady=1)
+            row.pack(fill="x", pady=theme.SPACE_XS)
         else:
             row.pack_forget()
 

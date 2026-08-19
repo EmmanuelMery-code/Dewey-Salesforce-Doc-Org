@@ -20,6 +20,7 @@ from src.reporting.html.renderers.history_reports import (
 from src.ui.history_screen.columns import build_entry_columns_config, build_entry_row_values
 from src.ui.history_screen.csv_export import build_csv_data_row, build_csv_header_row
 from src.ui.history_screen.dialogs import show_edit_dialog, show_entry_detail_dialog
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -40,13 +41,13 @@ def show_history_screen(app: Application) -> None:
     # entry table) resizes together with the window. Each tree keeps its own
     # scrollbars to handle overflow when the window is too small.
     paned = ttk.PanedWindow(window, orient="horizontal")
-    paned.pack(fill="both", expand=True, padx=10, pady=10)
+    paned.pack(fill="both", expand=True, padx=theme.SPACE_MD, pady=theme.SPACE_MD)
 
     # Left side: Alias list
     left_frame = ttk.Frame(paned)
     paned.add(left_frame, weight=1)
 
-    ttk.Label(left_frame, text=app._t("history_aliases_title"), font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 5))
+    ttk.Label(left_frame, text=app._t("history_aliases_title"), style=theme.SECTION_LABEL).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     alias_container = ttk.Frame(left_frame)
     alias_container.pack(fill="both", expand=True)
@@ -193,7 +194,7 @@ def show_history_screen(app: Application) -> None:
     right_frame = ttk.Frame(paned)
     paned.add(right_frame, weight=4)
 
-    ttk.Label(right_frame, text=app._t("history_entries_title"), font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 5))
+    ttk.Label(right_frame, text=app._t("history_entries_title"), style=theme.SECTION_LABEL).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     entry_container = ttk.Frame(right_frame)
     entry_container.pack(fill="both", expand=True)
@@ -342,7 +343,7 @@ def show_history_screen(app: Application) -> None:
 
     # Buttons
     button_row = ttk.Frame(right_frame)
-    button_row.pack(fill="x", pady=(10, 0))
+    button_row.pack(fill="x", pady=(theme.SPACE_MD, 0))
 
     def on_delete():
         selected = entry_tree.selection()
@@ -388,14 +389,14 @@ def show_history_screen(app: Application) -> None:
                 alias_tree.selection_set(parent_id)
         export_alias_csv()
 
-    delete_btn = ttk.Button(button_row, text=app._t("delete"), command=on_delete)
-    delete_btn.pack(side="right", padx=5)
+    delete_btn = ttk.Button(button_row, text=app._t("delete"), command=on_delete, style=theme.DANGER_BUTTON)
+    delete_btn.pack(side="right", padx=theme.SPACE_SM)
 
     edit_btn = ttk.Button(button_row, text=app._t("configuration_ai_tags_edit"), command=on_edit)
-    edit_btn.pack(side="right", padx=5)
+    edit_btn.pack(side="right", padx=theme.SPACE_SM)
 
-    export_btn = ttk.Button(button_row, text=app._t("history_export_csv"), command=on_export_csv)
-    export_btn.pack(side="left", padx=5)
+    export_btn = ttk.Button(button_row, text=app._t("history_export_csv"), command=on_export_csv, style=theme.PRIMARY_BUTTON)
+    export_btn.pack(side="left", padx=theme.SPACE_SM)
 
     # Data loading
     def refresh_aliases():
@@ -428,7 +429,7 @@ def show_history_screen(app: Application) -> None:
             entry_tree.insert("", "end", values=build_entry_row_values(e))
 
     alias_tree.bind("<<TreeviewSelect>>", refresh_entries)
-    alias_tree.tag_configure("report", foreground="blue")
+    alias_tree.tag_configure("report", foreground=theme.COLOR_ACCENT)
 
     refresh_aliases()
     if alias_tree.get_children():

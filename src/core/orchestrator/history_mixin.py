@@ -28,10 +28,21 @@ class _HistoryMixin(_OrchestratorState):
         return None
 
     def _calculate_flows_coverage_avg(self, snapshot: MetadataSnapshot) -> float | None:
-        """Calculate average test coverage for Flows."""
+        """Calculate average test coverage for Flows.
+
+        Excludes flows whose ``processType`` is listed in the flow-coverage
+        exclusion config (screen flows, by default — see
+        :mod:`src.core.flow_coverage_exclusions`), consistent with the
+        org-level average computed by :func:`apply_test_coverage`.
+        """
+        from src.core.flow_coverage_exclusions import load_flow_coverage_exclusions
+
+        excluded_flow_process_types = load_flow_coverage_exclusions(self.exclusion_config_path)
         flow_coverage_avg = 0.0
         flow_count = 0
         for flow in snapshot.flows:
+            if flow.process_type in excluded_flow_process_types:
+                continue
             if flow.test_coverage is not None:
                 flow_coverage_avg += flow.test_coverage
                 flow_count += 1

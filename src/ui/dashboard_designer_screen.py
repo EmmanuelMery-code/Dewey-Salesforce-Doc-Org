@@ -15,6 +15,7 @@ from src.core.dashboard_service import DashboardService, DashboardWidget, Dashbo
 from src.reporting.dashboard_exporter import DashboardExporter
 from src.ui.dashboard.renderers import generate_layout_figure
 from src.ui.dashboard.widget_editor import build_widget_editor, sync_widgets
+from src.ui import theme
 from src.parsers.salesforce_parser import SalesforceMetadataParser
 
 if TYPE_CHECKING:
@@ -74,7 +75,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
         if not pages_data: return
 
         for p_info in pages_data:
-            ttk.Label(preview_container, text=p_info["title"], font=("Segoe UI", 10, "bold")).pack(pady=(10, 0))
+            ttk.Label(preview_container, text=p_info["title"], style=theme.SECTION_LABEL).pack(pady=(theme.SPACE_MD, 0))
             fig = generate_layout_figure(p_info["widgets"], selected_id=selected_widget_id, t_func=app._t)
             canvas = FigureCanvasTkAgg(fig, master=preview_container)
             canvas.draw()
@@ -88,21 +89,21 @@ def show_dashboard_designer_screen(app: Application) -> None:
         widget_ui_elements = build_widget_editor(w_list_inner, widgets, saved_configs, service, app, window, update_preview, refresh_widget_list)
 
     # --- UI Layout ---
-    footer = ttk.Frame(window, padding=(16, 8, 16, 12)); footer.pack(side="bottom", fill="x")
+    footer = ttk.Frame(window, padding=(theme.SPACE_LG, theme.SPACE_SM, theme.SPACE_LG, theme.SPACE_MD)); footer.pack(side="bottom", fill="x")
     paned = tk.PanedWindow(window, orient="horizontal", sashrelief="raised", sashwidth=4)
     paned.pack(fill="both", expand=True)
-    left_panel = ttk.Frame(paned, padding=10); right_panel = ttk.Frame(paned, padding=10)
+    left_panel = ttk.Frame(paned, padding=theme.SPACE_MD); right_panel = ttk.Frame(paned, padding=theme.SPACE_MD)
     paned.add(left_panel, width=550); paned.add(right_panel)
 
     # Left Panel: Management & List
-    source_frame = ttk.LabelFrame(left_panel, text=app._t("designer_source_frame"), padding=10); source_frame.pack(fill="x", pady=(0, 10))
+    source_frame = ttk.LabelFrame(left_panel, text=app._t("designer_source_frame"), padding=theme.SPACE_MD); source_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
     alias_name = app.alias_var.get() or "Inconnu"
-    ttk.Label(source_frame, text=app._t("designer_org_label", alias=alias_name), font=("Segoe UI", 10, "bold")).pack(side="left")
+    ttk.Label(source_frame, text=app._t("designer_org_label", alias=alias_name), style=theme.SECTION_LABEL).pack(side="left")
     
     def load_from_source():
         choice_win = tk.Toplevel(window); choice_win.title(app._t("designer_choice_title")); choice_win.geometry("400x300")
         app._configure_secondary_window(choice_win)
-        ttk.Label(choice_win, text=app._t("designer_choice_prompt"), font=("Segoe UI", 10, "bold")).pack(pady=20)
+        ttk.Label(choice_win, text=app._t("designer_choice_prompt"), style=theme.TITLE_LABEL).pack(pady=theme.SPACE_XL)
         
         def from_folder():
             choice_win.destroy()
@@ -120,8 +121,8 @@ def show_dashboard_designer_screen(app: Application) -> None:
             choice_win.destroy()
             alias_win = tk.Toplevel(window); alias_win.title(app._t("designer_alias_title")); alias_win.geometry("500x400")
             app._configure_secondary_window(alias_win)
-            ttk.Label(alias_win, text=app._t("designer_alias_prompt"), font=("Segoe UI", 10)).pack(pady=10)
-            lb = tk.Listbox(alias_win, font=("Segoe UI", 9)); lb.pack(fill="both", expand=True, padx=10, pady=10)
+            ttk.Label(alias_win, text=app._t("designer_alias_prompt"), font=("Segoe UI", 10)).pack(pady=theme.SPACE_MD)
+            lb = tk.Listbox(alias_win, font=("Segoe UI", 9)); lb.pack(fill="both", expand=True, padx=theme.SPACE_MD, pady=theme.SPACE_MD)
             orgs = app.cli_service.list_orgs()
             for org in orgs: lb.insert("end", f"{org.alias or '(sans alias)'} - {org.username}")
 
@@ -132,14 +133,14 @@ def show_dashboard_designer_screen(app: Application) -> None:
                     app.alias_var.set(alias_name); app.latest_snapshot = None
                     alias_win.destroy(); window.destroy(); show_dashboard_designer_screen(app)
 
-            ttk.Button(alias_win, text=app._t("designer_alias_use"), command=confirm_alias).pack(pady=10)
+            ttk.Button(alias_win, text=app._t("designer_alias_use"), command=confirm_alias).pack(pady=theme.SPACE_MD)
 
-        ttk.Button(choice_win, text=app._t("designer_choice_folder"), command=from_folder).pack(fill="x", padx=50, pady=5)
-        ttk.Button(choice_win, text=app._t("designer_choice_alias"), command=from_alias).pack(fill="x", padx=50, pady=5)
+        ttk.Button(choice_win, text=app._t("designer_choice_folder"), command=from_folder).pack(fill="x", padx=50, pady=theme.SPACE_SM)
+        ttk.Button(choice_win, text=app._t("designer_choice_alias"), command=from_alias).pack(fill="x", padx=50, pady=theme.SPACE_SM)
 
     ttk.Button(source_frame, text=app._t("designer_source_btn"), command=load_from_source).pack(side="right")
 
-    mgmt_frame = ttk.LabelFrame(left_panel, text=app._t("designer_mgmt_frame"), padding=10); mgmt_frame.pack(fill="x", pady=(0, 10))
+    mgmt_frame = ttk.LabelFrame(left_panel, text=app._t("designer_mgmt_frame"), padding=theme.SPACE_MD); mgmt_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
     config_list = ttk.Combobox(mgmt_frame, values=list(saved_configs.keys()), state="readonly"); config_list.pack(fill="x", pady=2)
     def load_selected_config(_e=None):
         name = config_list.get()
@@ -149,7 +150,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
             refresh_widget_list(); update_preview()
     config_list.bind("<<ComboboxSelected>>", load_selected_config)
     
-    row_cfg = ttk.Frame(mgmt_frame); row_cfg.pack(fill="x", pady=5)
+    row_cfg = ttk.Frame(mgmt_frame); row_cfg.pack(fill="x", pady=theme.SPACE_SM)
     ttk.Entry(row_cfg, textvariable=current_config_name).pack(side="left", fill="x", expand=True)
     
     def on_save():
@@ -179,13 +180,13 @@ def show_dashboard_designer_screen(app: Application) -> None:
             config_list.set("")
             on_new()
 
-    ttk.Button(row_cfg, text=app._t("designer_save"), command=on_save).pack(side="left", padx=2)
+    ttk.Button(row_cfg, text=app._t("designer_save"), command=on_save, style=theme.PRIMARY_BUTTON).pack(side="left", padx=2)
     ttk.Button(row_cfg, text=app._t("designer_new"), command=on_new).pack(side="left", padx=2)
-    ttk.Button(row_cfg, text=app._t("designer_delete"), command=on_delete).pack(side="left", padx=2)
+    ttk.Button(row_cfg, text=app._t("designer_delete"), command=on_delete, style=theme.DANGER_BUTTON).pack(side="left", padx=2)
     
     # Widget List Container
-    list_header = ttk.Frame(left_panel); list_header.pack(fill="x", pady=(10, 5))
-    ttk.Label(list_header, text=app._t("designer_widget_list"), font=("Segoe UI", 11, "bold")).pack(side="left")
+    list_header = ttk.Frame(left_panel); list_header.pack(fill="x", pady=(theme.SPACE_MD, theme.SPACE_SM))
+    ttk.Label(list_header, text=app._t("designer_widget_list"), style=theme.SECTION_LABEL).pack(side="left")
     ttk.Button(list_header, text=app._t("designer_add_widget"), command=lambda: [widgets.append(DashboardWidget(id=str(uuid.uuid4())[:8], label=app._t("designer_new_widget"), chart_type="bar", x=0, y=max([w.y+w.h for w in widgets]+[0]), w=2, h=1)), refresh_widget_list(), update_preview()]).pack(side="right")
 
     w_container = ttk.Frame(left_panel); w_container.pack(fill="both", expand=True)
@@ -195,8 +196,8 @@ def show_dashboard_designer_screen(app: Application) -> None:
     w_canvas.pack(side="left", fill="both", expand=True); w_scrollbar.pack(side="right", fill="y")
 
     # Right Panel: Preview
-    preview_header = ttk.Frame(right_panel); preview_header.pack(fill="x", pady=(0, 5))
-    ttk.Label(preview_header, text=app._t("designer_preview_header"), font=("Segoe UI", 12, "bold")).pack(side="left")
+    preview_header = ttk.Frame(right_panel); preview_header.pack(fill="x", pady=(0, theme.SPACE_SM))
+    ttk.Label(preview_header, text=app._t("designer_preview_header"), style=theme.SECTION_LABEL).pack(side="left")
     ttk.Button(preview_header, text=app._t("designer_refresh"), command=update_preview).pack(side="right")
 
     preview_outer = ttk.Frame(right_panel, relief="sunken", borderwidth=1)
@@ -266,7 +267,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
     # Export Logic
     export_fmt_var = tk.StringVar(value="pptx")
     for text, fmt in [("PowerPoint", "pptx"), ("PDF", "pdf"), ("PNG", "png"), ("Excel", "xlsx")]:
-        ttk.Radiobutton(footer, text=text, value=fmt, variable=export_fmt_var).pack(side="left", padx=5)
+        ttk.Radiobutton(footer, text=text, value=fmt, variable=export_fmt_var).pack(side="left", padx=theme.SPACE_SM)
     
     def run_export():
         sync_widgets(widget_ui_elements); alias = app.alias_var.get() or ""; fmt = export_fmt_var.get()
@@ -306,7 +307,7 @@ def show_dashboard_designer_screen(app: Application) -> None:
                 exporter.export_to_png(fig, path); plt.close(fig)
         messagebox.showinfo(app._t("success_title"), app._t("designer_export_success"))
 
-    ttk.Button(footer, text=app._t("designer_export_btn"), command=run_export).pack(side="right", padx=10)
+    ttk.Button(footer, text=app._t("designer_export_btn"), command=run_export, style=theme.PRIMARY_BUTTON).pack(side="right", padx=theme.SPACE_MD)
     ttk.Button(footer, text=app._t("designer_close"), command=window.destroy).pack(side="right")
 
     if not widgets: widgets = service._init_default_widgets()
@@ -317,12 +318,12 @@ def open_rich_text_editor(parent, app, widget, callback):
     ed = tk.Toplevel(parent); ed.title(app._t("designer_rich_text_title", label=widget.label)); ed.geometry("600x500")
     app._configure_secondary_window(ed)
     
-    toolbar = ttk.Frame(ed, padding=5); toolbar.pack(side="top", fill="x")
-    ta = tk.Text(ed, font=("Arial", 11), undo=True, exportselection=False); ta.pack(fill="both", expand=True, padx=10, pady=10)
+    toolbar = ttk.Frame(ed, padding=theme.SPACE_SM); toolbar.pack(side="top", fill="x")
+    ta = tk.Text(ed, font=(theme.FONT_FAMILY, 11), undo=True, exportselection=False); ta.pack(fill="both", expand=True, padx=theme.SPACE_MD, pady=theme.SPACE_MD)
     
     # Tags config
-    ta.tag_configure("bold", font=("Arial", 11, "bold"))
-    ta.tag_configure("italic", font=("Arial", 11, "italic"))
+    ta.tag_configure("bold", font=(theme.FONT_FAMILY, 11, "bold"))
+    ta.tag_configure("italic", font=(theme.FONT_FAMILY, 11, "italic"))
     ta.tag_configure("underline", underline=True)
     ta.tag_configure("strikeout", overstrike=True)
 
@@ -334,9 +335,9 @@ def open_rich_text_editor(parent, app, widget, callback):
             else: t_area.tag_add(tag, "sel.first", "sel.last")
         except: pass
 
-    tk.Button(toolbar, text="B", font=("Arial", 9, "bold"), width=3, command=lambda: apply_tag("bold"), takefocus=False).pack(side="left", padx=2)
-    tk.Button(toolbar, text="I", font=("Arial", 9, "italic"), width=3, command=lambda: apply_tag("italic"), takefocus=False).pack(side="left", padx=2)
-    tk.Button(toolbar, text="U", font=("Arial", 9, "underline"), width=3, command=lambda: apply_tag("underline"), takefocus=False).pack(side="left", padx=2)
+    tk.Button(toolbar, text="B", font=(theme.FONT_FAMILY, 9, "bold"), width=3, command=lambda: apply_tag("bold"), takefocus=False).pack(side="left", padx=2)
+    tk.Button(toolbar, text="I", font=(theme.FONT_FAMILY, 9, "italic"), width=3, command=lambda: apply_tag("italic"), takefocus=False).pack(side="left", padx=2)
+    tk.Button(toolbar, text="U", font=(theme.FONT_FAMILY, 9, "underline"), width=3, command=lambda: apply_tag("underline"), takefocus=False).pack(side="left", padx=2)
     
     def insert_emoji(e, t_area=ta): t_area.insert("insert", e)
     def show_emoji_picker(t_area=ta):
@@ -375,4 +376,4 @@ def open_rich_text_editor(parent, app, widget, callback):
         widget.rich_text = [{"text": ta.get("1.0", "end-1c")}] # Fallback simple
         ed.destroy(); callback()
 
-    ttk.Button(ed, text=app._t("designer_validate"), command=save_rich).pack(pady=10)
+    ttk.Button(ed, text=app._t("designer_validate"), command=save_rich).pack(pady=theme.SPACE_MD)

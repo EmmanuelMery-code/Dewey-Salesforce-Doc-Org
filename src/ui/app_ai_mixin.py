@@ -8,6 +8,7 @@ from tkinter import messagebox, scrolledtext, ttk
 from typing import Callable
 
 from src.ai import AIMessage, create_service
+from src.ui import theme
 
 
 class AppAiMixin:
@@ -94,16 +95,16 @@ class AppAiMixin:
         result_window.geometry("600x500")
         self._configure_secondary_window(result_window)
 
-        main_frame = ttk.Frame(result_window, padding=16)
+        main_frame = ttk.Frame(result_window, padding=theme.SPACE_LG)
         main_frame.pack(fill="both", expand=True)
 
         ttk.Label(
-            main_frame, text=self._t("ai_expand_title"), font=("Segoe UI", 12, "bold")
-        ).pack(anchor="w", pady=(0, 10))
+            main_frame, text=self._t("ai_expand_title"), style=theme.TITLE_LABEL
+        ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
         txt = scrolledtext.ScrolledText(main_frame, wrap="word", height=15)
         txt.insert("1.0", new_text)
-        txt.pack(fill="both", expand=True, pady=(0, 16))
+        txt.pack(fill="both", expand=True, pady=(0, theme.SPACE_LG))
 
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill="x")
