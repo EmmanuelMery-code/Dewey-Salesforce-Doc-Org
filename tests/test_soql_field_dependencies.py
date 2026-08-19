@@ -1,17 +1,22 @@
 """Tests: a custom field referenced only inside a SOQL query (in an Apex
-class or trigger) must not be flagged as an orphan field.
+class or trigger) is excluded from orphan detection only if the record(s)
+returned by the query are actually read back with that field through the
+variable (or loop variable) the query result was assigned to.
 
 Contract tested:
-  src.parsers.salesforce_parser.dependencies_mixin
+  src.parsers.salesforce_parser.dependency_soql_helpers
     _extract_soql_field_usages(body, objects_by_name, relationship_owners)
-      -> list[(ObjectApiName, FieldApiName)] referenced by any SOQL query
-      (bracket literal syntax or static string literal) found in ``body``.
+      -> list[(ObjectApiName, FieldApiName)] genuinely used from any SOQL
+      query (bracket literal syntax or static string literal) found in
+      ``body``: the field must be both projected by the query *and*
+      accessed via the assigned result variable elsewhere in the body.
 
   SalesforceMetadataParser(...).parse() -> MetadataSnapshot
-    snapshot.orphans does not contain a Custom Field that is only ever
-    referenced inside a SOQL projection (direct field, parent-relationship
-    traversal, or child-relationship subquery), but still contains a
-    genuinely unreferenced field.
+    snapshot.orphans does not contain a Custom Field that is referenced
+    (direct field, parent-relationship traversal, or child-relationship
+    subquery) and actually read back from the query result, but still
+    contains a field that is only ever projected without being read back,
+    or genuinely never referenced at all.
 """
 
 from __future__ import annotations
@@ -20,7 +25,7 @@ from pathlib import Path
 
 from src.core.models import FieldInfo, ObjectInfo
 from src.parsers.salesforce_parser import SalesforceMetadataParser
-from src.parsers.salesforce_parser.dependencies_mixin import _extract_soql_field_usages
+from src.parsers.salesforce_parser.dependency_soql_helpers import _extract_soql_field_usages
 
 
 OBJECT_META = """<?xml version="1.0" encoding="UTF-8"?>
@@ -88,6 +93,7 @@ def _build_source(tmp_path: Path) -> Path:
             _text_field("Nom_Client__c"),
             _text_field("Solde__c"),
             _text_field("Description_Interne__c"),
+            _text_field("ProjectionOnly__c"),
         ],
     )
     _write_object(
@@ -104,9 +110,27 @@ def _build_source(tmp_path: Path) -> Path:
         "CompteService",
         """public class CompteService {
     public static void run() {
-        List<Compte__c> comptes = [SELECT Id, Statut__c FROM Compte__c WHERE Statut__c = 'Actif'];
+        List<Compte__c> comptes = [SELECT Id, Statut__c FROM Compte__c];
+        for (Compte__c c : comptes) {
+            System.debug(c.Statut__c);
+        }
+
         List<Contact__c> contacts = [SELECT Id, Compte__r.Nom_Client__c FROM Contact__c];
+        for (Contact__c contact : contacts) {
+            System.debug(contact.Compte__r.Nom_Client__c);
+        }
+
         List<Compte__c> comptesWithContacts = [SELECT Id, (SELECT Email__c FROM Contacts__r) FROM Compte__c];
+        for (Compte__c compte : comptesWithContacts) {
+            for (Contact__c contact : compte.Contacts__r) {
+                System.debug(contact.Email__c);
+            }
+        }
+
+        // Projected but never read back from the result variable: still
+        // an orphan under the stricter "variable must use the field" rule.
+        List<Compte__c> unusedProjection = [SELECT Id, ProjectionOnly__c FROM Compte__c];
+        System.debug(unusedProjection.size());
     }
 }
 """,
@@ -118,6 +142,9 @@ def _build_source(tmp_path: Path) -> Path:
     public static void run() {
         String q = 'SELECT Id, Solde__c FROM Compte__c';
         List<Compte__c> results = Database.query(q);
+        for (Compte__c r : results) {
+            System.debug(r.Solde__c);
+        }
     }
 }
 """,
@@ -161,37 +188,109 @@ class TestSoqlFieldUsageExtraction:
                     owners[field.relationship_name.lower()] = obj
         return owners
 
-    def test_direct_field_without_object_prefix_is_detected(self) -> None:
+    def test_direct_field_read_back_from_result_variable_is_detected(self) -> None:
         objects_by_name = self._objects_by_name()
         relationship_owners = self._relationship_owners(objects_by_name)
-        body = "List<Compte__c> c = [SELECT Id, Statut__c FROM Compte__c WHERE Statut__c = 'Actif'];"
+        body = (
+            "List<Compte__c> c = [SELECT Id, Statut__c FROM Compte__c];"
+            "System.debug(c[0].Statut__c);"
+        )
 
         usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
 
         assert ("Compte__c", "Statut__c") in usages
 
+    def test_direct_field_read_back_from_loop_variable_is_detected(self) -> None:
+        objects_by_name = self._objects_by_name()
+        relationship_owners = self._relationship_owners(objects_by_name)
+        body = (
+            "List<Compte__c> comptes = [SELECT Id, Statut__c FROM Compte__c];"
+            "for (Compte__c c : comptes) { System.debug(c.Statut__c); }"
+        )
+
+        usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
+
+        assert ("Compte__c", "Statut__c") in usages
+
+    def test_projected_field_never_read_back_is_not_detected(self) -> None:
+        objects_by_name = self._objects_by_name()
+        relationship_owners = self._relationship_owners(objects_by_name)
+        body = (
+            "List<Compte__c> comptes = [SELECT Id, Statut__c FROM Compte__c WHERE Statut__c = 'Actif'];"
+            "System.debug(comptes.size());"
+        )
+
+        usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
+
+        assert ("Compte__c", "Statut__c") not in usages
+
+    def test_query_not_assigned_to_a_variable_is_not_detected(self) -> None:
+        objects_by_name = self._objects_by_name()
+        relationship_owners = self._relationship_owners(objects_by_name)
+        body = "System.debug([SELECT Id, Statut__c FROM Compte__c].size());"
+
+        usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
+
+        assert usages == []
+
     def test_parent_relationship_traversal_field_is_detected(self) -> None:
         objects_by_name = self._objects_by_name()
         relationship_owners = self._relationship_owners(objects_by_name)
-        body = "List<Contact__c> c = [SELECT Id, Compte__r.Nom_Client__c FROM Contact__c];"
+        body = (
+            "List<Contact__c> c = [SELECT Id, Compte__r.Nom_Client__c FROM Contact__c];"
+            "for (Contact__c contact : c) { System.debug(contact.Compte__r.Nom_Client__c); }"
+        )
 
         usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
 
         assert ("Compte__c", "Nom_Client__c") in usages
 
-    def test_child_relationship_subquery_field_is_detected(self) -> None:
+    def test_child_relationship_subquery_field_via_nested_loop_is_detected(self) -> None:
         objects_by_name = self._objects_by_name()
         relationship_owners = self._relationship_owners(objects_by_name)
-        body = "List<Compte__c> c = [SELECT Id, (SELECT Email__c FROM Contacts__r) FROM Compte__c];"
+        body = (
+            "List<Compte__c> c = [SELECT Id, (SELECT Email__c FROM Contacts__r) FROM Compte__c];"
+            "for (Compte__c compte : c) {"
+            "    for (Contact__c contact : compte.Contacts__r) { System.debug(contact.Email__c); }"
+            "}"
+        )
 
         usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
 
         assert ("Contact__c", "Email__c") in usages
 
-    def test_static_string_literal_query_is_detected(self) -> None:
+    def test_child_relationship_subquery_field_via_direct_indexing_is_detected(self) -> None:
         objects_by_name = self._objects_by_name()
         relationship_owners = self._relationship_owners(objects_by_name)
-        body = "String q = 'SELECT Id, Statut__c FROM Compte__c'; List<Compte__c> r = Database.query(q);"
+        body = (
+            "List<Compte__c> c = [SELECT Id, (SELECT Email__c FROM Contacts__r) FROM Compte__c];"
+            "System.debug(c[0].Contacts__r[0].Email__c);"
+        )
+
+        usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
+
+        assert ("Contact__c", "Email__c") in usages
+
+    def test_child_relationship_subquery_field_never_read_back_is_not_detected(self) -> None:
+        objects_by_name = self._objects_by_name()
+        relationship_owners = self._relationship_owners(objects_by_name)
+        body = (
+            "List<Compte__c> c = [SELECT Id, (SELECT Email__c FROM Contacts__r) FROM Compte__c];"
+            "System.debug(c.size());"
+        )
+
+        usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
+
+        assert ("Contact__c", "Email__c") not in usages
+
+    def test_static_string_literal_query_read_back_is_detected(self) -> None:
+        objects_by_name = self._objects_by_name()
+        relationship_owners = self._relationship_owners(objects_by_name)
+        body = (
+            "String q = 'SELECT Id, Statut__c FROM Compte__c';"
+            "List<Compte__c> r = Database.query(q);"
+            "System.debug(r[0].Statut__c);"
+        )
 
         usages = _extract_soql_field_usages(body, objects_by_name, relationship_owners)
 
@@ -222,7 +321,20 @@ class TestSoqlFieldIsNotAnOrphan:
         assert "Contact__c.Email__c" not in orphan_field_names
         assert "Compte__c.Solde__c" not in orphan_field_names, (
             "A field referenced only inside a static SOQL string literal "
-            "(e.g. passed to Database.query) must not be an orphan"
+            "(e.g. passed to Database.query) and read back from the result "
+            "variable must not be an orphan"
+        )
+
+    def test_field_projected_but_never_read_back_is_still_an_orphan(self, tmp_path: Path) -> None:
+        source = _build_source(tmp_path)
+        parser = SalesforceMetadataParser(source)
+        snapshot = parser.parse()
+
+        orphan_field_names = {o.name for o in snapshot.orphans if o.kind == "Custom Field"}
+
+        assert "Compte__c.ProjectionOnly__c" in orphan_field_names, (
+            "A field only ever projected by a SOQL query, but never read "
+            "back from the assigned result variable, must still be an orphan"
         )
 
     def test_genuinely_unreferenced_field_is_still_an_orphan(self, tmp_path: Path) -> None:

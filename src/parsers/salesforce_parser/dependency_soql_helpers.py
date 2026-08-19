@@ -1,17 +1,30 @@
 """SOQL-in-Apex field usage extraction, used by :mod:`dependencies_mixin`.
 
-Best-effort, regex-based SOQL parsing (there is no real SOQL grammar here):
-good enough to stop a field that is *only* ever referenced inside a SOQL
-projection (e.g. ``[SELECT Field__c FROM Object__c]``) from being wrongly
-flagged as orphan, without needing a full parser. Handles the bracket
-literal syntax, static SOQL string literals (e.g. passed to
-``Database.query``), parent-relationship traversal (``Rel__r.Field__c``)
-and one level of child-relationship subqueries.
+Best-effort, regex-based SOQL parsing (there is no real SOQL grammar here).
+A field projected by a SOQL query (e.g. ``[SELECT Field__c FROM Object__c]``)
+is only treated as "used" — and therefore excluded from orphan detection —
+when the record(s) returned by that query are assigned to a variable (or an
+implicit ``for`` loop variable) which is itself later accessed with that
+field, e.g.::
+
+    Account acc = [SELECT Name, CustomField__c FROM Account LIMIT 1];
+    System.debug(acc.CustomField__c); // CustomField__c is used
+
+    List<Account> accs = [SELECT Name, OtherField__c FROM Account];
+    for (Account a : accs) { System.debug(a.Name); } // OtherField__c stays orphan
+
+Merely projecting a field without reading it back through the assigned
+variable is not enough. Handles the bracket literal syntax, static SOQL
+string literals (e.g. passed to ``Database.query``), parent-relationship
+traversal (``Rel__r.Field__c``) and one level of child-relationship
+subqueries — in each case requiring the corresponding variable access to be
+found elsewhere in the class body.
 """
 
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
 from src.core.models import ObjectInfo
 
@@ -25,6 +38,26 @@ _SOQL_IDENTIFIER_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-
 _SOQL_FUNC_WRAP_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\((.*)\)$", re.DOTALL)
 _SOQL_SUBQUERY_RE = re.compile(r"^\(\s*(select\b.*)\)$", re.IGNORECASE | re.DOTALL)
 _SOQL_LEADING_SELECT_RE = re.compile(r"^\s*select\b", re.IGNORECASE)
+
+# --- Root-variable resolution (what receives the query result) ------------
+
+_SOQL_ROOT_VAR_FOR_LOOP_RE = re.compile(
+    r"for\s*\(\s*[\w.$<>\[\],\s]+?\s+(\w+)\s*:\s*$", re.IGNORECASE
+)
+_SOQL_ROOT_VAR_ASSIGNMENT_RE = re.compile(r"(?:[\w.$<>\[\],\s]+?\s+)?(\w+)\s*=\s*$")
+_SOQL_DATABASE_QUERY_CALL_RE = re.compile(r"Database\s*\.\s*query\s*\($", re.IGNORECASE)
+_ROOT_VAR_LOOKUP_WINDOW = 200
+
+
+@dataclass(frozen=True, slots=True)
+class _SoqlFieldProjection:
+    """One field projected by a SOQL query, plus enough context to verify
+    it is genuinely read back from the query's result variable."""
+
+    object_api_name: str
+    field_api_name: str
+    access_path: tuple[str, ...]
+    is_child_relationship: bool
 
 
 def _soql_strip_leading_select(query_text: str) -> str:
@@ -82,8 +115,10 @@ def _soql_split_top_level_fields(select_clause: str) -> list[str]:
 
 def _extract_soql_subquery_field_usages(
     subquery_text: str, relationship_owners: dict[str, ObjectInfo]
-) -> list[tuple[str, str]]:
-    usages: list[tuple[str, str]] = []
+) -> list[tuple[str, str, str]]:
+    """Return ``(ObjectApiName, FieldApiName, ChildRelationshipAsWritten)``
+    for each field projected by a child-relationship subquery."""
+    usages: list[tuple[str, str, str]] = []
     subquery_text = _soql_strip_leading_select(subquery_text)
     from_span = _soql_top_level_from_span(subquery_text)
     if not from_span:
@@ -106,7 +141,7 @@ def _extract_soql_subquery_field_usages(
             continue
         resolved = child_fields_by_lower.get(inner.lower())
         if resolved:
-            usages.append((child_object.api_name, resolved))
+            usages.append((child_object.api_name, resolved, rel_match.group(0)))
     return usages
 
 
@@ -114,8 +149,13 @@ def _extract_soql_query_field_usages(
     query_text: str,
     objects_by_name: dict[str, ObjectInfo],
     relationship_owners: dict[str, ObjectInfo],
-) -> list[tuple[str, str]]:
-    usages: list[tuple[str, str]] = []
+) -> list[_SoqlFieldProjection]:
+    """Return every field projected by ``query_text`` (main object, parent
+    traversals and child subqueries), without checking whether it is
+    actually read back from the query's result variable — that check
+    happens in :func:`_extract_soql_field_usages`, which has access to the
+    surrounding Apex source."""
+    usages: list[_SoqlFieldProjection] = []
     query_text = _soql_strip_leading_select(query_text)
     from_span = _soql_top_level_from_span(query_text)
     if not from_span:
@@ -135,7 +175,10 @@ def _extract_soql_query_field_usages(
     for token in _soql_split_top_level_fields(select_clause):
         subquery_match = _SOQL_SUBQUERY_RE.match(token)
         if subquery_match:
-            usages.extend(_extract_soql_subquery_field_usages(subquery_match.group(1), relationship_owners))
+            for obj_name, field_name, child_rel in _extract_soql_subquery_field_usages(
+                subquery_match.group(1), relationship_owners
+            ):
+                usages.append(_SoqlFieldProjection(obj_name, field_name, (child_rel, field_name), True))
             continue
 
         func_match = _SOQL_FUNC_WRAP_RE.match(token)
@@ -150,12 +193,13 @@ def _extract_soql_query_field_usages(
         if not relationship_parts:
             resolved = main_fields_by_lower.get(field_part.lower())
             if resolved:
-                usages.append((main_object.api_name, resolved))
+                usages.append(_SoqlFieldProjection(main_object.api_name, resolved, (resolved,), False))
             continue
 
         # Best-effort parent-relationship traversal, one hop at a time
         # (e.g. ``Compte__r.Contact__r.Nom__c``).
         current_object = main_object
+        traversal_path: list[str] = []
         resolved_ok = True
         for rel_part in relationship_parts:
             matched_field = next(
@@ -169,6 +213,7 @@ def _extract_soql_query_field_usages(
             if matched_field is None or not matched_field.reference_to:
                 resolved_ok = False
                 break
+            traversal_path.append(_soql_relationship_traversal_name(matched_field))
             next_object = objects_by_name.get(matched_field.reference_to[0].lower())
             if next_object is None:
                 resolved_ok = False
@@ -181,9 +226,114 @@ def _extract_soql_query_field_usages(
                 None,
             )
             if target_field:
-                usages.append((current_object.api_name, target_field))
+                usages.append(
+                    _SoqlFieldProjection(
+                        current_object.api_name, target_field, (*traversal_path, target_field), False
+                    )
+                )
 
     return usages
+
+
+def _soql_resolve_root_variable(body: str, value_start: int) -> str | None:
+    """Best-effort detection of the variable a query result is assigned to
+    (declaration, plain re-assignment, or the implicit iteration variable
+    of a ``for`` loop), by inspecting the source text immediately preceding
+    the "value" at ``value_start`` (a bracket-literal query, or a
+    ``Database.query(`` call, in ``body``)."""
+    prefix = body[max(0, value_start - _ROOT_VAR_LOOKUP_WINDOW) : value_start]
+
+    match = _SOQL_ROOT_VAR_FOR_LOOP_RE.search(prefix)
+    if match:
+        return match.group(1)
+
+    match = _SOQL_ROOT_VAR_ASSIGNMENT_RE.search(prefix)
+    if match:
+        return match.group(1)
+
+    return None
+
+
+def _soql_resolve_root_variable_for_string_literal(body: str, literal_start: int) -> str | None:
+    """Same as :func:`_soql_resolve_root_variable`, for a SOQL query
+    embedded in a string literal. Handles the literal being passed directly
+    to ``Database.query('...')``, or first assigned to a variable that is
+    later passed to ``Database.query(thatVariable)``."""
+    call_window_start = max(0, literal_start - 60)
+    call_match = _SOQL_DATABASE_QUERY_CALL_RE.search(body[call_window_start:literal_start])
+    if call_match:
+        return _soql_resolve_root_variable(body, call_window_start + call_match.start())
+
+    assign_match = _SOQL_ROOT_VAR_ASSIGNMENT_RE.search(
+        body[max(0, literal_start - _ROOT_VAR_LOOKUP_WINDOW) : literal_start]
+    )
+    if not assign_match:
+        return None
+
+    query_string_var = assign_match.group(1)
+    call_re = re.compile(
+        r"Database\s*\.\s*query\s*\(\s*" + re.escape(query_string_var) + r"\s*\)", re.IGNORECASE
+    )
+    call_match = call_re.search(body)
+    if not call_match:
+        return None
+    return _soql_resolve_root_variable(body, call_match.start())
+
+
+def _soql_variable_reference_pattern(var_name: str) -> str:
+    """Regex fragment matching a bare variable reference, optionally
+    indexed (e.g. ``accs[0]``)."""
+    return re.escape(var_name) + r"(?:\s*\[\s*[^\]\[]+\s*\])?"
+
+
+def _soql_dotted_path_used(body: str, root_pattern: str, path: tuple[str, ...]) -> bool:
+    """Search for ``root_pattern.path[0].path[1]...`` in ``body``, allowing
+    optional list indexing (``[0]``) after any segment — including the
+    root — since each hop of a relationship/collection traversal may be
+    indexed independently (e.g. ``c[0].Contacts__r[0].Email__c``)."""
+    optional_index = r"(?:\s*\[\s*[^\]\[]+\s*\])?"
+    segments_pattern = (r"\s*\.\s*").join(re.escape(segment) + optional_index for segment in path)
+    pattern = re.compile(root_pattern + r"\s*\.\s*" + segments_pattern + r"\b", re.IGNORECASE)
+    return bool(pattern.search(body))
+
+
+def _soql_loop_variables_over(body: str, source_pattern: str) -> list[str]:
+    """``for (Type loopVar : <source_pattern>)`` loop variables iterating
+    over an expression matching ``source_pattern``."""
+    pattern = re.compile(
+        r"for\s*\(\s*[\w.$<>\[\],\s]+?\s+(\w+)\s*:\s*" + source_pattern + r"\s*\)",
+        re.IGNORECASE,
+    )
+    return [m.group(1) for m in pattern.finditer(body)]
+
+
+def _soql_variable_uses_field(body: str, root_var: str, projection: _SoqlFieldProjection) -> bool:
+    """Best-effort check that the record(s) held by ``root_var`` (the
+    variable/loop-var the SOQL result was assigned to) are actually
+    accessed with the projected field somewhere in the class, rather than
+    merely projected. Handles one level of list iteration/indexing, and
+    (for child-relationship subqueries) one further level of nested
+    iteration/indexing over the relationship."""
+    root_pattern = _soql_variable_reference_pattern(root_var)
+
+    if not projection.is_child_relationship:
+        if _soql_dotted_path_used(body, root_pattern, projection.access_path):
+            return True
+        for loop_var in _soql_loop_variables_over(body, root_pattern):
+            if _soql_dotted_path_used(body, _soql_variable_reference_pattern(loop_var), projection.access_path):
+                return True
+        return False
+
+    child_relationship, field_name = projection.access_path
+    for candidate in (root_var, *_soql_loop_variables_over(body, root_pattern)):
+        candidate_pattern = _soql_variable_reference_pattern(candidate)
+        if _soql_dotted_path_used(body, candidate_pattern, (child_relationship, field_name)):
+            return True
+        child_collection_pattern = candidate_pattern + r"\s*\.\s*" + re.escape(child_relationship)
+        for nested_loop_var in _soql_loop_variables_over(body, child_collection_pattern):
+            if _soql_dotted_path_used(body, _soql_variable_reference_pattern(nested_loop_var), (field_name,)):
+                return True
+    return False
 
 
 def _extract_soql_field_usages(
@@ -191,14 +341,28 @@ def _extract_soql_field_usages(
     objects_by_name: dict[str, ObjectInfo],
     relationship_owners: dict[str, ObjectInfo],
 ) -> list[tuple[str, str]]:
-    """Return the ``(ObjectApiName, FieldApiName)`` pairs referenced by any
-    SOQL query found in ``body`` (an Apex class/trigger source), so that
-    fields only ever used inside a SOQL projection are not flagged as
-    orphans."""
-    query_texts = [m.group(1) for m in _SOQL_BLOCK_RE.finditer(body)]
-    query_texts += [m.group(1) for m in _SOQL_STRING_LITERAL_RE.finditer(body)]
-
+    """Return the ``(ObjectApiName, FieldApiName)`` pairs genuinely used
+    from any SOQL query found in ``body`` (an Apex class/trigger source):
+    the field must be both projected by the query *and* read back through
+    the variable (or loop variable) the query result was assigned to —
+    projection alone no longer counts, so a field selected but never
+    actually accessed is still flagged as orphan."""
     usages: list[tuple[str, str]] = []
-    for query_text in query_texts:
-        usages.extend(_extract_soql_query_field_usages(query_text, objects_by_name, relationship_owners))
+
+    for match in _SOQL_BLOCK_RE.finditer(body):
+        root_var = _soql_resolve_root_variable(body, match.start())
+        if not root_var:
+            continue
+        for projection in _extract_soql_query_field_usages(match.group(1), objects_by_name, relationship_owners):
+            if _soql_variable_uses_field(body, root_var, projection):
+                usages.append((projection.object_api_name, projection.field_api_name))
+
+    for match in _SOQL_STRING_LITERAL_RE.finditer(body):
+        root_var = _soql_resolve_root_variable_for_string_literal(body, match.start())
+        if not root_var:
+            continue
+        for projection in _extract_soql_query_field_usages(match.group(1), objects_by_name, relationship_owners):
+            if _soql_variable_uses_field(body, root_var, projection):
+                usages.append((projection.object_api_name, projection.field_api_name))
+
     return usages
