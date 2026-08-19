@@ -399,11 +399,14 @@ _ORPHAN_KIND_DESCRIPTIONS: dict[str, str] = {
     "Custom Field": (
         "Champ custom non reference (motif Objet.Champ ou balise &lt;field&gt;) dans : le corps "
         "des classes/triggers Apex - y compris les requetes SOQL (projection directe d'un champ, "
-        "traversee de relation parent du type Relation__r.Champ__c, et sous-requetes de relation "
-        "enfant du type (SELECT Champ__c FROM Relation__r)) -, les formules des regles de validation "
-        "portant sur l'objet, les Flows demarres sur cet objet, les composants LWC (import "
-        "@salesforce/schema) et Aura, les rapports du meme Report Type, les Page Layouts, les "
-        "Lightning Record Pages (FlexiPages) et les composants OmniStudio."
+        "traversee de relation parent du type Relation__r.Champ__c, ou sous-requete de relation "
+        "enfant du type (SELECT Champ__c FROM Relation__r)), mais uniquement si le resultat de la "
+        "requete est affecte a une variable (ou variable de boucle for) et que cette variable est "
+        "ensuite relue avec ce champ ailleurs dans la classe - la simple projection du champ dans le "
+        "SELECT sans relecture via la variable ne suffit plus et laisse le champ orphelin -, les "
+        "formules des regles de validation portant sur l'objet, les Flows demarres sur cet objet, les "
+        "composants LWC (import @salesforce/schema) et Aura, les rapports du meme Report Type, les "
+        "Page Layouts, les Lightning Record Pages (FlexiPages) et les composants OmniStudio."
     ),
     "Flow": (
         "Flow autonome (type Flow ou AutoLaunchedFlow) sans declencheur ni ecran d'entree detecte, "
