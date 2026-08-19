@@ -91,6 +91,11 @@ class HtmlReportWriter:
         analyzer_report=None,
         apex_pages: dict[str, Path] | None = None,
         flow_pages: dict[str, Path] | None = None,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
     ) -> dict[str, Path]:
         return objects_renderer.write_object_pages(
             snapshot,
@@ -101,6 +106,11 @@ class HtmlReportWriter:
             analyzer_report=analyzer_report,
             apex_pages=apex_pages,
             flow_pages=flow_pages,
+            include_comment=include_comment,
+            include_piloted_by=include_piloted_by,
+            include_status=include_status,
+            include_squad=include_squad,
+            concat_description=concat_description,
         )
 
     def write_combined_data_dictionary_html(
@@ -109,6 +119,11 @@ class HtmlReportWriter:
         output_path: Path,
         *,
         analyzer_report=None,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
     ) -> Path:
         content = objects_renderer.render_combined_objects_page(
             snapshot,
@@ -116,6 +131,11 @@ class HtmlReportWriter:
             self.output_dir,
             self.assets_dir,
             analyzer_report=analyzer_report,
+            include_comment=include_comment,
+            include_piloted_by=include_piloted_by,
+            include_status=include_status,
+            include_squad=include_squad,
+            concat_description=concat_description,
         )
         from src.core.utils import write_text
         write_text(output_path, content)

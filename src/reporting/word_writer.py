@@ -43,6 +43,12 @@ class WordReportWriter(_WordAdviceMixin):
         self,
         snapshot: MetadataSnapshot,
         output_path: str | Path,
+        *,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
     ) -> Path:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,7 +82,15 @@ class WordReportWriter(_WordAdviceMixin):
                 if index % 10 == 0:
                     self.log(f"Generation Word : objet {index + 1}/{total} ({obj.api_name})")
                 
-                self._add_object_chapter(document, obj)
+                self._add_object_chapter(
+                    document,
+                    obj,
+                    include_comment=include_comment,
+                    include_piloted_by=include_piloted_by,
+                    include_status=include_status,
+                    include_squad=include_squad,
+                    concat_description=concat_description,
+                )
 
         document.save(output_path)
         self.log(
@@ -195,7 +209,17 @@ class WordReportWriter(_WordAdviceMixin):
 
         document.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
-    def _add_object_chapter(self, document: Document, obj: ObjectInfo) -> None:
+    def _add_object_chapter(
+        self,
+        document: Document,
+        obj: ObjectInfo,
+        *,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
+    ) -> None:
         if obj.label:
             heading = self._t(
                 "object_chapter_title",
@@ -207,12 +231,30 @@ class WordReportWriter(_WordAdviceMixin):
         document.add_heading(heading, level=1)
 
         document.add_heading(self._t("section_information"), level=2)
-        self._add_information_table(document, obj)
+        self._add_information_table(
+            document,
+            obj,
+            include_comment=include_comment,
+            include_piloted_by=include_piloted_by,
+            include_status=include_status,
+            include_squad=include_squad,
+            concat_description=concat_description,
+        )
 
         document.add_heading(self._t("section_fields"), level=2)
         self._add_fields_table(document, obj)
 
-    def _add_information_table(self, document: Document, obj: ObjectInfo) -> None:
+    def _add_information_table(
+        self,
+        document: Document,
+        obj: ObjectInfo,
+        *,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
+    ) -> None:
         rows: list[tuple[str, str]] = [
             (self._t("info_api_name"), obj.api_name or self._t("value_unspecified")),
             (self._t("info_label"), obj.label or self._t("value_unspecified")),
@@ -249,6 +291,35 @@ class WordReportWriter(_WordAdviceMixin):
                 (obj.description or "").strip() or self._t("value_unspecified"),
             ),
         ]
+        if include_comment:
+            comment_value = obj.dewey_comment_combined if concat_description else (obj.dewey_comment or "")
+            rows.append(
+                (
+                    self._t("info_dewey_comment"),
+                    comment_value.strip() or self._t("value_unspecified"),
+                )
+            )
+        if include_piloted_by:
+            rows.append(
+                (
+                    self._t("info_piloted_by"),
+                    (obj.dewey_piloted_by or "").strip() or self._t("value_unspecified"),
+                )
+            )
+        if include_status:
+            rows.append(
+                (
+                    self._t("info_status"),
+                    (obj.dewey_status or "").strip() or "-",
+                )
+            )
+        if include_squad:
+            rows.append(
+                (
+                    self._t("info_squad"),
+                    (obj.dewey_squad or "").strip() or self._t("value_unspecified"),
+                )
+            )
         table = document.add_table(rows=len(rows), cols=2)
         table.style = "Light Grid Accent 1"
         table.alignment = WD_TABLE_ALIGNMENT.LEFT

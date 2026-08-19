@@ -45,6 +45,12 @@ def render_object_body(
     validation_findings: list[Finding] | None = None,
     all_dependencies: list[Dependency] | None = None,
     link_maps: dict[str, dict[str, Path]] | None = None,
+    *,
+    include_comment: bool = True,
+    include_piloted_by: bool = True,
+    include_status: bool = True,
+    include_squad: bool = True,
+    concat_description: bool = True,
 ) -> str:
     object_findings = object_findings or []
     validation_findings = validation_findings or []
@@ -88,6 +94,15 @@ def render_object_body(
         ("Sharing model", item.sharing_model),
         ("Visibilite", item.visibility),
     ]
+    if include_comment:
+        comment_value = item.dewey_comment_combined if concat_description else (item.dewey_comment or "")
+        description_rows.append(("Commentaire Dewey", comment_value))
+    if include_piloted_by:
+        description_rows.append(("Piloté par", item.dewey_piloted_by))
+    if include_status:
+        description_rows.append(("Status", item.dewey_status))
+    if include_squad:
+        description_rows.append(("Squad", item.dewey_squad))
     description_html = "".join(
         f"<li><strong>{html_value(label)}:</strong> {html_value(value or 'Non renseigne')}</li>"
         for label, value in description_rows
@@ -174,10 +189,31 @@ def render_object_page(
     validation_findings: list[Finding] | None = None,
     all_dependencies: list[Dependency] | None = None,
     link_maps: dict[str, dict[str, Path]] | None = None,
+    *,
+    include_comment: bool = True,
+    include_piloted_by: bool = True,
+    include_status: bool = True,
+    include_squad: bool = True,
+    concat_description: bool = True,
 ) -> str:
     body = f"""
 {index_back_link(current_path, output_dir, "objets")}
-{render_object_body(item, snapshot, current_path, output_dir, assets_dir, object_findings, validation_findings, all_dependencies, link_maps)}
+{render_object_body(
+        item,
+        snapshot,
+        current_path,
+        output_dir,
+        assets_dir,
+        object_findings,
+        validation_findings,
+        all_dependencies,
+        link_maps,
+        include_comment=include_comment,
+        include_piloted_by=include_piloted_by,
+        include_status=include_status,
+        include_squad=include_squad,
+        concat_description=concat_description,
+    )}
 """
     return render_page(item.api_name, body, current_path, assets_dir)
 
@@ -189,6 +225,11 @@ def render_combined_objects_page(
     assets_dir: Path,
     *,
     analyzer_report=None,
+    include_comment: bool = True,
+    include_piloted_by: bool = True,
+    include_status: bool = True,
+    include_squad: bool = True,
+    concat_description: bool = True,
 ) -> str:
     object_findings = getattr(analyzer_report, "objects", {}) if analyzer_report else {}
     validation_findings = getattr(analyzer_report, "validation_rules", {}) if analyzer_report else {}
@@ -209,6 +250,11 @@ def render_combined_objects_page(
                 assets_dir,
                 object_findings.get(item.api_name, []),
                 vr_findings_for_object,
+                include_comment=include_comment,
+                include_piloted_by=include_piloted_by,
+                include_status=include_status,
+                include_squad=include_squad,
+                concat_description=concat_description,
             )
         )
         bodies.append("<hr style='margin: 40px 0; border: 0; border-top: 2px solid #e2e8f0;'/>")
@@ -227,6 +273,11 @@ def write_object_pages(
     analyzer_report=None,
     apex_pages: dict[str, Path] | None = None,
     flow_pages: dict[str, Path] | None = None,
+    include_comment: bool = True,
+    include_piloted_by: bool = True,
+    include_status: bool = True,
+    include_squad: bool = True,
+    concat_description: bool = True,
 ) -> dict[str, Path]:
     output: dict[str, Path] = {}
     object_findings = getattr(analyzer_report, "objects", {}) if analyzer_report else {}
@@ -258,6 +309,11 @@ def write_object_pages(
             vr_findings_for_object,
             all_dependencies=snapshot.dependencies,
             link_maps=link_maps,
+            include_comment=include_comment,
+            include_piloted_by=include_piloted_by,
+            include_status=include_status,
+            include_squad=include_squad,
+            concat_description=concat_description,
         )
         write_text(path, content)
         output[item.api_name] = path
