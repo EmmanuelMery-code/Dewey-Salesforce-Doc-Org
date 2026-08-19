@@ -10,6 +10,7 @@ from src.ui import (
     ai_tags_panel,
     analyzer_rules_panel,
     posture_capability_panel,
+    theme,
 )
 from src.ui.config_window.apply import apply_configuration_changes
 from src.ui.config_window.tabs import (
@@ -43,7 +44,7 @@ def show_configuration_screen(app: Application) -> None:
 
     canvas = tk.Canvas(container, highlightthickness=0)
     scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
-    scrollable_frame = ttk.Frame(canvas, padding=16)
+    scrollable_frame = ttk.Frame(canvas, padding=theme.SPACE_LG)
 
     scrollable_frame.bind(
         "<Configure>",
@@ -65,19 +66,19 @@ def show_configuration_screen(app: Application) -> None:
     ttk.Label(
         scrollable_frame,
         text=app._t("configuration_title"),
-        font=("Segoe UI", 13, "bold"),
-    ).pack(anchor="w", pady=(0, 8))
+        style=theme.TITLE_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     notebook = ttk.Notebook(scrollable_frame)
     notebook.pack(fill="both", expand=True)
 
-    doc_tab = ttk.Frame(notebook, padding=12)
-    discussion_tab = ttk.Frame(notebook, padding=12)
-    rules_tab = ttk.Frame(notebook, padding=12)
-    ai_tags_tab = ttk.Frame(notebook, padding=12)
-    index_cards_tab = ttk.Frame(notebook, padding=12)
-    posture_tab = ttk.Frame(notebook, padding=12)
-    parametrage_tab = ttk.Frame(notebook, padding=12)
+    doc_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    discussion_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    rules_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    ai_tags_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    index_cards_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    posture_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    parametrage_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
     notebook.add(doc_tab, text=app._t("configuration_tab_documentation"))
     notebook.add(discussion_tab, text=app._t("configuration_tab_discussion"))
     notebook.add(rules_tab, text=app._t("configuration_tab_rules"))
@@ -226,7 +227,7 @@ def show_configuration_screen(app: Application) -> None:
     build_parametrage_tab(app, parametrage_tab, edit_vars)
 
     buttons_row = ttk.Frame(scrollable_frame)
-    buttons_row.pack(fill="x", pady=(12, 0))
+    buttons_row.pack(fill="x", pady=(theme.SPACE_MD, 0))
     ttk.Button(
         buttons_row,
         text=app._t("configuration_cancel"),
@@ -236,7 +237,8 @@ def show_configuration_screen(app: Application) -> None:
         buttons_row,
         text=app._t("configuration_save"),
         command=lambda: apply_configuration_changes(app, edit_vars, window),
-    ).pack(side="right", padx=(0, 8))
+        style=theme.PRIMARY_BUTTON,
+    ).pack(side="right", padx=(0, theme.SPACE_SM))
 
     app.configuration_window = window
     window.focus_set()

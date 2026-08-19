@@ -7,6 +7,7 @@ from tkinter import messagebox, ttk
 from typing import TYPE_CHECKING
 
 from src.core.history_service import HistoryEntry, HistoryService
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -18,21 +19,21 @@ def show_edit_dialog(app: Application, parent: tk.Toplevel, entry: HistoryEntry,
     dialog.geometry("400x300")
     app._configure_secondary_window(dialog)
 
-    frame = ttk.Frame(dialog, padding=20)
+    frame = ttk.Frame(dialog, padding=theme.SPACE_XL)
     frame.pack(fill="both", expand=True)
 
     # Only allow editing some fields for simplicity
-    ttk.Label(frame, text=app._t("alias")).grid(row=0, column=0, sticky="w", pady=5)
+    ttk.Label(frame, text=app._t("alias")).grid(row=0, column=0, sticky="w", pady=theme.SPACE_SM)
     alias_var = tk.StringVar(value=entry.alias)
-    ttk.Entry(frame, textvariable=alias_var).grid(row=0, column=1, sticky="ew", pady=5)
+    ttk.Entry(frame, textvariable=alias_var).grid(row=0, column=1, sticky="ew", pady=theme.SPACE_SM)
 
-    ttk.Label(frame, text=app._t("scoring_overall_score")).grid(row=1, column=0, sticky="w", pady=5)
+    ttk.Label(frame, text=app._t("scoring_overall_score")).grid(row=1, column=0, sticky="w", pady=theme.SPACE_SM)
     score_var = tk.StringVar(value=str(entry.score))
-    ttk.Entry(frame, textvariable=score_var).grid(row=1, column=1, sticky="ew", pady=5)
+    ttk.Entry(frame, textvariable=score_var).grid(row=1, column=1, sticky="ew", pady=theme.SPACE_SM)
 
-    ttk.Label(frame, text=app._t("adopt_adapt_overall_score")).grid(row=2, column=0, sticky="w", pady=5)
+    ttk.Label(frame, text=app._t("adopt_adapt_overall_score")).grid(row=2, column=0, sticky="w", pady=theme.SPACE_SM)
     aa_score_var = tk.StringVar(value=str(entry.adopt_adapt_score))
-    ttk.Entry(frame, textvariable=aa_score_var).grid(row=2, column=1, sticky="ew", pady=5)
+    ttk.Entry(frame, textvariable=aa_score_var).grid(row=2, column=1, sticky="ew", pady=theme.SPACE_SM)
 
     def save():
         try:
@@ -45,7 +46,7 @@ def show_edit_dialog(app: Application, parent: tk.Toplevel, entry: HistoryEntry,
         except ValueError:
             messagebox.showerror(app._t("error_title"), app._t("scoring_invalid_weight").format(component="Score"))
 
-    ttk.Button(frame, text=app._t("configuration_save"), command=save).grid(row=3, column=0, columnspan=2, pady=20)
+    ttk.Button(frame, text=app._t("configuration_save"), command=save, style=theme.PRIMARY_BUTTON).grid(row=3, column=0, columnspan=2, pady=theme.SPACE_XL)
     frame.columnconfigure(1, weight=1)
 
 
@@ -87,29 +88,29 @@ def show_entry_detail_dialog(
     # ── Two-column layout ────────────────────────────────────────
     # Each pair of sections shares a row; Comment stays full-width.
     cols_frame = ttk.Frame(inner)
-    cols_frame.pack(fill="x", padx=8, pady=(8, 0))
+    cols_frame.pack(fill="x", padx=theme.SPACE_SM, pady=(theme.SPACE_SM, 0))
     cols_frame.columnconfigure(0, weight=1, uniform="col")
     cols_frame.columnconfigure(1, weight=1, uniform="col")
 
     # Left and right column containers
     left = ttk.Frame(cols_frame)
-    left.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+    left.grid(row=0, column=0, sticky="nsew", padx=(0, theme.SPACE_XS))
     right = ttk.Frame(cols_frame)
-    right.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+    right.grid(row=0, column=1, sticky="nsew", padx=(theme.SPACE_XS, 0))
 
     def section(parent_col: ttk.Frame, title: str) -> ttk.LabelFrame:
-        lf = ttk.LabelFrame(parent_col, text=title, padding=(10, 6))
-        lf.pack(fill="x", pady=(0, 8))
+        lf = ttk.LabelFrame(parent_col, text=title, padding=(theme.SPACE_MD, theme.SPACE_SM), style=theme.SECTION_LABELFRAME)
+        lf.pack(fill="x", pady=(0, theme.SPACE_SM))
         lf.columnconfigure(1, weight=1)
         return lf
 
     def row(frame: ttk.LabelFrame, r: int, label: str, value) -> None:
-        ttk.Label(frame, text=label + " :", foreground="gray").grid(
-            row=r, column=0, sticky="w", padx=(0, 10), pady=2
+        ttk.Label(frame, text=label + " :", style=theme.MUTED_LABEL).grid(
+            row=r, column=0, sticky="w", padx=(0, theme.SPACE_MD), pady=theme.SPACE_XS
         )
         txt = str(value) if value is not None else "N/A"
         ttk.Label(frame, text=txt, wraplength=300, justify="left").grid(
-            row=r, column=1, sticky="w", pady=2
+            row=r, column=1, sticky="w", pady=theme.SPACE_XS
         )
 
     # ── LEFT COLUMN ──────────────────────────────────────────────
@@ -185,15 +186,15 @@ def show_entry_detail_dialog(
     row(sec, 2, "Data Model standard %", f"{entry.data_model_standard_pct:.1f}%")
 
     # ── Commentaire — pleine largeur ──────────────────────────────
-    sec_comment = ttk.LabelFrame(inner, text="Commentaire", padding=(10, 6))
-    sec_comment.pack(fill="x", padx=8, pady=(0, 4))
+    sec_comment = ttk.LabelFrame(inner, text="Commentaire", padding=(theme.SPACE_MD, theme.SPACE_SM), style=theme.SECTION_LABELFRAME)
+    sec_comment.pack(fill="x", padx=theme.SPACE_SM, pady=(0, theme.SPACE_XS))
     comment_text = tk.Text(sec_comment, height=5, wrap="word", font=("Segoe UI", 9))
-    comment_text.pack(fill="x", padx=2, pady=(4, 2))
+    comment_text.pack(fill="x", padx=theme.SPACE_XS, pady=(theme.SPACE_XS, theme.SPACE_XS))
     comment_text.insert("1.0", entry.comment or "")
 
     # Boutons
     btn_frame = ttk.Frame(inner)
-    btn_frame.pack(fill="x", padx=8, pady=(0, 12))
+    btn_frame.pack(fill="x", padx=theme.SPACE_SM, pady=(0, theme.SPACE_MD))
 
     def save_comment() -> None:
         new_comment = comment_text.get("1.0", "end-1c").strip()
@@ -202,5 +203,5 @@ def show_entry_detail_dialog(
         refresh_callback()
         messagebox.showinfo("Sauvegardé", "Commentaire sauvegardé.", parent=dialog)
 
-    ttk.Button(btn_frame, text="Fermer", command=dialog.destroy).pack(side="right", padx=5)
-    ttk.Button(btn_frame, text="Sauvegarder le commentaire", command=save_comment).pack(side="right")
+    ttk.Button(btn_frame, text="Fermer", command=dialog.destroy).pack(side="right", padx=theme.SPACE_SM)
+    ttk.Button(btn_frame, text="Sauvegarder le commentaire", command=save_comment, style=theme.PRIMARY_BUTTON).pack(side="right")

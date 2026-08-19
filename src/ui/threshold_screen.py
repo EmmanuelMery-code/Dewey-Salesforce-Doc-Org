@@ -27,6 +27,7 @@ from src.core.models import (
     CustomizationMetrics,
 )
 from src.ui.scrollable_window import build_scrollable_window
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -183,14 +184,14 @@ def show_threshold_screen(app: Application) -> None:
     ttk.Label(
         container,
         text=app._t("thresholds_title"),
-        font=("Segoe UI", 13, "bold"),
+        style=theme.TITLE_LABEL,
     ).pack(anchor="w")
     ttk.Label(
         container,
         text=app._t("thresholds_description"),
         wraplength=620,
         justify="left",
-    ).pack(anchor="w", pady=(4, 12))
+    ).pack(anchor="w", pady=(theme.SPACE_XS, theme.SPACE_MD))
 
     section_state: list[_SectionState] = []
     for spec in SPECS:
@@ -238,12 +239,14 @@ def show_threshold_screen(app: Application) -> None:
         footer,
         text=app._t("scoring_save"),
         command=save_all,
-    ).pack(side="right", padx=(0, 8))
+        style=theme.PRIMARY_BUTTON,
+    ).pack(side="right", padx=(0, theme.SPACE_SM))
     ttk.Button(
         footer,
         text=app._t("scoring_reset"),
         command=reset_all,
-    ).pack(side="right", padx=(0, 8))
+        style=theme.DANGER_BUTTON,
+    ).pack(side="right", padx=(0, theme.SPACE_SM))
 
     app.thresholds_window = window
     window.focus_set()
@@ -268,23 +271,23 @@ class _SectionState:
 def _build_threshold_section(
     app: Application, parent: ttk.Frame, spec: ThresholdSpec
 ) -> _SectionState:
-    section = ttk.LabelFrame(parent, text=app._t(spec.section_label_key), padding=12)
-    section.pack(fill="x", pady=(0, 12))
+    section = ttk.LabelFrame(parent, text=app._t(spec.section_label_key), padding=theme.SPACE_MD)
+    section.pack(fill="x", pady=(0, theme.SPACE_MD))
 
     ttk.Label(
         section,
         text=app._t(spec.description_key),
         wraplength=600,
         justify="left",
-        foreground="#475569",
-    ).pack(anchor="w", pady=(0, 8))
+        style=theme.MUTED_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     score_row = ttk.Frame(section)
     score_row.pack(fill="x", pady=(0, 6))
-    score_label = ttk.Label(score_row, font=("Segoe UI", 10, "bold"))
+    score_label = ttk.Label(score_row, style=theme.SECTION_LABEL)
     score_label.pack(side="left")
-    level_label = ttk.Label(score_row, font=("Segoe UI", 10, "bold"))
-    level_label.pack(side="left", padx=(16, 0))
+    level_label = ttk.Label(score_row, style=theme.SECTION_LABEL)
+    level_label.pack(side="left", padx=(theme.SPACE_LG, 0))
 
     current_values = getattr(app, spec.threshold_attr, None) or spec.defaults
     vars_ = (
@@ -298,13 +301,13 @@ def _build_threshold_section(
     ttk.Label(
         grid,
         text=app._t("thresholds_column_threshold"),
-        font=("Segoe UI", 9, "bold"),
-    ).grid(row=0, column=0, sticky="w", padx=4, pady=(0, 4))
+        style=theme.SUBSECTION_LABEL,
+    ).grid(row=0, column=0, sticky="w", padx=theme.SPACE_XS, pady=(0, theme.SPACE_XS))
     ttk.Label(
         grid,
         text=app._t("thresholds_column_value"),
-        font=("Segoe UI", 9, "bold"),
-    ).grid(row=0, column=1, sticky="w", padx=4, pady=(0, 4))
+        style=theme.SUBSECTION_LABEL,
+    ).grid(row=0, column=1, sticky="w", padx=theme.SPACE_XS, pady=(0, theme.SPACE_XS))
 
     threshold_labels = (
         app._t("thresholds_breakpoint_low"),
@@ -313,14 +316,14 @@ def _build_threshold_section(
     )
     for index, (label_text, var) in enumerate(zip(threshold_labels, vars_), start=1):
         ttk.Label(grid, text=label_text).grid(
-            row=index, column=0, sticky="w", padx=4, pady=2
+            row=index, column=0, sticky="w", padx=theme.SPACE_XS, pady=2
         )
         ttk.Entry(grid, textvariable=var, width=10, justify="center").grid(
-            row=index, column=1, sticky="w", padx=4, pady=2
+            row=index, column=1, sticky="w", padx=theme.SPACE_XS, pady=2
         )
 
     summary = ttk.Frame(section)
-    summary.pack(fill="x", pady=(4, 0))
+    summary.pack(fill="x", pady=(theme.SPACE_XS, 0))
     summary_labels = (
         ttk.Label(summary),
         ttk.Label(summary),

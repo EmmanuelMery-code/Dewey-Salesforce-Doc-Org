@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
+from src.ui import theme
 from src.ui.config_window.widgets import config_spinbox_row
 
 if TYPE_CHECKING:
@@ -21,15 +22,15 @@ def build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
     ttk.Label(
         parent,
         text=app._t("configuration_index_cards_title"),
-        font=("Segoe UI", 11, "bold"),
-    ).pack(anchor="w", pady=(0, 4))
+        style=theme.SECTION_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_XS))
     ttk.Label(
         parent,
         text=app._t("configuration_index_cards_description"),
         wraplength=640,
         justify="left",
-        foreground="#475569",
-    ).pack(anchor="w", pady=(0, 10))
+        style=theme.MUTED_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_MD))
 
     groups: list[tuple[str, list[tuple[str, str]]]] = [
         (
@@ -87,9 +88,9 @@ def build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
         container = ttk.LabelFrame(
             parent,
             text=app._t(section_key),
-            padding=10,
+            padding=theme.SPACE_MD,
         )
-        container.pack(fill="x", pady=(0, 8))
+        container.pack(fill="x", pady=(0, theme.SPACE_SM))
         for var_key, label_key in toggles:
             ttk.Checkbutton(
                 container,
@@ -102,20 +103,20 @@ def build_parametrage_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
     ttk.Label(
         parent,
         text=app._t("configuration_parametrage_title"),
-        font=("Segoe UI", 11, "bold"),
-    ).pack(anchor="w", pady=(0, 4))
+        style=theme.SECTION_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_XS))
     ttk.Label(
         parent,
         text=app._t("configuration_parametrage_description"),
         wraplength=640,
         justify="left",
-        foreground="#475569",
-    ).pack(anchor="w", pady=(0, 10))
+        style=theme.MUTED_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_MD))
 
     one_page = ttk.LabelFrame(
-        parent, text=app._t("configuration_parametrage_one_page_section"), padding=10
+        parent, text=app._t("configuration_parametrage_one_page_section"), padding=theme.SPACE_MD
     )
-    one_page.pack(fill="x", pady=(0, 8))
+    one_page.pack(fill="x", pady=(0, theme.SPACE_SM))
 
     config_spinbox_row(
         one_page,
@@ -129,8 +130,8 @@ def build_parametrage_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
         text=app._t("configuration_parametrage_max_depth_hint"),
         wraplength=620,
         justify="left",
-        foreground="#475569",
-    ).pack(anchor="w", pady=(0, 8))
+        style=theme.MUTED_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     config_spinbox_row(
         one_page,
@@ -144,5 +145,5 @@ def build_parametrage_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
         text=app._t("configuration_parametrage_hub_threshold_hint"),
         wraplength=620,
         justify="left",
-        foreground="#475569",
+        style=theme.MUTED_LABEL,
     ).pack(anchor="w", pady=(0, 2))

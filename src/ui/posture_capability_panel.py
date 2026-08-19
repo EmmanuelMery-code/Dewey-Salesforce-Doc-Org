@@ -28,6 +28,7 @@ from src.core.customization_metrics import (
 )
 from src.ui.posture_capability_panel_add_dialog import _add_capability_dialog
 from src.ui.settings import default_posture_config
+from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -54,35 +55,36 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
     ttk.Label(
         parent,
         text=app._t("configuration_posture_title"),
-        font=("Segoe UI", 12, "bold"),
-    ).pack(anchor="w", pady=(0, 4))
+        style=theme.TITLE_LABEL,
+    ).pack(anchor="w", pady=(0, theme.SPACE_XS))
 
     ttk.Label(
         parent,
         text=app._t("configuration_posture_description"),
         wraplength=820,
         justify="left",
-    ).pack(anchor="w", pady=(0, 8))
+    ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
     legend = ttk.Label(
         parent,
         text=app._t("configuration_posture_legend"),
         wraplength=820,
         justify="left",
-        foreground="#475569",
+        style=theme.MUTED_LABEL,
     )
-    legend.pack(anchor="w", pady=(0, 10))
+    legend.pack(anchor="w", pady=(0, theme.SPACE_MD))
 
     table_frame = ttk.Frame(parent)
     table_frame.pack(fill="both", expand=True)
     state["table_frame"] = table_frame
 
     button_row = ttk.Frame(parent)
-    button_row.pack(fill="x", pady=(8, 0))
+    button_row.pack(fill="x", pady=(theme.SPACE_SM, 0))
     ttk.Button(
         button_row,
         text=app._t("configuration_posture_add"),
         command=lambda: _add_capability_dialog(app),
+        style=theme.PRIMARY_BUTTON,
     ).pack(side="left")
     ttk.Button(
         button_row,
@@ -95,9 +97,9 @@ def build_panel(app: "Application", parent: ttk.Frame) -> None:
         text="",
         wraplength=820,
         justify="left",
-        foreground="#1f2937",
+        foreground=theme.COLOR_TEXT,
     )
-    summary_label.pack(anchor="w", pady=(8, 0))
+    summary_label.pack(anchor="w", pady=(theme.SPACE_SM, 0))
     state["summary_label"] = summary_label
 
     _render_table(app)
@@ -165,8 +167,8 @@ def _render_table(app: "Application") -> None:
         ttk.Label(
             table_frame,
             text=header,
-            font=("Segoe UI", 10, "bold"),
-        ).grid(row=0, column=col_index, sticky="w", padx=4, pady=(0, 4))
+            style=theme.SECTION_LABEL,
+        ).grid(row=0, column=col_index, sticky="w", padx=theme.SPACE_XS, pady=(0, theme.SPACE_XS))
 
     rows: list[dict] = []
     state["rows"] = rows
@@ -193,14 +195,14 @@ def _render_table(app: "Application") -> None:
             text=capability_label,
             wraplength=320,
             justify="left",
-        ).grid(row=row_index, column=0, sticky="w", padx=4, pady=2)
+        ).grid(row=row_index, column=0, sticky="w", padx=theme.SPACE_XS, pady=theme.SPACE_XS)
 
         ttk.Entry(
             table_frame,
             textvariable=weight_var,
             width=6,
             justify="center",
-        ).grid(row=row_index, column=1, sticky="w", padx=4, pady=2)
+        ).grid(row=row_index, column=1, sticky="w", padx=theme.SPACE_XS, pady=theme.SPACE_XS)
 
         ttk.Combobox(
             table_frame,
@@ -208,7 +210,7 @@ def _render_table(app: "Application") -> None:
             values=level_choices,
             state="readonly",
             width=24,
-        ).grid(row=row_index, column=2, sticky="ew", padx=4, pady=2)
+        ).grid(row=row_index, column=2, sticky="ew", padx=theme.SPACE_XS, pady=theme.SPACE_XS)
 
         count_text = ""
         if entry.metadata_key:
@@ -223,17 +225,18 @@ def _render_table(app: "Application") -> None:
             text=count_text,
             wraplength=200,
             justify="left",
-            foreground="#475569",
-        ).grid(row=row_index, column=3, sticky="w", padx=4, pady=2)
+            style=theme.MUTED_LABEL,
+        ).grid(row=row_index, column=3, sticky="w", padx=theme.SPACE_XS, pady=theme.SPACE_XS)
 
         action_frame = ttk.Frame(table_frame)
-        action_frame.grid(row=row_index, column=4, sticky="w", padx=4, pady=2)
+        action_frame.grid(row=row_index, column=4, sticky="w", padx=theme.SPACE_XS, pady=theme.SPACE_XS)
         if entry.custom:
             ttk.Button(
                 action_frame,
                 text=app._t("configuration_posture_remove"),
                 width=10,
                 command=lambda cap_id=entry.capability_id: _remove_capability(app, cap_id),
+                style=theme.DANGER_BUTTON,
             ).pack(side="left")
 
         rows.append(

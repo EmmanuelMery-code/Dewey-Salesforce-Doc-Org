@@ -81,6 +81,10 @@ class _AppUiMenuMixin:
             command=self._show_exclusion_screen,
         )
         configuration_menu.add_command(
+            label=self._t("flow_coverage_exclusions_menu_item"),
+            command=self._show_flow_coverage_exclusion_screen,
+        )
+        configuration_menu.add_command(
             label=self._t("manage_debt_menu_item"),
             command=self._show_debt_screen,
         )

@@ -18,6 +18,7 @@ def apply_test_coverage(
     snapshot: MetadataSnapshot,
     test_coverage_data: dict,
     log: Callable[[str], None] | None = None,
+    excluded_flow_process_types: set[str] | None = None,
 ) -> None:
     """Populate per-artifact coverage and the org-level average on ``snapshot``.
 
@@ -25,10 +26,19 @@ def apply_test_coverage(
     (Mode A, via :class:`_DataLoadingMixin`) and the headless orchestrator
     (Mode B, via :class:`~src.core.orchestrator_headless.HeadlessOrchestrator`),
     so both apply Apex/Flow coverage identically without duplicating the logic.
+
+    ``excluded_flow_process_types`` (Mode A only — see
+    :mod:`src.core.flow_coverage_exclusions`) lists raw Flow ``processType``
+    values (e.g. ``"Flow"`` for screen flows) to leave out of the org-level
+    average: those flows still get their own ``test_coverage`` populated for
+    informational display, they are just not folded into the aggregate.
+    Mode B never passes this argument, so its behaviour is unchanged.
     """
     log = log or (lambda message: None)
+    excluded_flow_process_types = excluded_flow_process_types or set()
     total_covered = 0.0
     count = 0
+    excluded_flows_count = 0
 
     # Collect coverage data for non-test artifacts
     for artifact in snapshot.apex_artifacts:
@@ -71,9 +81,19 @@ def apply_test_coverage(
             flow.test_coverage_elements_covered = 0
             flow.test_coverage_elements_uncovered = 0
 
+        if flow.process_type in excluded_flow_process_types:
+            excluded_flows_count += 1
+            continue
+
         if flow.test_coverage is not None:
             total_covered += flow.test_coverage
             count += 1
+
+    if excluded_flows_count:
+        log(
+            f"{excluded_flows_count} flow(s) exclu(s) du calcul de couverture "
+            f"(type de process exclu : {', '.join(sorted(excluded_flow_process_types))})."
+        )
 
     # Calculate org-level test coverage
     if count > 0:
@@ -115,9 +135,20 @@ class _DataLoadingMixin(_OrchestratorState):
 
         Thin wrapper around the module-level :func:`apply_test_coverage`
         (shared with the headless Mode B orchestrator) — passes this mixin's
-        ``self.log`` so messages keep flowing to the same callback as before.
+        ``self.log`` so messages keep flowing to the same callback as before,
+        and (Mode A only) the flow ``processType`` values excluded from the
+        coverage average, loaded from the same exclusion file as
+        ``exclusion_config_path``.
         """
-        apply_test_coverage(snapshot, self.test_coverage_data, log=self.log)
+        from src.core.flow_coverage_exclusions import load_flow_coverage_exclusions
+
+        excluded_flow_process_types = load_flow_coverage_exclusions(self.exclusion_config_path)
+        apply_test_coverage(
+            snapshot,
+            self.test_coverage_data,
+            log=self.log,
+            excluded_flow_process_types=excluded_flow_process_types,
+        )
 
     def _load_technical_debt(self, snapshot: MetadataSnapshot) -> None:
         """Load technical debt and deviations from the configured JSON file."""
