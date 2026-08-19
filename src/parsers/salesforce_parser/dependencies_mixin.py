@@ -2,9 +2,210 @@
 
 from __future__ import annotations
 
-from src.core.models import Dependency, MetadataSnapshot, OrphanInfo
+import re
+
+from src.core.models import Dependency, MetadataSnapshot, ObjectInfo, OrphanInfo
 from src.core.utils import child_text, parse_xml
 from src.parsers.salesforce_parser.base import _ParserState
+
+
+# --- SOQL-in-Apex field usage extraction ------------------------------------
+#
+# Best-effort, regex-based SOQL parsing (there is no real SOQL grammar here):
+# good enough to stop a field that is *only* ever referenced inside a SOQL
+# projection (e.g. ``[SELECT Field__c FROM Object__c]``) from being wrongly
+# flagged as orphan, without needing a full parser. Handles the bracket
+# literal syntax, static SOQL string literals (e.g. passed to
+# ``Database.query``), parent-relationship traversal (``Rel__r.Field__c``)
+# and one level of child-relationship subqueries.
+
+_SOQL_BLOCK_RE = re.compile(r"\[\s*(select\b.*?)\]", re.IGNORECASE | re.DOTALL)
+_SOQL_STRING_LITERAL_RE = re.compile(
+    r"'((?:[^'\\]|\\.)*?\bselect\b(?:[^'\\]|\\.)*?\bfrom\b(?:[^'\\]|\\.)*?)'",
+    re.IGNORECASE | re.DOTALL,
+)
+_SOQL_FROM_RE = re.compile(r"\bfrom\b", re.IGNORECASE)
+_SOQL_IDENTIFIER_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*")
+_SOQL_FUNC_WRAP_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\((.*)\)$", re.DOTALL)
+_SOQL_SUBQUERY_RE = re.compile(r"^\(\s*(select\b.*)\)$", re.IGNORECASE | re.DOTALL)
+_SOQL_LEADING_SELECT_RE = re.compile(r"^\s*select\b", re.IGNORECASE)
+
+
+def _soql_strip_leading_select(query_text: str) -> str:
+    """Remove the leading ``SELECT`` keyword captured alongside the query
+    text so it is not mistaken for the first projected field/expression."""
+    return _SOQL_LEADING_SELECT_RE.sub("", query_text, count=1)
+
+
+def _soql_relationship_traversal_name(field) -> str | None:
+    """Best-effort parent-relationship traversal name for a lookup/master-detail
+    field, e.g. ``Account__r`` for a custom field ``Account__c``, or
+    ``Account`` for the standard field ``AccountId``."""
+    if not field.reference_to:
+        return None
+    api_name = field.api_name
+    if api_name.endswith("__c"):
+        return api_name[: -len("__c")] + "__r"
+    if api_name.endswith("Id") and len(api_name) > 2:
+        return api_name[: -len("Id")]
+    return api_name
+
+
+def _soql_top_level_from_span(query_text: str) -> tuple[int, int] | None:
+    """Locate the ``FROM`` keyword that is not nested inside a parenthesized
+    subquery (a child-relationship subselect)."""
+    for match in _SOQL_FROM_RE.finditer(query_text):
+        depth = query_text.count("(", 0, match.start()) - query_text.count(")", 0, match.start())
+        if depth <= 0:
+            return match.span()
+    return None
+
+
+def _soql_split_top_level_fields(select_clause: str) -> list[str]:
+    """Split a SOQL SELECT field list on commas, ignoring commas nested
+    inside subqueries or function calls (e.g. ``COUNT(Id)``)."""
+    fields: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for char in select_clause:
+        if char == "(":
+            depth += 1
+            current.append(char)
+        elif char == ")":
+            depth = max(0, depth - 1)
+            current.append(char)
+        elif char == "," and depth == 0:
+            fields.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    if current:
+        fields.append("".join(current).strip())
+    return [f for f in fields if f]
+
+
+def _extract_soql_subquery_field_usages(
+    subquery_text: str, relationship_owners: dict[str, ObjectInfo]
+) -> list[tuple[str, str]]:
+    usages: list[tuple[str, str]] = []
+    subquery_text = _soql_strip_leading_select(subquery_text)
+    from_span = _soql_top_level_from_span(subquery_text)
+    if not from_span:
+        return usages
+
+    select_clause = subquery_text[: from_span[0]]
+    remainder = subquery_text[from_span[1]:].lstrip()
+    rel_match = _SOQL_IDENTIFIER_RE.match(remainder)
+    if not rel_match:
+        return usages
+    child_object = relationship_owners.get(rel_match.group(0).lower())
+    if child_object is None:
+        return usages
+
+    child_fields_by_lower = {f.api_name.lower(): f.api_name for f in child_object.fields}
+    for token in _soql_split_top_level_fields(select_clause):
+        func_match = _SOQL_FUNC_WRAP_RE.match(token)
+        inner = (func_match.group(1) if func_match else token).strip()
+        if not inner or "." in inner or not _SOQL_IDENTIFIER_RE.fullmatch(inner):
+            continue
+        resolved = child_fields_by_lower.get(inner.lower())
+        if resolved:
+            usages.append((child_object.api_name, resolved))
+    return usages
+
+
+def _extract_soql_query_field_usages(
+    query_text: str,
+    objects_by_name: dict[str, ObjectInfo],
+    relationship_owners: dict[str, ObjectInfo],
+) -> list[tuple[str, str]]:
+    usages: list[tuple[str, str]] = []
+    query_text = _soql_strip_leading_select(query_text)
+    from_span = _soql_top_level_from_span(query_text)
+    if not from_span:
+        return usages
+
+    select_clause = query_text[: from_span[0]]
+    remainder = query_text[from_span[1]:].lstrip()
+    object_match = _SOQL_IDENTIFIER_RE.match(remainder)
+    if not object_match:
+        return usages
+    main_object = objects_by_name.get(object_match.group(0).lower())
+    if main_object is None:
+        return usages
+
+    main_fields_by_lower = {f.api_name.lower(): f.api_name for f in main_object.fields}
+
+    for token in _soql_split_top_level_fields(select_clause):
+        subquery_match = _SOQL_SUBQUERY_RE.match(token)
+        if subquery_match:
+            usages.extend(_extract_soql_subquery_field_usages(subquery_match.group(1), relationship_owners))
+            continue
+
+        func_match = _SOQL_FUNC_WRAP_RE.match(token)
+        inner = (func_match.group(1) if func_match else token).strip()
+        if not inner or not _SOQL_IDENTIFIER_RE.fullmatch(inner):
+            continue
+
+        parts = inner.split(".")
+        field_part = parts[-1]
+        relationship_parts = parts[:-1]
+
+        if not relationship_parts:
+            resolved = main_fields_by_lower.get(field_part.lower())
+            if resolved:
+                usages.append((main_object.api_name, resolved))
+            continue
+
+        # Best-effort parent-relationship traversal, one hop at a time
+        # (e.g. ``Compte__r.Contact__r.Nom__c``).
+        current_object = main_object
+        resolved_ok = True
+        for rel_part in relationship_parts:
+            matched_field = next(
+                (
+                    f
+                    for f in current_object.fields
+                    if (_soql_relationship_traversal_name(f) or "").lower() == rel_part.lower()
+                ),
+                None,
+            )
+            if matched_field is None or not matched_field.reference_to:
+                resolved_ok = False
+                break
+            next_object = objects_by_name.get(matched_field.reference_to[0].lower())
+            if next_object is None:
+                resolved_ok = False
+                break
+            current_object = next_object
+
+        if resolved_ok:
+            target_field = next(
+                (f.api_name for f in current_object.fields if f.api_name.lower() == field_part.lower()),
+                None,
+            )
+            if target_field:
+                usages.append((current_object.api_name, target_field))
+
+    return usages
+
+
+def _extract_soql_field_usages(
+    body: str,
+    objects_by_name: dict[str, ObjectInfo],
+    relationship_owners: dict[str, ObjectInfo],
+) -> list[tuple[str, str]]:
+    """Return the ``(ObjectApiName, FieldApiName)`` pairs referenced by any
+    SOQL query found in ``body`` (an Apex class/trigger source), so that
+    fields only ever used inside a SOQL projection are not flagged as
+    orphans."""
+    query_texts = [m.group(1) for m in _SOQL_BLOCK_RE.finditer(body)]
+    query_texts += [m.group(1) for m in _SOQL_STRING_LITERAL_RE.finditer(body)]
+
+    usages: list[tuple[str, str]] = []
+    for query_text in query_texts:
+        usages.extend(_extract_soql_query_field_usages(query_text, objects_by_name, relationship_owners))
+    return usages
 
 
 class _DependenciesMixin(_ParserState):
@@ -24,9 +225,33 @@ class _DependenciesMixin(_ParserState):
             for field in obj.fields:
                 all_fields.append((obj.api_name, field.api_name))
 
+        # Global map of child-relationship name -> owning (child) object, used
+        # to resolve SOQL child subqueries (``(SELECT ... FROM ChildRel__r)``)
+        # and parent-relationship traversal in SOQL projections.
+        relationship_owners: dict[str, ObjectInfo] = {}
+        for obj in snapshot.objects:
+            for field in obj.fields:
+                if field.relationship_name:
+                    relationship_owners[field.relationship_name.lower()] = obj
+
         # 1. Scan Apex for Object, Class and Field dependencies
         for artifact in snapshot.apex_artifacts:
             body_lower = artifact.body.lower()
+
+            # SOQL-aware field usage: parses the queries embedded in the Apex
+            # source (bracket literal syntax and static string literals) so a
+            # field referenced only in a SOQL projection (``[SELECT
+            # Field__c FROM Object__c]``) is correctly counted as used and
+            # not flagged as orphan.
+            for obj_name, field_name in _extract_soql_field_usages(
+                artifact.body, objects_by_name, relationship_owners
+            ):
+                snapshot.dependencies.append(Dependency(
+                    source_name=artifact.name,
+                    source_kind=artifact.kind,
+                    target_name=f"{obj_name}.{field_name}",
+                    target_kind="Field"
+                ))
             for obj_name in object_names:
                 if obj_name.lower() in body_lower:
                     snapshot.dependencies.append(Dependency(
@@ -44,7 +269,9 @@ class _DependenciesMixin(_ParserState):
                         target_kind="Apex"
                     ))
 
-            # Field scanning (limited to common patterns: Obj.Field or [SELECT ... Field ...])
+            # Field scanning (substring match on the literal "Obj.Field" pattern,
+            # e.g. explicit references outside of SOQL; SOQL projections are
+            # already covered by the SOQL-aware extraction above).
             for obj_name, field_name in all_fields:
                 pattern = f"{obj_name}.{field_name}".lower()
                 if pattern in body_lower:

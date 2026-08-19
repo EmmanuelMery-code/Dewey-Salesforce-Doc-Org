@@ -130,6 +130,15 @@ class AppSettingsMixin:
             "dd_word": self.settings.get("dd_word", True),
             "dd_excel": self.settings.get("dd_excel", True),
             "dd_selected_objects": self.settings.get("dd_selected_objects", []),
+            "dd_object_comments": self.settings.get("dd_object_comments", {}),
+            "dd_object_piloted_by": self.settings.get("dd_object_piloted_by", {}),
+            "dd_object_status": self.settings.get("dd_object_status", {}),
+            "dd_object_squad": self.settings.get("dd_object_squad", {}),
+            "dd_include_comment": self.settings.get("dd_include_comment", True),
+            "dd_include_piloted_by": self.settings.get("dd_include_piloted_by", True),
+            "dd_include_status": self.settings.get("dd_include_status", True),
+            "dd_include_squad": self.settings.get("dd_include_squad", True),
+            "dd_concat_description_in_comment": self.settings.get("dd_concat_description_in_comment", True),
         }
         payload.update(self._current_index_card_visibility().to_settings())
         save_settings(self.settings_path, payload)

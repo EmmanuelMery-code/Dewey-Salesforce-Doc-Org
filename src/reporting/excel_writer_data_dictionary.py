@@ -36,6 +36,11 @@ class _ExcelDataDictionaryMixin:
         *,
         max_object_sheets: int = MAX_OBJECT_SHEETS_PER_WORKBOOK,
         filename_base: str = "data_dictionary",
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
     ) -> list[Path]:
         """Generate the Data Dictionary workbook(s).
 
@@ -44,6 +49,13 @@ class _ExcelDataDictionaryMixin:
         its fields. When the number of object sheets exceeds
         ``max_object_sheets`` a new workbook is created (``{filename_base}_part_2.xlsx``,
         ``..._part_3.xlsx`` and so on) so Excel stays responsive.
+
+        ``include_comment``, ``include_piloted_by``, ``include_status`` and
+        ``include_squad`` control whether the "Commentaire Dewey", "Piloté
+        par", "Status" and "Squad" columns (and matching per-object notes)
+        are rendered at all. ``concat_description`` controls whether the
+        "Commentaire Dewey" value concatenates the metadata Description or
+        only shows the raw user-entered comment.
 
         Returns the list of written file paths in order.
         """
@@ -69,7 +81,9 @@ class _ExcelDataDictionaryMixin:
             summary.title = "Synthese"
             self._write_sheet(
                 summary,
-                self._data_dictionary_summary_headers(),
+                self._data_dictionary_summary_headers(
+                    include_comment, include_piloted_by, include_status, include_squad
+                ),
                 [],
             )
             workbook.save(path)
@@ -92,6 +106,11 @@ class _ExcelDataDictionaryMixin:
                 path,
                 part_index=part_index,
                 total_parts=total_parts,
+                include_comment=include_comment,
+                include_piloted_by=include_piloted_by,
+                include_status=include_status,
+                include_squad=include_squad,
+                concat_description=concat_description,
             )
             written.append(path)
         summary = (
@@ -109,8 +128,13 @@ class _ExcelDataDictionaryMixin:
         return f"{filename_base}_part_{part_index}.xlsx"
 
     @staticmethod
-    def _data_dictionary_summary_headers() -> list[str]:
-        return [
+    def _data_dictionary_summary_headers(
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+    ) -> list[str]:
+        headers = [
             "API Name",
             "Label",
             "Label pluriel",
@@ -126,6 +150,15 @@ class _ExcelDataDictionaryMixin:
             "Feuille",
             "Description",
         ]
+        if include_comment:
+            headers.append("Commentaire Dewey")
+        if include_piloted_by:
+            headers.append("Piloté par")
+        if include_status:
+            headers.append("Status")
+        if include_squad:
+            headers.append("Squad")
+        return headers
 
     def _write_data_dictionary_workbook(
         self,
@@ -134,6 +167,11 @@ class _ExcelDataDictionaryMixin:
         *,
         part_index: int,
         total_parts: int,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
     ) -> None:
         workbook = Workbook()
         used_names: set[str] = set()
@@ -149,8 +187,9 @@ class _ExcelDataDictionaryMixin:
             )
             sheet_names_by_object.append((obj, sheet_name))
 
-        summary_rows = [
-            [
+        summary_rows = []
+        for obj, sheet_name in sheet_names_by_object:
+            row = [
                 obj.api_name,
                 obj.label,
                 obj.plural_label,
@@ -166,11 +205,20 @@ class _ExcelDataDictionaryMixin:
                 sheet_name,
                 obj.description,
             ]
-            for obj, sheet_name in sheet_names_by_object
-        ]
+            if include_comment:
+                row.append(obj.dewey_comment_combined if concat_description else (obj.dewey_comment or ""))
+            if include_piloted_by:
+                row.append(obj.dewey_piloted_by)
+            if include_status:
+                row.append(obj.dewey_status)
+            if include_squad:
+                row.append(obj.dewey_squad)
+            summary_rows.append(row)
         self._write_sheet(
             summary,
-            self._data_dictionary_summary_headers(),
+            self._data_dictionary_summary_headers(
+                include_comment, include_piloted_by, include_status, include_squad
+            ),
             summary_rows,
         )
 
@@ -190,12 +238,30 @@ class _ExcelDataDictionaryMixin:
 
         for obj, sheet_name in sheet_names_by_object:
             worksheet = workbook.create_sheet(sheet_name)
-            self._write_object_fields_sheet(worksheet, obj)
+            self._write_object_fields_sheet(
+                worksheet,
+                obj,
+                include_comment=include_comment,
+                include_piloted_by=include_piloted_by,
+                include_status=include_status,
+                include_squad=include_squad,
+                concat_description=concat_description,
+            )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         workbook.save(output_path)
 
-    def _write_object_fields_sheet(self, worksheet, obj: ObjectInfo) -> None:
+    def _write_object_fields_sheet(
+        self,
+        worksheet,
+        obj: ObjectInfo,
+        *,
+        include_comment: bool = True,
+        include_piloted_by: bool = True,
+        include_status: bool = True,
+        include_squad: bool = True,
+        concat_description: bool = True,
+    ) -> None:
         headers = [
             "API Name",
             "Label",
@@ -229,6 +295,37 @@ class _ExcelDataDictionaryMixin:
                 column=1,
                 value="Aucun champ detecte dans la metadata pour cet objet.",
             ).font = Font(italic=True, color="666666")
+
+        note_row = worksheet.max_row + 1
+        comment_value = obj.dewey_comment_combined if concat_description else (obj.dewey_comment or "")
+        if include_comment and comment_value:
+            note_row += 1
+            worksheet.cell(
+                row=note_row,
+                column=1,
+                value=f"Commentaire Dewey : {comment_value}",
+            ).font = Font(italic=True, bold=True)
+        if include_piloted_by and obj.dewey_piloted_by:
+            note_row += 1
+            worksheet.cell(
+                row=note_row,
+                column=1,
+                value=f"Piloté par : {obj.dewey_piloted_by}",
+            ).font = Font(italic=True, bold=True)
+        if include_status and obj.dewey_status and obj.dewey_status != "-":
+            note_row += 1
+            worksheet.cell(
+                row=note_row,
+                column=1,
+                value=f"Status : {obj.dewey_status}",
+            ).font = Font(italic=True, bold=True)
+        if include_squad and obj.dewey_squad:
+            note_row += 1
+            worksheet.cell(
+                row=note_row,
+                column=1,
+                value=f"Squad : {obj.dewey_squad}",
+            ).font = Font(italic=True, bold=True)
 
     @staticmethod
     def _unique_sheet_name(desired: str, used: set[str]) -> str:

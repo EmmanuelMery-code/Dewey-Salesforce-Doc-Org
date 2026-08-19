@@ -81,3 +81,24 @@ class ObjectInfo:
     validation_rules: list[ValidationRuleInfo] = field(default_factory=list)
     relationships: list[RelationshipInfo] = field(default_factory=list)
     source_path: Path | None = None
+    dewey_comment: str = ""
+    dewey_piloted_by: str = ""
+    dewey_status: str = "-"
+    dewey_squad: str = ""
+
+    @property
+    def dewey_comment_combined(self) -> str:
+        """Concatenation of the metadata ``description`` and the user-entered
+        "Commentaire Dewey" free text, in that order.
+
+        Report writers should use this instead of ``dewey_comment`` directly
+        whenever they render the "Commentaire Dewey" column/row so the
+        metadata description is not lost when a user comment is also
+        present. Callers that need the concatenation to be optional (e.g. a
+        UI checkbox) should choose between this property and the raw
+        ``dewey_comment`` themselves rather than changing this property,
+        since other callers (e.g. the full-run orchestrator) always expect
+        the concatenated behaviour.
+        """
+        parts = [part.strip() for part in (self.description, self.dewey_comment) if part and part.strip()]
+        return " ".join(parts)
