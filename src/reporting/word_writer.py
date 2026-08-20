@@ -48,6 +48,7 @@ class WordReportWriter(_WordAdviceMixin):
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
         concat_description: bool = True,
     ) -> Path:
         output_path = Path(output_path)
@@ -89,6 +90,7 @@ class WordReportWriter(_WordAdviceMixin):
                     include_piloted_by=include_piloted_by,
                     include_status=include_status,
                     include_squad=include_squad,
+                    include_squad_consumer=include_squad_consumer,
                     concat_description=concat_description,
                 )
 
@@ -218,6 +220,7 @@ class WordReportWriter(_WordAdviceMixin):
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
         concat_description: bool = True,
     ) -> None:
         if obj.label:
@@ -238,6 +241,7 @@ class WordReportWriter(_WordAdviceMixin):
             include_piloted_by=include_piloted_by,
             include_status=include_status,
             include_squad=include_squad,
+            include_squad_consumer=include_squad_consumer,
             concat_description=concat_description,
         )
 
@@ -253,6 +257,7 @@ class WordReportWriter(_WordAdviceMixin):
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
         concat_description: bool = True,
     ) -> None:
         rows: list[tuple[str, str]] = [
@@ -318,6 +323,13 @@ class WordReportWriter(_WordAdviceMixin):
                 (
                     self._t("info_squad"),
                     (obj.dewey_squad or "").strip() or self._t("value_unspecified"),
+                )
+            )
+        if include_squad_consumer:
+            rows.append(
+                (
+                    self._t("info_squad_consumer"),
+                    (obj.dewey_squad_consumer or "").strip() or self._t("value_unspecified"),
                 )
             )
         table = document.add_table(rows=len(rows), cols=2)
