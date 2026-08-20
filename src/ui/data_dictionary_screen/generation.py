@@ -59,6 +59,9 @@ class _DataDictionaryGenerationMixin:
         self.app.settings["dd_include_piloted_by"] = self.include_piloted_by_var.get()
         self.app.settings["dd_include_status"] = self.include_status_var.get()
         self.app.settings["dd_include_squad"] = self.include_squad_var.get()
+        self.app.settings["dd_include_squad_consumer"] = self.include_squad_consumer_var.get()
+        self.app.settings["dd_include_field_comment"] = self.include_field_comment_var.get()
+        self.app.settings["dd_include_field_piloted_by"] = self.include_field_piloted_by_var.get()
         self.app.settings["dd_concat_description_in_comment"] = self.concat_description_var.get()
         self.app._save_settings()
 
@@ -105,6 +108,13 @@ class _DataDictionaryGenerationMixin:
             obj.dewey_piloted_by = self.object_piloted_by.get(obj.api_name, "")
             obj.dewey_status = self.object_status.get(obj.api_name, self.STATUS_OPTIONS[0])
             obj.dewey_squad = self.object_squad.get(obj.api_name, "")
+            obj.dewey_squad_consumer = self.object_squad_consumer.get(obj.api_name, "")
+
+            field_comments = self.field_comments.get(obj.api_name, {})
+            field_piloted_by = self.field_piloted_by.get(obj.api_name, {})
+            for field_info in obj.fields:
+                field_info.dewey_comment = field_comments.get(field_info.api_name, "")
+                field_info.dewey_piloted_by = field_piloted_by.get(field_info.api_name, "")
         
         date_str = datetime.now().strftime("%Y%m%d")
         filename_base = f"dataDictionnary_{date_str}"
@@ -113,6 +123,9 @@ class _DataDictionaryGenerationMixin:
         include_piloted_by = self.include_piloted_by_var.get()
         include_status = self.include_status_var.get()
         include_squad = self.include_squad_var.get()
+        include_squad_consumer = self.include_squad_consumer_var.get()
+        include_field_comment = self.include_field_comment_var.get()
+        include_field_piloted_by = self.include_field_piloted_by_var.get()
         concat_description = self.concat_description_var.get()
 
         if self.excel_var.get():
@@ -127,6 +140,9 @@ class _DataDictionaryGenerationMixin:
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
+                include_field_comment=include_field_comment,
+                include_field_piloted_by=include_field_piloted_by,
                 concat_description=concat_description,
             )
 
@@ -141,6 +157,7 @@ class _DataDictionaryGenerationMixin:
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
                 concat_description=concat_description,
             )
 
@@ -155,6 +172,7 @@ class _DataDictionaryGenerationMixin:
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
                 concat_description=concat_description,
             )
             # Generate combined page
@@ -165,5 +183,6 @@ class _DataDictionaryGenerationMixin:
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
                 concat_description=concat_description,
             )
