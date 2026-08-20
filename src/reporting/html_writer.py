@@ -95,6 +95,7 @@ class HtmlReportWriter:
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
         concat_description: bool = True,
     ) -> dict[str, Path]:
         return objects_renderer.write_object_pages(
@@ -110,6 +111,7 @@ class HtmlReportWriter:
             include_piloted_by=include_piloted_by,
             include_status=include_status,
             include_squad=include_squad,
+            include_squad_consumer=include_squad_consumer,
             concat_description=concat_description,
         )
 
@@ -123,6 +125,7 @@ class HtmlReportWriter:
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
         concat_description: bool = True,
     ) -> Path:
         content = objects_renderer.render_combined_objects_page(
@@ -135,6 +138,7 @@ class HtmlReportWriter:
             include_piloted_by=include_piloted_by,
             include_status=include_status,
             include_squad=include_squad,
+            include_squad_consumer=include_squad_consumer,
             concat_description=concat_description,
         )
         from src.core.utils import write_text

@@ -50,6 +50,7 @@ def render_object_body(
     include_piloted_by: bool = True,
     include_status: bool = True,
     include_squad: bool = True,
+    include_squad_consumer: bool = True,
     concat_description: bool = True,
 ) -> str:
     object_findings = object_findings or []
@@ -102,7 +103,9 @@ def render_object_body(
     if include_status:
         description_rows.append(("Status", item.dewey_status))
     if include_squad:
-        description_rows.append(("Squad", item.dewey_squad))
+        description_rows.append(("Squad Responsable", item.dewey_squad))
+    if include_squad_consumer:
+        description_rows.append(("Squad Consommatrice", item.dewey_squad_consumer))
     description_html = "".join(
         f"<li><strong>{html_value(label)}:</strong> {html_value(value or 'Non renseigne')}</li>"
         for label, value in description_rows
@@ -194,6 +197,7 @@ def render_object_page(
     include_piloted_by: bool = True,
     include_status: bool = True,
     include_squad: bool = True,
+    include_squad_consumer: bool = True,
     concat_description: bool = True,
 ) -> str:
     body = f"""
@@ -212,6 +216,7 @@ def render_object_page(
         include_piloted_by=include_piloted_by,
         include_status=include_status,
         include_squad=include_squad,
+        include_squad_consumer=include_squad_consumer,
         concat_description=concat_description,
     )}
 """
@@ -229,6 +234,7 @@ def render_combined_objects_page(
     include_piloted_by: bool = True,
     include_status: bool = True,
     include_squad: bool = True,
+    include_squad_consumer: bool = True,
     concat_description: bool = True,
 ) -> str:
     object_findings = getattr(analyzer_report, "objects", {}) if analyzer_report else {}
@@ -254,6 +260,7 @@ def render_combined_objects_page(
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
                 concat_description=concat_description,
             )
         )
@@ -277,6 +284,7 @@ def write_object_pages(
     include_piloted_by: bool = True,
     include_status: bool = True,
     include_squad: bool = True,
+    include_squad_consumer: bool = True,
     concat_description: bool = True,
 ) -> dict[str, Path]:
     output: dict[str, Path] = {}
@@ -313,6 +321,7 @@ def write_object_pages(
             include_piloted_by=include_piloted_by,
             include_status=include_status,
             include_squad=include_squad,
+            include_squad_consumer=include_squad_consumer,
             concat_description=concat_description,
         )
         write_text(path, content)
