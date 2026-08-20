@@ -40,6 +40,9 @@ class _ExcelDataDictionaryMixin:
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
+        include_field_comment: bool = True,
+        include_field_piloted_by: bool = True,
         concat_description: bool = True,
     ) -> list[Path]:
         """Generate the Data Dictionary workbook(s).
@@ -50,10 +53,14 @@ class _ExcelDataDictionaryMixin:
         ``max_object_sheets`` a new workbook is created (``{filename_base}_part_2.xlsx``,
         ``..._part_3.xlsx`` and so on) so Excel stays responsive.
 
-        ``include_comment``, ``include_piloted_by``, ``include_status`` and
-        ``include_squad`` control whether the "Commentaire Dewey", "Piloté
-        par", "Status" and "Squad" columns (and matching per-object notes)
-        are rendered at all. ``concat_description`` controls whether the
+        ``include_comment``, ``include_piloted_by``, ``include_status``,
+        ``include_squad`` and ``include_squad_consumer`` control whether the
+        "Commentaire Dewey", "Piloté par", "Status", "Squad Responsable" and
+        "Squad Consommatrice" columns (and matching per-object notes) are
+        rendered at all. ``include_field_comment`` and
+        ``include_field_piloted_by`` control whether the per-field
+        "Commentaire Dewey" and "Piloté par" columns are rendered on each
+        object's fields sheet. ``concat_description`` controls whether the
         "Commentaire Dewey" value concatenates the metadata Description or
         only shows the raw user-entered comment.
 
@@ -82,7 +89,11 @@ class _ExcelDataDictionaryMixin:
             self._write_sheet(
                 summary,
                 self._data_dictionary_summary_headers(
-                    include_comment, include_piloted_by, include_status, include_squad
+                    include_comment,
+                    include_piloted_by,
+                    include_status,
+                    include_squad,
+                    include_squad_consumer,
                 ),
                 [],
             )
@@ -110,6 +121,9 @@ class _ExcelDataDictionaryMixin:
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
+                include_field_comment=include_field_comment,
+                include_field_piloted_by=include_field_piloted_by,
                 concat_description=concat_description,
             )
             written.append(path)
@@ -133,6 +147,7 @@ class _ExcelDataDictionaryMixin:
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
     ) -> list[str]:
         headers = [
             "API Name",
@@ -157,7 +172,9 @@ class _ExcelDataDictionaryMixin:
         if include_status:
             headers.append("Status")
         if include_squad:
-            headers.append("Squad")
+            headers.append("Squad Responsable")
+        if include_squad_consumer:
+            headers.append("Squad Consommatrice")
         return headers
 
     def _write_data_dictionary_workbook(
@@ -171,6 +188,9 @@ class _ExcelDataDictionaryMixin:
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
+        include_field_comment: bool = True,
+        include_field_piloted_by: bool = True,
         concat_description: bool = True,
     ) -> None:
         workbook = Workbook()
@@ -213,11 +233,17 @@ class _ExcelDataDictionaryMixin:
                 row.append(obj.dewey_status)
             if include_squad:
                 row.append(obj.dewey_squad)
+            if include_squad_consumer:
+                row.append(obj.dewey_squad_consumer)
             summary_rows.append(row)
         self._write_sheet(
             summary,
             self._data_dictionary_summary_headers(
-                include_comment, include_piloted_by, include_status, include_squad
+                include_comment,
+                include_piloted_by,
+                include_status,
+                include_squad,
+                include_squad_consumer,
             ),
             summary_rows,
         )
@@ -245,6 +271,9 @@ class _ExcelDataDictionaryMixin:
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
                 include_squad=include_squad,
+                include_squad_consumer=include_squad_consumer,
+                include_field_comment=include_field_comment,
+                include_field_piloted_by=include_field_piloted_by,
                 concat_description=concat_description,
             )
 
@@ -260,6 +289,9 @@ class _ExcelDataDictionaryMixin:
         include_piloted_by: bool = True,
         include_status: bool = True,
         include_squad: bool = True,
+        include_squad_consumer: bool = True,
+        include_field_comment: bool = True,
+        include_field_piloted_by: bool = True,
         concat_description: bool = True,
     ) -> None:
         headers = [
@@ -272,8 +304,16 @@ class _ExcelDataDictionaryMixin:
             "Relationship Name",
             "Description",
         ]
-        rows = [
-            [
+        # Dewey-authored per-field columns, appended after the raw metadata
+        # columns, each independently toggled from the UI.
+        if include_field_comment:
+            headers.append("Commentaire Dewey")
+        if include_field_piloted_by:
+            headers.append("Piloté par")
+
+        rows = []
+        for field in obj.fields:
+            row = [
                 field.api_name,
                 field.label,
                 field.data_type,
@@ -283,8 +323,11 @@ class _ExcelDataDictionaryMixin:
                 field.relationship_name,
                 field.description,
             ]
-            for field in obj.fields
-        ]
+            if include_field_comment:
+                row.append(field.dewey_comment)
+            if include_field_piloted_by:
+                row.append(field.dewey_piloted_by)
+            rows.append(row)
         self._write_sheet(worksheet, headers, rows)
 
         if not rows:
@@ -324,7 +367,14 @@ class _ExcelDataDictionaryMixin:
             worksheet.cell(
                 row=note_row,
                 column=1,
-                value=f"Squad : {obj.dewey_squad}",
+                value=f"Squad Responsable : {obj.dewey_squad}",
+            ).font = Font(italic=True, bold=True)
+        if include_squad_consumer and obj.dewey_squad_consumer:
+            note_row += 1
+            worksheet.cell(
+                row=note_row,
+                column=1,
+                value=f"Squad Consommatrice : {obj.dewey_squad_consumer}",
             ).font = Font(italic=True, bold=True)
 
     @staticmethod
