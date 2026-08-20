@@ -20,6 +20,8 @@ class FieldInfo:
     picklist_api_names: list[str] = field(default_factory=list)
     picklist_is_global: bool = False
     picklist_global_name: str = ""
+    dewey_comment: str = ""
+    dewey_piloted_by: str = ""
 
     @property
     def is_picklist(self) -> bool:
@@ -85,6 +87,7 @@ class ObjectInfo:
     dewey_piloted_by: str = ""
     dewey_status: str = "-"
     dewey_squad: str = ""
+    dewey_squad_consumer: str = ""
 
     @property
     def dewey_comment_combined(self) -> str:
