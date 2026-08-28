@@ -126,6 +126,16 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
     ).pack(anchor="w", pady=(2, 2))
     ttk.Checkbutton(
         reports,
+        text=app._t("configuration_generate_data_dictionary_excel"),
+        variable=edit_vars["generate_data_dictionary_excel"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
+        text=app._t("configuration_generate_findings_excel"),
+        variable=edit_vars["generate_findings_excel"],
+    ).pack(anchor="w", pady=(2, 2))
+    ttk.Checkbutton(
+        reports,
         text=app._t("configuration_generate_org_check_reports"),
         variable=edit_vars["generate_org_check_reports"],
     ).pack(anchor="w", pady=(2, 2))

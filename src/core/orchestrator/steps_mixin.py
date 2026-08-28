@@ -7,12 +7,23 @@ from typing import Callable
 
 from src.analyzer.engine import AnalyzerReport
 from src.core.audit_generator import generate_audit_summary_rtf
+from src.core.data_dictionary_selection import data_dictionary_filename_base
+from src.core.findings_qualification import (
+    FindingQualification,
+    QualificationKey,
+    load_qualifications,
+    store_alias,
+)
 from src.core.models import MetadataSnapshot, PmdViolation
 from src.core.orchestrator.base import _OrchestratorState
 from src.core.orchestrator.result import GenerationResult
 from src.core.pmd_service import PmdService
 from src.core.utils import safe_slug
 from src.reporting.excel_writer import ExcelReportWriter
+from src.reporting.excel_writer_findings import (
+    FindingsExcelWriter,
+    findings_workbook_path,
+)
 from src.reporting.html_writer import HtmlReportWriter
 from src.reporting.sarif_writer import write_sarif_report
 from src.reporting.word_writer import WordReportWriter
@@ -80,6 +91,81 @@ class _StepsMixin(_OrchestratorState):
                 snapshot.objects, excel_dir / "picklists.xlsx"
             ),
         )
+
+    def _generate_selected_data_dictionary_excel(
+        self,
+        snapshot: MetadataSnapshot,
+        excel_writer: ExcelReportWriter,
+        excel_dir: Path,
+        result: GenerationResult,
+    ) -> None:
+        """Write the Data Dictionary restricted to the objects picked in the
+        Data Dictionary screen, with the Dewey extra info entered there."""
+        selection = self.data_dictionary_selection
+        if selection is None or not selection.objects:
+            self.log(
+                "Data Dictionary des objets selectionnes : aucun objet "
+                "selectionne dans l'ecran Data Dictionnary, generation ignoree."
+            )
+            return
+        objects = selection.apply(snapshot.objects)
+        if not objects:
+            self.log(
+                "Data Dictionary des objets selectionnes : les objets "
+                "selectionnes sont absents de la source analysee."
+            )
+            return
+        filename_base = data_dictionary_filename_base()
+        self.log(
+            f"Generation du Data Dictionary pour {len(objects)} objet(s) selectionne(s)."
+        )
+        result.selected_data_dictionary_excels = (
+            self._safe_run(
+                f"{filename_base}.xlsx",
+                lambda: excel_writer.write_data_dictionary_workbooks(
+                    objects,
+                    excel_dir,
+                    filename_base=filename_base,
+                    **selection.workbook_options(),
+                ),
+            )
+            or []
+        )
+
+    def _generate_findings_excel(
+        self,
+        analyzer_report: AnalyzerReport,
+        result: GenerationResult,
+    ) -> None:
+        target = findings_workbook_path(self.output_dir / "excel", self.alias)
+        findings = analyzer_report.all_findings()
+        qualifications = self._stored_findings_qualifications()
+        result.findings_excel = self._safe_run(
+            target.name,
+            lambda: FindingsExcelWriter(log_callback=self.log).write_findings_workbook(
+                findings, target, alias=self.alias, qualifications=qualifications
+            ),
+        )
+
+    def _stored_findings_qualifications(
+        self,
+    ) -> dict[QualificationKey, FindingQualification]:
+        """TechLead columns already imported for this org.
+
+        A full run overwrites the findings workbook, so without this the
+        qualification and US columns would silently go back to empty every
+        time the documentation is regenerated.
+        """
+        path = self.findings_qualifications_path
+        if path is None:
+            return {}
+        stored = load_qualifications(path).get(store_alias(self.alias), {})
+        if stored:
+            self.log(
+                f"Document des findings : {len(stored)} qualification(s) "
+                "reprise(s) du dernier import."
+            )
+        return stored
 
     def _run_pmd(
         self,

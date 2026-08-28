@@ -269,6 +269,7 @@ EN_PART2: dict[str, str] = {
     "data_dictionary_squad_consumer_label": "Consumer Squad",
     "data_dictionary_field_comment_label": "Dewey comment (fields)",
     "data_dictionary_field_piloted_by_label": "Piloted by (fields)",
+    "data_dictionary_field_automation_label": "Used in an automation? (fields)",
     "data_dictionary_concat_section_title": "Dewey comment - Concatenation option",
     "data_dictionary_concat_description_label": "Concatenate the metadata Description into the Dewey comment",
     "data_dictionary_comment_save": "Save information",
@@ -279,13 +280,51 @@ EN_PART2: dict[str, str] = {
     "data_dictionary_fields_column_label": "Label",
     "data_dictionary_fields_column_api_name": "API Name",
     "data_dictionary_copy_piloted_by_button": (
-        "Copy the object's Piloted by\nonto the fields' Piloted by\n"
-        "for fields with no\nPiloted by"
+        "Copy the object's\nPiloted by to fields\nwithout a value"
     ),
     "data_dictionary_copy_piloted_by_no_object": "Please select an object before copying the Piloted by value.",
     "data_dictionary_copy_piloted_by_no_value": "The selected object has no Piloted by value.",
     "data_dictionary_copy_piloted_by_no_fields": "All fields of this object already have a Piloted by value.",
     "data_dictionary_copy_piloted_by_success": "{count} field(s) updated with Piloted by \"{value}\".",
+    "menu_create_findings_document": "Create the findings document",
+    "findings_excel_in_progress": "Creating the findings document...",
+    "findings_excel_success": "Findings document created successfully: {path}",
+    "findings_excel_none_title": "No finding available",
+    "findings_excel_none": "No finding is available. Generate the documentation first so the analyzer produces findings.",
+    "findings_screen_title": "Findings document",
+    "findings_screen_description": (
+        "Pick the organization, then qualify the findings right here or in "
+        "Excel (export the workbook, fill it in, import it back): the "
+        "Qualification (M to P) and US (Q to S) columns are stored and "
+        "pre-filled on later exports."
+    ),
+    "findings_screen_alias_label": "Organization (alias):",
+    "findings_screen_count": "{qualified} of {total} finding(s) qualified",
+    "findings_screen_export": "Export the workbook",
+    "findings_screen_import": "Import a qualified workbook",
+    "findings_screen_column_severity": "Severity",
+    "findings_screen_column_rule": "Rule",
+    "findings_screen_column_component": "Component",
+    "findings_screen_column_title": "Finding title",
+    "findings_screen_column_status": "Status",
+    "findings_screen_column_team": "Team",
+    "findings_screen_column_sprint": "Target sprint",
+    "findings_screen_column_us": "US number",
+    "findings_screen_edit": "Edit the row",
+    "findings_screen_edit_hint": (
+        "Double-click a row to qualify it directly in Dewey."
+    ),
+    "findings_screen_select_row": "Select a table row first.",
+    "findings_edit_title": "Finding qualification",
+    "findings_edit_us_title": "US title",
+    "findings_edit_us_description": "US description",
+    "findings_edit_acceptance_criteria": "Acceptance criteria",
+    "findings_import_title": "Import a qualified findings workbook",
+    "findings_import_success": "{count} qualification(s) imported for {alias} from {path}.",
+    "findings_import_unmatched": "{count} row(s) of the file match no finding of this organization and were ignored.",
+    "findings_import_none": "No filled-in Qualification or US column was found in this file.",
+    "findings_import_error": "This workbook could not be read: {error}",
+    "findings_cache_failed": "Could not store the findings of this run: {error}",
     "menu_export_picklist_csvs": "Create the picklist CSV files",
     "picklist_csv_export_in_progress": "Exporting picklist CSV files...",
     "picklist_csv_export_success": "Picklist CSV export completed successfully (picklist/ folder under the output directory).",

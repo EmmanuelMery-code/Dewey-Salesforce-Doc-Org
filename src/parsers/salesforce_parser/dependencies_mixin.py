@@ -9,6 +9,7 @@ field usage extraction helpers used below live in
 
 from __future__ import annotations
 
+from src.core.field_automation_usage import assign_field_automation_usages
 from src.core.models import Dependency, MetadataSnapshot, ObjectInfo
 from src.core.utils import child_text, parse_xml
 from src.parsers.salesforce_parser.base import _ParserState
@@ -118,6 +119,30 @@ class _DependenciesMixin(_OrphanDetectionMixin, _ParserState):
                         snapshot.dependencies.append(Dependency(
                             source_name=f"{obj.api_name}.{vr.full_name}",
                             source_kind="ValidationRule",
+                            target_name=f"{obj.api_name}.{f.api_name}",
+                            target_kind="Field"
+                        ))
+
+        # 1d. Formula fields -> Field dependencies. A formula reads fields by
+        # bare API name, so the scan is scoped to the formula's own object;
+        # cross-object references (``Parent__r.Field__c``) resolve to the
+        # parent's field only when that name also exists on this object, which
+        # is the same trade-off the validation rule scan above makes.
+        for obj in snapshot.objects:
+            custom_fields = [f for f in obj.fields if f.custom]
+            if not custom_fields:
+                continue
+            for formula_field in obj.fields:
+                formula_lower = (formula_field.formula or "").lower()
+                if not formula_lower:
+                    continue
+                for f in custom_fields:
+                    if f.api_name == formula_field.api_name:
+                        continue
+                    if f.api_name.lower() in formula_lower:
+                        snapshot.dependencies.append(Dependency(
+                            source_name=f"{obj.api_name}.{formula_field.api_name}",
+                            source_kind="Formula",
                             target_name=f"{obj.api_name}.{f.api_name}",
                             target_kind="Field"
                         ))
@@ -420,3 +445,7 @@ class _DependenciesMixin(_OrphanDetectionMixin, _ParserState):
         # 9. Orphan detection (Apex/Object/Field/Flow) — see _OrphanDetectionMixin
         used_targets = {(d.target_name, d.target_kind) for d in snapshot.dependencies}
         self._detect_orphans(snapshot, used_targets)
+
+        # 10. Roll the Field dependencies up onto the fields themselves, so the
+        # Data Dictionary can warn that changing a field may break an automation.
+        assign_field_automation_usages(snapshot)

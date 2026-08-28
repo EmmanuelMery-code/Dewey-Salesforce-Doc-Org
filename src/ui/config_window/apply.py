@@ -97,6 +97,12 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     app.generate_sarif_var.set(
         bool(edit_vars["generate_sarif"].get())
     )
+    app.generate_data_dictionary_excel_var.set(
+        bool(edit_vars["generate_data_dictionary_excel"].get())
+    )
+    app.generate_findings_excel_var.set(
+        bool(edit_vars["generate_findings_excel"].get())
+    )
     app.run_tests_var.set(bool(edit_vars["run_tests"].get()))
     app.calculate_coverage_var.set(bool(edit_vars["calculate_coverage"].get()))
     app.include_comparison_var.set(bool(edit_vars["include_comparison"].get()))

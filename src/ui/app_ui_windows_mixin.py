@@ -14,6 +14,7 @@ from src.ui.config_window import show_configuration_screen
 from src.ui.dashboard_designer_screen import show_dashboard_designer_screen
 from src.ui.data_dictionary_screen import show_data_dictionary_screen
 from src.ui.exclusion_screen import show_exclusion_screen
+from src.ui.findings_screen import show_findings_screen
 from src.ui.flow_coverage_exclusion_screen import show_flow_coverage_exclusion_screen
 from src.ui.history_screen import show_history_screen
 from src.ui.picklist_csv_export import export_picklist_csvs
@@ -58,6 +59,9 @@ class _AppUiWindowsMixin:
 
     def _show_data_dictionary_screen(self) -> None:
         show_data_dictionary_screen(self)
+
+    def _show_findings_screen(self) -> None:
+        show_findings_screen(self)
 
     def _menu_export_picklist_csvs(self) -> None:
         export_picklist_csvs(self)

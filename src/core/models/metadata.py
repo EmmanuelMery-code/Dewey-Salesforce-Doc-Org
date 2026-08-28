@@ -20,12 +20,40 @@ class FieldInfo:
     picklist_api_names: list[str] = field(default_factory=list)
     picklist_is_global: bool = False
     picklist_global_name: str = ""
+    #: Expression of a Formula field (and of the few other field types that
+    #: carry one), kept so the impact analysis can see which fields it reads.
+    formula: str = ""
     dewey_comment: str = ""
     dewey_piloted_by: str = ""
+    #: Automation/code types referencing this field, filled from the impact
+    #: analysis — see :mod:`src.core.field_automation_usage`.
+    automation_usages: list[str] = field(default_factory=list)
 
     @property
     def is_picklist(self) -> bool:
         return self.data_type in ("Picklist", "MultiselectPicklist")
+
+    @property
+    def automation_usage_label(self) -> str:
+        """The automation types using this field, comma-separated.
+
+        Empty when no automation references the field, which is the signal
+        that it can be changed without breaking anything.
+        """
+        return ", ".join(self.automation_usages)
+
+    @property
+    def dewey_comment_combined(self) -> str:
+        """Concatenation of the field metadata ``description`` and the
+        user-entered "Commentaire Dewey" free text, in that order.
+
+        Field-level counterpart of ``ObjectInfo.dewey_comment_combined``:
+        callers that expose the concatenation as an option (the Data
+        Dictionary screen checkbox) choose between this property and the raw
+        ``dewey_comment`` themselves.
+        """
+        parts = [part.strip() for part in (self.description, self.dewey_comment) if part and part.strip()]
+        return " ".join(parts)
 
 
 @dataclass(slots=True)

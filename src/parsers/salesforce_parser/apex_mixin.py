@@ -10,8 +10,12 @@ from src.core.utils import child_text, parse_xml
 from src.parsers.salesforce_parser.apex_helpers import (
     _CALLOUT_IN_LOOP_RE,
     _DML_IN_LOOP_RE,
+    _DML_RE,
     _SOQL_IN_LOOP_RE,
+    _SOQL_RE,
+    _SOSL_RE,
     _detect_pattern_in_loop,
+    _strip_apex_comments,
 )
 from src.parsers.salesforce_parser.base import _ParserState
 
@@ -43,32 +47,34 @@ class _ApexMixin(_ParserState):
                 api_version=api_version,
                 status=status,
             )
+            # Structural metrics are measured on the executable code only:
+            # comments and string literals are blanked out so that prose or
+            # HTTP verbs such as 'DELETE' cannot be mistaken for statements.
+            code = _strip_apex_comments(body)
+
             artifact.line_count = len(body.splitlines())
             artifact.method_count = len(
                 re.findall(
                     r"(?mi)^\s*(?:public|private|protected|global)\s+(?:static\s+)?[\w<>\[\],]+\s+\w+\s*\(",
-                    body,
+                    code,
                 )
             )
-            artifact.soql_count = len(re.findall(r"\[\s*SELECT\b|Database\.query\s*\(", body, re.IGNORECASE))
-            artifact.sosl_count = len(re.findall(r"\[\s*FIND\b|Search\.query\s*\(", body, re.IGNORECASE))
-            artifact.dml_count = len(
-                re.findall(
-                    r"(?i)\b(?:insert|update|upsert|delete|undelete|merge)\b|Database\.(?:insert|update|upsert|delete|undelete|merge)\s*\(",
-                    body,
-                )
-            )
+            artifact.soql_count = len(_SOQL_RE.findall(code))
+            artifact.sosl_count = len(_SOSL_RE.findall(code))
+            artifact.dml_count = len(_DML_RE.findall(code))
             artifact.comment_line_count = sum(
                 1 for line in body.splitlines() if line.strip().startswith(("//", "/*", "*"))
             )
-            artifact.system_debug_count = len(re.findall(r"System\.debug\s*\(", body))
-            artifact.has_try_catch = "try" in body and "catch" in body
+            artifact.system_debug_count = len(re.findall(r"System\.debug\s*\(", code))
+            artifact.has_try_catch = bool(re.search(r"(?i)\btry\b", code)) and bool(
+                re.search(r"(?i)\bcatch\b", code)
+            )
             sharing_match = re.search(
-                r"(?i)\b(with sharing|without sharing|inherited sharing)\b", body
+                r"(?i)\b(with sharing|without sharing|inherited sharing)\b", code
             )
             artifact.sharing_declaration = sharing_match.group(1) if sharing_match else ""
-            artifact.is_test = bool(re.search(r"(?i)@isTest\b|\btestMethod\b", body))
-            artifact.is_interface = kind == "class" and bool(re.search(r"(?i)\binterface\b", body))
+            artifact.is_test = bool(re.search(r"(?i)@isTest\b|\btestMethod\b", code))
+            artifact.is_interface = kind == "class" and bool(re.search(r"(?i)\binterface\b", code))
             _soql_loop_line = _detect_pattern_in_loop(body, _SOQL_IN_LOOP_RE)
             artifact.query_in_loop = _soql_loop_line is not None
             artifact.query_in_loop_line = _soql_loop_line

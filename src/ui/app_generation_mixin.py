@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from tkinter import messagebox
 
+from src.core.data_dictionary_selection import DataDictionarySelection
+from src.core.findings_cache import findings_cache_path, save_findings_cache
+from src.core.findings_qualification import STORE_FILENAME as QUALIFICATION_STORE
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 
 
@@ -16,6 +19,17 @@ class AppGenerationMixin:
         index_path = result.index
         if index_path is not None:
             self._append_log(self._t("index_log", path=index_path))
+        if result.analyzer_report is not None:
+            self.latest_analyzer_report = result.analyzer_report
+            alias = self.alias_var.get().strip()
+            try:
+                save_findings_cache(
+                    result.analyzer_report,
+                    findings_cache_path(self.app_dir, alias),
+                    alias=alias,
+                )
+            except OSError as exc:
+                self._append_log(self._t("findings_cache_failed", error=exc))
         snapshot = result.snapshot
         metrics = getattr(snapshot, "metrics", None)
         if metrics is not None:
@@ -88,6 +102,13 @@ class AppGenerationMixin:
         )
         generate_audit_summary_rtf = bool(self.generate_audit_summary_rtf_var.get())
         generate_sarif = bool(self.generate_sarif_var.get())
+        generate_dd_excel = bool(self.generate_data_dictionary_excel_var.get())
+        generate_findings_excel = bool(self.generate_findings_excel_var.get())
+        dd_selection = (
+            DataDictionarySelection.from_settings(self.settings)
+            if generate_dd_excel
+            else None
+        )
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
         selected_org = self._selected_org()
@@ -135,6 +156,10 @@ class AppGenerationMixin:
                 generate_summary_word=generate_summary_word,
                 generate_audit_summary_rtf=generate_audit_summary_rtf,
                 generate_sarif=generate_sarif,
+                generate_data_dictionary_excel=generate_dd_excel,
+                generate_findings_excel=generate_findings_excel,
+                findings_qualifications_path=self.app_dir / QUALIFICATION_STORE,
+                data_dictionary_selection=dd_selection,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),
