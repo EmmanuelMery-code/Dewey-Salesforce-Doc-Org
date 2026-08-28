@@ -14,11 +14,11 @@ is deterministic, so re-importing an untouched export yields the same keys.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
-from src.analyzer.models import Finding
+from src.analyzer.models import SEVERITY_ORDER, Finding
 
 STORE_FILENAME = "findings_qualifications.json"
 _STORE_VERSION = 1
@@ -31,6 +31,11 @@ QUALIFICATION_FIELD_COUNT = 7
 
 #: Bucket used for runs made without an org alias.
 UNNAMED_ALIAS = "(sans alias)"
+
+#: Status forced on a finding the analyzer no longer reports. It stays in the
+#: document — dropping it would lose the qualification work done on it — but
+#: reads as closed rather than as something still to do.
+RESOLVED_STATUS = "Terminé"
 
 
 def store_alias(alias: str) -> str:
@@ -69,6 +74,10 @@ class FindingQualification:
     def is_empty(self) -> bool:
         return not any(self.as_row())
 
+    def with_status(self, status: str) -> FindingQualification:
+        """Copy carrying ``status``, the six other columns untouched."""
+        return replace(self, status=status)
+
     @classmethod
     def from_row(cls, values: Sequence[object]) -> FindingQualification:
         """Build a qualification from raw cell values, in M..S order.
@@ -104,6 +113,26 @@ def finding_keys(findings: Sequence[Finding]) -> list[QualificationKey]:
     return assign_keys(
         (finding.target_name, finding.rule.id) for finding in findings
     )
+
+
+def finding_sort_key(finding: Finding) -> tuple[int, str, str]:
+    """Rank of ``finding`` in the canonical order: severity, component, rule."""
+    return (
+        SEVERITY_ORDER.get(finding.rule.severity, 99),
+        finding.target_name.lower(),
+        finding.rule.id,
+    )
+
+
+def sort_findings(findings: Sequence[Finding]) -> list[Finding]:
+    """Canonical order of the findings, shared by the workbook and the screen.
+
+    The sort is stable, so findings sharing a severity, a component and a
+    rule keep the order they were given. That is what makes the occurrence
+    indexes of :func:`finding_keys` reproducible, and what lets a merge
+    append findings to an existing list without renumbering the old ones.
+    """
+    return sorted(findings, key=finding_sort_key)
 
 
 def load_qualifications(

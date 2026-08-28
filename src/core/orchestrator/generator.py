@@ -46,6 +46,7 @@ class SalesforceDocumentationGenerator(
         generate_data_dictionary_excel: bool = False,
         generate_findings_excel: bool = False,
         findings_qualifications_path: str | Path | None = None,
+        findings_history_path: str | Path | None = None,
         data_dictionary_selection: DataDictionarySelection | None = None,
         scoring_weights: dict[str, int] | None = None,
         adopt_adapt_weights: dict[str, int] | None = None,
@@ -93,6 +94,12 @@ class SalesforceDocumentationGenerator(
             Path(findings_qualifications_path).resolve()
             if findings_qualifications_path
             else None
+        )
+        # Cache of everything already known about this org. Read to keep the
+        # findings of the past runs in the document; left unset in headless
+        # mode, where each run stands on its own.
+        self.findings_history_path = (
+            Path(findings_history_path).resolve() if findings_history_path else None
         )
         self.data_dictionary_selection = data_dictionary_selection
         self.scoring_weights = scoring_weights
@@ -167,7 +174,7 @@ class SalesforceDocumentationGenerator(
 
         self.log("Lecture des metadata terminee.")
 
-        result = GenerationResult(snapshot=snapshot)
+        result = GenerationResult(snapshot=snapshot, alias=self.alias)
 
         excel_writer = ExcelReportWriter(log_callback=self.log)
         excel_dir = self.output_dir / "excel"

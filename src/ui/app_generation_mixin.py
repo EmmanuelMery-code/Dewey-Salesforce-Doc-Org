@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from tkinter import messagebox
 
 from src.core.data_dictionary_selection import DataDictionarySelection
@@ -13,6 +14,29 @@ from src.core.orchestrator import GenerationResult, SalesforceDocumentationGener
 class AppGenerationMixin:
     """Documentation generation, menu shortcuts and test-coverage display."""
 
+    # ------------------------------------------------------------------ findings paths
+
+    def _findings_paths(self, alias: str) -> dict[str, Path]:
+        """Stores the generator reads to keep the findings document faithful.
+
+        Every entry point that builds a generator must pass them — the
+        documentation menu, the retrieve-then-document pipeline and the
+        ``--action`` steps. Going through one helper is deliberate: a missing
+        path is invisible, the workbook is still produced, only stripped of
+        the qualifications or of the findings of the past runs.
+
+        ``alias`` must be the very alias the run will carry, since the
+        history is stored per org.
+        """
+        return {
+            "findings_qualifications_path": self.app_dir / QUALIFICATION_STORE,
+            "findings_history_path": findings_cache_path(self.app_dir, alias),
+        }
+
+    def _run_alias(self, org_ref: str = "") -> str:
+        """Alias a run is filed under: the alias field, else the org ref."""
+        return self.alias_var.get().strip() or org_ref
+
     # ------------------------------------------------------------------ generation result
 
     def _on_generation_result(self, result: GenerationResult) -> None:
@@ -21,7 +45,9 @@ class AppGenerationMixin:
             self._append_log(self._t("index_log", path=index_path))
         if result.analyzer_report is not None:
             self.latest_analyzer_report = result.analyzer_report
-            alias = self.alias_var.get().strip()
+            # The alias of the run itself, so the cache written here is the
+            # one the run read its history from.
+            alias = result.alias or self.alias_var.get().strip()
             try:
                 save_findings_cache(
                     result.analyzer_report,
@@ -57,7 +83,6 @@ class AppGenerationMixin:
         if not source_value:
             messagebox.showerror(self._t("error_title"), self._t("source_folder_required"))
             return
-        from pathlib import Path
         source = Path(source_value)
         output = self._validate_output_dir()
         if output is None:
@@ -115,6 +140,8 @@ class AppGenerationMixin:
         org_ref = selected_org.org_ref if selected_org else self.alias_var.get().strip()
         if selected_org is None and org_ref:
             self._append_log(self._t("generation_last_alias", alias=org_ref))
+        run_alias = self._run_alias(org_ref)
+        findings_paths = self._findings_paths(run_alias)
 
         def task() -> GenerationResult:
             self.cli_service.reset_command_stats()
@@ -158,7 +185,7 @@ class AppGenerationMixin:
                 generate_sarif=generate_sarif,
                 generate_data_dictionary_excel=generate_dd_excel,
                 generate_findings_excel=generate_findings_excel,
-                findings_qualifications_path=self.app_dir / QUALIFICATION_STORE,
+                **findings_paths,
                 data_dictionary_selection=dd_selection,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
@@ -182,7 +209,7 @@ class AppGenerationMixin:
                 comparison_target=self.comparison_target_var.get().strip() or "auto",
                 log_callback=self.task_manager.queue_log,
             )
-            generator.alias = self.alias_var.get().strip() or org_ref
+            generator.alias = run_alias
             result = generator.generate()
             self.cli_service.log_command_summary()
             return result

@@ -26,7 +26,6 @@ from tkinter import messagebox
 from typing import Callable
 
 from src.core.data_dictionary_selection import DataDictionarySelection
-from src.core.findings_qualification import STORE_FILENAME as QUALIFICATION_STORE
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 
 CLI_ACTIONS: tuple[str, ...] = ("manifest", "retrieve", "documentation", "all", "retrivation")
@@ -76,6 +75,8 @@ class AppCliActionsMixin:
         )
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
+        run_alias = self._run_alias(org_ref)
+        findings_paths = self._findings_paths(run_alias)
 
         def task() -> GenerationResult:
             self.cli_service.reset_command_stats()
@@ -115,7 +116,7 @@ class AppCliActionsMixin:
                 generate_sarif=generate_sarif,
                 generate_data_dictionary_excel=generate_dd_excel,
                 generate_findings_excel=generate_findings_excel,
-                findings_qualifications_path=self.app_dir / QUALIFICATION_STORE,
+                **findings_paths,
                 data_dictionary_selection=dd_selection,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
@@ -139,7 +140,7 @@ class AppCliActionsMixin:
                 comparison_target=self.comparison_target_var.get().strip() or "auto",
                 log_callback=self.task_manager.queue_log,
             )
-            generator.alias = self.alias_var.get().strip() or org_ref
+            generator.alias = run_alias
             result = generator.generate()
             self.cli_service.log_command_summary()
             return result

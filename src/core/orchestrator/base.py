@@ -41,6 +41,7 @@ class _OrchestratorState:
     generate_data_dictionary_excel: bool
     generate_findings_excel: bool
     findings_qualifications_path: Path | None
+    findings_history_path: Path | None
     data_dictionary_selection: DataDictionarySelection | None
     scoring_weights: dict[str, int] | None
     adopt_adapt_weights: dict[str, int] | None

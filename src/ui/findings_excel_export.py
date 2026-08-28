@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING, Mapping, Sequence
+from typing import TYPE_CHECKING, Collection, Mapping, Sequence
 
 from src.analyzer.models import Finding
 from src.core.findings_qualification import FindingQualification, QualificationKey
@@ -29,6 +29,7 @@ def export_findings_workbook(
     alias: str,
     run_date: date | None = None,
     qualifications: Mapping[QualificationKey, FindingQualification] | None = None,
+    resolved_keys: Collection[QualificationKey] = (),
 ) -> Path | None:
     """Start the background export and return the target path.
 
@@ -43,6 +44,7 @@ def export_findings_workbook(
     # title with the date of the analysed run.
     target = findings_workbook_path(Path(output) / "excel", alias)
     stored = dict(qualifications or {})
+    resolved = set(resolved_keys)
 
     def task() -> Path:
         writer = FindingsExcelWriter(log_callback=app.task_manager.queue_log)
@@ -52,6 +54,7 @@ def export_findings_workbook(
             alias=alias,
             run_date=run_date,
             qualifications=stored,
+            resolved_keys=resolved,
         )
 
     app.task_manager.start_task(

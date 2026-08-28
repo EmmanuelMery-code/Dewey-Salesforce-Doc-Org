@@ -312,7 +312,8 @@ EN_PART2: dict[str, str] = {
     "findings_screen_column_us": "US number",
     "findings_screen_edit": "Edit the row",
     "findings_screen_edit_hint": (
-        "Double-click a row to qualify it directly in Dewey."
+        "Double-click a row to qualify it directly in Dewey. Findings the "
+        "analysis no longer reports stay listed with the \"Terminé\" status."
     ),
     "findings_screen_select_row": "Select a table row first.",
     "findings_edit_title": "Finding qualification",
@@ -321,7 +322,7 @@ EN_PART2: dict[str, str] = {
     "findings_edit_acceptance_criteria": "Acceptance criteria",
     "findings_import_title": "Import a qualified findings workbook",
     "findings_import_success": "{count} qualification(s) imported for {alias} from {path}.",
-    "findings_import_unmatched": "{count} row(s) of the file match no finding of this organization and were ignored.",
+    "findings_import_added": "{count} finding(s) present in the file but missing from the list were added to the organization.",
     "findings_import_none": "No filled-in Qualification or US column was found in this file.",
     "findings_import_error": "This workbook could not be read: {error}",
     "findings_cache_failed": "Could not store the findings of this run: {error}",
