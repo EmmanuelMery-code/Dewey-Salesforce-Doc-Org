@@ -7,10 +7,24 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from src.core.models import ObjectInfo, PmdViolation, SecurityArtifact
+from src.core.models import FieldInfo, ObjectInfo, PmdViolation, SecurityArtifact
 from src.reporting.excel_writer_data_dictionary import _ExcelDataDictionaryMixin
 
 LogCallback = Callable[[str], None]
+
+
+def _picklist_api_names(item: FieldInfo) -> list[str]:
+    """API names aligned index by index with ``item.picklist_values``.
+
+    Older snapshots (and Global Value Sets whose entries carry no explicit
+    ``fullName``) may expose fewer API names than labels; the label is then
+    used as the API name, as the parser does.
+    """
+    api_names = item.picklist_api_names
+    return [
+        api_names[index] if index < len(api_names) else label
+        for index, label in enumerate(item.picklist_values)
+    ]
 
 
 class ExcelReportWriter(_ExcelDataDictionaryMixin):
@@ -259,6 +273,7 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin):
         Lists every ``Picklist``/``MultiselectPicklist`` field found across
         ``objects``, resolving Global Value Set references to their values
         (already computed by the parser onto ``FieldInfo.picklist_values``).
+        The last column repeats those values as API names, in the same order.
         """
         output = Path(output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -271,6 +286,7 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin):
                 "Oui" if item.picklist_is_global else "Non",
                 item.picklist_global_name or "-",
                 " | ".join(item.picklist_values) if item.picklist_values else "-",
+                " | ".join(_picklist_api_names(item)) if item.picklist_values else "-",
             ]
             for obj in objects
             for item in obj.fields
@@ -289,6 +305,7 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin):
                 "Picklist Globale ?",
                 "Nom Picklist Globale",
                 "Valeurs de la Picklist",
+                "Valeurs API de la Picklist",
             ],
             rows,
         )
