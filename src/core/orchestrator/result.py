@@ -22,6 +22,9 @@ class GenerationResult:
 
     snapshot: MetadataSnapshot | None = None
     analyzer_report: AnalyzerReport | None = None
+    #: Org alias the run was filed under, so the caller stores its outcome
+    #: where the run read its own history from.
+    alias: str = ""
     permission_excel: Path | None = None
     profile_excel: Path | None = None
     inventory_excel: Path | None = None

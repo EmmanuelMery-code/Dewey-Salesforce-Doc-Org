@@ -10,6 +10,9 @@ Dewey owns the ``A..L`` columns. The qualification (``M..P``) and US
 and carry the status dropdown, and are filled from the values previously
 imported back from a reviewed workbook (see
 :mod:`src.core.findings_qualification`), or left empty when there are none.
+
+The findings a run no longer reports are exported too — the caller passes
+them along with ``resolved_keys`` — with their status forced to "Terminé".
 """
 
 from __future__ import annotations
@@ -17,18 +20,20 @@ from __future__ import annotations
 import re
 from datetime import date, datetime
 from pathlib import Path
-from typing import Callable, Mapping, Sequence
+from typing import Callable, Collection, Mapping, Sequence
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from src.analyzer.models import SEVERITY_ORDER, Finding
+from src.analyzer.models import Finding
 from src.core.findings_qualification import (
+    RESOLVED_STATUS,
     FindingQualification,
     QualificationKey,
     finding_keys,
+    sort_findings,
 )
 
 LogCallback = Callable[[str], None]
@@ -41,13 +46,11 @@ _GROUP_BASE = 12  # A..L — the finding as detected by Dewey
 _GROUP_QUALIFICATION = 4  # M..P — the TechLead's qualification
 _GROUP_US = 3  # Q..S — the TechLead's US description
 
-# Positions the importer needs too, kept here as the single source of truth.
+#: First row carrying a finding, used as a fallback by the importer when it
+#: cannot recognise the header row of the file it is given.
 FIRST_DATA_ROW = 3
-RULE_COLUMN = 3  # C
-COMPONENT_COLUMN = 5  # E
-QUALIFICATION_FIRST_COLUMN = _GROUP_BASE + 1  # M
 
-_HEADERS = [
+HEADERS = [
     "Sévérité",
     "Catégorie",
     "Règle",
@@ -69,6 +72,31 @@ _HEADERS = [
     "Critères d'acceptation",
 ]
 
+#: Field fed by each column, aligned with :data:`HEADERS`. The importer maps
+#: a header label back onto its field through it, which is what lets a
+#: workbook whose columns were shifted still be read correctly.
+COLUMN_FIELDS = (
+    "severity",
+    "category",
+    "rule",
+    "target_kind",
+    "component",
+    "title",
+    "message",
+    "rationale",
+    "remediation",
+    "source",
+    "reference",
+    "details",
+    "status",
+    "team",
+    "target_sprint",
+    "us_number",
+    "us_title",
+    "us_description",
+    "acceptance_criteria",
+)
+
 _COLUMN_WIDTHS = [12, 22, 14, 16, 26, 34, 38, 45, 45, 28, 40, 40, 14, 18, 24, 33.5, 53.5, 52, 52]
 
 # Colours carry the explicit "FF" alpha channel so the workbook matches the
@@ -85,7 +113,7 @@ _QUALIFICATION_FILL = "FFEEF2FA"
 _US_FILL = "FFFEF0EE"
 _LEGEND_FILL = "FFF8FAFC"
 
-_SEVERITY_LABELS = {
+SEVERITY_LABELS = {
     "Critical": "Critique",
     "Major": "Majeur",
     "Minor": "Mineur",
@@ -100,13 +128,17 @@ _SEVERITY_COLORS = {
 
 #: Allowed values of the "Statut" column, shared with the findings screen so
 #: its editor offers exactly what the workbook's dropdown accepts.
-STATUSES = ["À traiter", "Faux positif", "En cours", "Terminé"]
+STATUSES = ["À traiter", "Faux positif", "En cours", RESOLVED_STATUS]
 
 _LEGEND_STATUSES = [
     ("À traiter", "Valeur par défaut — finding à qualifier par le TechLead"),
     ("Faux positif", "Finding non pertinent — sera exclu des prochaines analyses Dewey"),
     ("En cours", "Remédiation en cours dans un sprint"),
-    ("Terminé", "Remédiation validée, finding résolu"),
+    (
+        RESOLVED_STATUS,
+        "Remédiation validée, finding résolu — position mise d'office par Dewey "
+        "sur les findings que l'analyse ne détecte plus",
+    ),
 ]
 _LEGEND_WORKFLOW = [
     (
@@ -146,7 +178,7 @@ def findings_workbook_path(
 
 def severity_label(finding: Finding) -> str:
     """French severity label used by the workbook and the findings screen."""
-    return _SEVERITY_LABELS.get(finding.rule.severity, finding.rule.severity or "Info")
+    return SEVERITY_LABELS.get(finding.rule.severity, finding.rule.severity or "Info")
 
 
 def _category_label(finding: Finding) -> str:
@@ -154,24 +186,6 @@ def _category_label(finding: Finding) -> str:
     if rule.subcategory:
         return f"{rule.category} - {rule.subcategory}"
     return rule.category
-
-
-def _sort_key(finding: Finding) -> tuple[int, str, str]:
-    return (
-        SEVERITY_ORDER.get(finding.rule.severity, 99),
-        finding.target_name.lower(),
-        finding.rule.id,
-    )
-
-
-def sort_findings(findings: Sequence[Finding]) -> list[Finding]:
-    """Row order of the ``Findings`` sheet: severity, then component, then rule.
-
-    Exposed so the qualification screen lists the findings in the very order
-    the workbook will use, which is also the order the occurrence indexes of
-    :func:`~src.core.findings_qualification.finding_keys` are built from.
-    """
-    return sorted(findings, key=_sort_key)
 
 
 class FindingsExcelWriter:
@@ -188,15 +202,19 @@ class FindingsExcelWriter:
         alias: str = "",
         run_date: date | None = None,
         qualifications: Mapping[QualificationKey, FindingQualification] | None = None,
+        resolved_keys: Collection[QualificationKey] = (),
     ) -> Path:
         """Write ``findings`` to ``output_path`` and return the written path.
 
         ``qualifications`` pre-fills the TechLead columns from a previously
         imported workbook; findings without a stored entry keep them empty.
+        ``resolved_keys`` designates the findings the analyzer no longer
+        reports, whose status is forced to "Terminé".
         """
         output = Path(output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
 
+        resolved = set(resolved_keys)
         workbook = Workbook()
         sheet = workbook.active
         sheet.title = FINDINGS_SHEET
@@ -206,12 +224,15 @@ class FindingsExcelWriter:
             alias=alias,
             run_date=run_date,
             qualifications=qualifications or {},
+            resolved=resolved,
         )
         self._write_legend_sheet(workbook.create_sheet(LEGEND_SHEET))
         workbook.save(output)
 
+        closed = f", dont {len(resolved)} resolu(s)" if resolved else ""
         self.log(
-            f"Document des findings genere : {len(findings)} finding(s) - {output}"
+            f"Document des findings genere : {len(findings)} finding(s)"
+            f"{closed} - {output}"
         )
         return output
 
@@ -225,6 +246,7 @@ class FindingsExcelWriter:
         alias: str,
         run_date: date | None,
         qualifications: Mapping[QualificationKey, FindingQualification],
+        resolved: set[QualificationKey],
     ) -> None:
         stamp = (run_date or date.today()).strftime("%d/%m/%Y")
         title = f"Finding ({f'{alias} {stamp}'.strip()})"
@@ -235,7 +257,11 @@ class FindingsExcelWriter:
         keys = finding_keys(ordered)
         for offset, (finding, key) in enumerate(zip(ordered, keys)):
             self._write_finding_row(
-                sheet, 3 + offset, finding, qualifications.get(key)
+                sheet,
+                FIRST_DATA_ROW + offset,
+                finding,
+                qualifications.get(key),
+                resolved=key in resolved,
             )
 
         for column, width in enumerate(_COLUMN_WIDTHS, start=1):
@@ -276,7 +302,7 @@ class FindingsExcelWriter:
         sheet.row_dimensions[1].height = _TITLE_ROW_HEIGHT
 
     def _write_headers(self, sheet) -> None:
-        for column, header in enumerate(_HEADERS, start=1):
+        for column, header in enumerate(HEADERS, start=1):
             cell = sheet.cell(row=2, column=column, value=header)
             cell.font = Font(name="Arial", size=9, bold=True, color=_WHITE)
             cell.fill = PatternFill(fill_type="solid", fgColor=self._group_color(column))
@@ -290,6 +316,8 @@ class FindingsExcelWriter:
         row: int,
         finding: Finding,
         qualification: FindingQualification | None = None,
+        *,
+        resolved: bool = False,
     ) -> None:
         rule = finding.rule
         severity = severity_label(finding)
@@ -308,11 +336,13 @@ class FindingsExcelWriter:
             "\n".join(finding.details) or None,
         ]
         # Qualification (M..P) and US (Q..S) are the TechLead's own columns:
-        # restored from a previously imported workbook, or left empty.
-        if qualification is None:
-            values += [None] * (_GROUP_QUALIFICATION + _GROUP_US)
-        else:
-            values += [value or None for value in qualification.as_row()]
+        # restored from a previously imported workbook, or left empty. The
+        # status is the one exception Dewey writes by itself, on the findings
+        # it no longer detects.
+        techlead = qualification or FindingQualification()
+        if resolved:
+            techlead = techlead.with_status(RESOLVED_STATUS)
+        values += [value or None for value in techlead.as_row()]
 
         for column, value in enumerate(values, start=1):
             cell = sheet.cell(row=row, column=column, value=value)

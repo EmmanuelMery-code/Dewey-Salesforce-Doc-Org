@@ -9,6 +9,11 @@ per-org store (see :mod:`src.core.findings_qualification`) and both
 pre-filling the columns of every later export: directly in the table (double
 click a row) or through the Excel round trip — export the workbook, fill the
 Qualification and US columns, import the file back.
+
+The list is the org's whole history, not the last run: a finding the
+analyzer stopped reporting is still shown and exported, with its status
+forced to "Terminé", and a row an imported workbook knows about while Dewey
+does not is taken in rather than dropped.
 """
 
 from __future__ import annotations
@@ -17,11 +22,19 @@ import tkinter as tk
 from datetime import date
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from src.analyzer.models import Finding
-from src.core.findings_cache import CachedFindings, load_all_findings_caches
+from src.core.findings_cache import (
+    CachedFindings,
+    adopt_findings,
+    findings_cache_path,
+    load_all_findings_caches,
+    merge_history,
+    write_findings_cache,
+)
 from src.core.findings_qualification import (
+    RESOLVED_STATUS,
     STORE_FILENAME,
     UNNAMED_ALIAS,
     FindingQualification,
@@ -29,13 +42,14 @@ from src.core.findings_qualification import (
     finding_keys,
     load_qualifications,
     save_qualifications,
+    sort_findings,
     store_alias,
 )
 from src.reporting.excel_reader_findings import (
     FindingsWorkbookError,
-    read_findings_qualifications,
+    read_findings_workbook,
 )
-from src.reporting.excel_writer_findings import severity_label, sort_findings
+from src.reporting.excel_writer_findings import severity_label
 from src.ui import theme
 from src.ui.findings_edit_dialog import edit_finding_qualification
 from src.ui.findings_excel_export import export_findings_workbook
@@ -104,7 +118,9 @@ class FindingsScreen:
         """Cached findings per alias, the in-memory run taking precedence.
 
         The report still in memory belongs to the org currently configured
-        and is at least as recent as its cache, so it wins for that alias.
+        and is at least as recent as its cache, so it wins for that alias —
+        merged with it, since the cache is what remembers the findings the
+        run no longer reports.
         """
         caches = {
             store_alias(alias): cached
@@ -114,9 +130,19 @@ class FindingsScreen:
         report = getattr(self.app, "latest_analyzer_report", None)
         findings = report.all_findings() if report is not None else []
         if findings:
-            alias = store_alias(self.app.alias_var.get())
-            caches[alias] = CachedFindings(
-                findings=findings, alias=alias, generated_at=date.today()
+            # The raw alias is kept as-is: it is the one the cache file of
+            # this org is named after, and the screen writes back to it.
+            raw_alias = self.app.alias_var.get().strip()
+            key = store_alias(raw_alias)
+            known = caches.get(key)
+            merged, resolved = merge_history(
+                findings, known.findings if known else []
+            )
+            caches[key] = CachedFindings(
+                findings=merged,
+                alias=known.alias if known else raw_alias,
+                generated_at=date.today(),
+                resolved_keys=resolved,
             )
         return caches
 
@@ -137,6 +163,20 @@ class FindingsScreen:
 
     def _current_qualifications(self) -> dict[QualificationKey, FindingQualification]:
         return self.qualifications.get(self._current_alias(), {})
+
+    def _current_resolved(self) -> set[QualificationKey]:
+        """Findings of the selected org the analyzer no longer reports."""
+        cached = self.caches.get(self._current_alias())
+        return cached.resolved_keys if cached is not None else set()
+
+    def _effective_qualification(
+        self, key: QualificationKey, resolved: set[QualificationKey]
+    ) -> FindingQualification:
+        """Qualification as it will be exported: resolved wins over stored."""
+        qualification = self._current_qualifications().get(key) or FindingQualification()
+        if key in resolved:
+            return qualification.with_status(RESOLVED_STATUS)
+        return qualification
 
     # ------------------------------------------------------------------ ui
 
@@ -242,14 +282,14 @@ class FindingsScreen:
 
     def _refresh_table(self, *, keep_selection: str | None = None) -> None:
         findings = self._current_findings()
-        stored = self._current_qualifications()
+        resolved = self._current_resolved()
 
         self.tree.delete(*self.tree.get_children())
         qualified = 0
         for index, (finding, key) in enumerate(
             zip(findings, finding_keys(findings))
         ):
-            qualification = stored.get(key) or FindingQualification()
+            qualification = self._effective_qualification(key, resolved)
             if not qualification.is_empty():
                 qualified += 1
             severity = severity_label(finding)
@@ -294,7 +334,7 @@ class FindingsScreen:
         # Row ids are the index in the sorted list the table was built from.
         index = int(selection[0])
         key = finding_keys(findings)[index]
-        current = self._current_qualifications().get(key) or FindingQualification()
+        current = self._effective_qualification(key, self._current_resolved())
 
         updated = edit_finding_qualification(
             self.window, self.app, findings[index], current
@@ -340,13 +380,10 @@ class FindingsScreen:
             alias="" if alias == UNNAMED_ALIAS else alias,
             run_date=cached.generated_at,
             qualifications=self._current_qualifications(),
+            resolved_keys=self._current_resolved(),
         )
 
     def _import(self) -> None:
-        findings = self._current_findings()
-        if not findings:
-            return
-
         file_path = filedialog.askopenfilename(
             title=self.app._t("findings_import_title"),
             filetypes=[("Excel", "*.xlsx"), ("All files", "*.*")],
@@ -355,7 +392,7 @@ class FindingsScreen:
             return
 
         try:
-            imported = read_findings_qualifications(file_path)
+            rows = read_findings_workbook(file_path)
         except FindingsWorkbookError as exc:
             messagebox.showerror(
                 self.app._t("error_title"),
@@ -363,34 +400,59 @@ class FindingsScreen:
             )
             return
 
-        if not imported:
+        # A row the org does not know about is taken in rather than dropped:
+        # the file may carry a finding of an older run, or one the TechLead
+        # added by hand, and either way its qualification must survive.
+        known = set(finding_keys(self._current_findings()))
+        added = [row.finding for row in rows if row.key not in known]
+        imported = {
+            row.key: row.qualification
+            for row in rows
+            if not row.qualification.is_empty()
+        }
+
+        if not added and not imported:
             messagebox.showinfo(
                 self.app._t("info_title"), self.app._t("findings_import_none")
             )
             return
 
-        # Only keep rows that match a finding of this org: a stale workbook
-        # would otherwise silently accumulate qualifications pointing at
-        # findings that no longer exist.
-        known = set(finding_keys(findings))
-        matched = {key: value for key, value in imported.items() if key in known}
-        unmatched = len(imported) - len(matched)
-
         alias = self._current_alias()
-        if matched:
-            self.qualifications.setdefault(alias, {}).update(matched)
+        if added and not self._remember_findings(alias, added):
+            return
+        if imported:
+            self.qualifications.setdefault(alias, {}).update(imported)
             if not self._save_store():
                 return
-            self._refresh_table()
+        self._refresh_table()
 
         message = self.app._t(
             "findings_import_success",
-            count=len(matched),
+            count=len(imported),
             alias=alias,
             path=Path(file_path).name,
         )
-        if unmatched:
-            message += "\n\n" + self.app._t(
-                "findings_import_unmatched", count=unmatched
-            )
+        if added:
+            message += "\n\n" + self.app._t("findings_import_added", count=len(added))
         messagebox.showinfo(self.app._t("success_title"), message)
+
+    def _remember_findings(self, alias: str, findings: Sequence[Finding]) -> bool:
+        """Add findings read from a workbook to the org's cache on disk."""
+        cached = self.caches[alias]
+        merged = adopt_findings(cached.findings, findings)
+        try:
+            write_findings_cache(
+                merged,
+                findings_cache_path(self.app.app_dir, cached.alias),
+                alias=cached.alias,
+                generated_at=cached.generated_at,
+                resolved_keys=cached.resolved_keys,
+            )
+        except OSError as exc:
+            messagebox.showerror(
+                self.app._t("error_title"),
+                self.app._t("findings_cache_failed", error=str(exc)),
+            )
+            return False
+        cached.findings = merged
+        return True

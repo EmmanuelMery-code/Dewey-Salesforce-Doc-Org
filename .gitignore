@@ -20,6 +20,9 @@ ENV/
 app_settings.json
 history.db
 last_findings.json
+findings_cache/
+findings_qualifications.json
+*.bak_[0-9]*
 technical_debt.json
 innovations.json
 dashboards.json

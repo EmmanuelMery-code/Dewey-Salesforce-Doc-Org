@@ -312,7 +312,9 @@ FR_PART2: dict[str, str] = {
     "findings_screen_column_us": "Numéro US",
     "findings_screen_edit": "Modifier la ligne",
     "findings_screen_edit_hint": (
-        "Double-cliquez une ligne pour la qualifier directement dans Dewey."
+        "Double-cliquez une ligne pour la qualifier directement dans Dewey. "
+        "Les findings que l'analyse ne détecte plus restent listés en "
+        "statut « Terminé »."
     ),
     "findings_screen_select_row": "Sélectionnez d'abord une ligne du tableau.",
     "findings_edit_title": "Qualification du finding",
@@ -321,7 +323,7 @@ FR_PART2: dict[str, str] = {
     "findings_edit_acceptance_criteria": "Critères d'acceptation",
     "findings_import_title": "Importer un classeur des findings qualifié",
     "findings_import_success": "{count} qualification(s) importée(s) pour {alias} depuis {path}.",
-    "findings_import_unmatched": "{count} ligne(s) du fichier ne correspondent à aucun finding de cette organisation et ont été ignorées.",
+    "findings_import_added": "{count} finding(s) présent(s) dans le fichier mais absent(s) de la liste ont été ajouté(s) à l'organisation.",
     "findings_import_none": "Aucune colonne Qualification ou US renseignée n'a été trouvée dans ce fichier.",
     "findings_import_error": "Impossible de lire ce classeur : {error}",
     "findings_cache_failed": "Impossible d'enregistrer les findings de cette génération : {error}",

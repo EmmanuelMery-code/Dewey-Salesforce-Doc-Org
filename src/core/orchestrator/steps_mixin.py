@@ -6,8 +6,10 @@ from pathlib import Path
 from typing import Callable
 
 from src.analyzer.engine import AnalyzerReport
+from src.analyzer.models import Finding
 from src.core.audit_generator import generate_audit_summary_rtf
 from src.core.data_dictionary_selection import data_dictionary_filename_base
+from src.core.findings_cache import load_findings_cache, merge_history
 from src.core.findings_qualification import (
     FindingQualification,
     QualificationKey,
@@ -138,14 +140,40 @@ class _StepsMixin(_OrchestratorState):
         result: GenerationResult,
     ) -> None:
         target = findings_workbook_path(self.output_dir / "excel", self.alias)
-        findings = analyzer_report.all_findings()
+        findings, resolved = self._findings_with_history(analyzer_report)
         qualifications = self._stored_findings_qualifications()
         result.findings_excel = self._safe_run(
             target.name,
             lambda: FindingsExcelWriter(log_callback=self.log).write_findings_workbook(
-                findings, target, alias=self.alias, qualifications=qualifications
+                findings,
+                target,
+                alias=self.alias,
+                qualifications=qualifications,
+                resolved_keys=resolved,
             ),
         )
+
+    def _findings_with_history(
+        self, analyzer_report: AnalyzerReport
+    ) -> tuple[list[Finding], set[QualificationKey]]:
+        """Findings of this run plus the ones earlier runs had reported.
+
+        A finding that disappears is not dropped from the document: it stays
+        with the qualification attached to it, marked as resolved, so the
+        TechLead reads that it was closed instead of wondering where it went.
+        """
+        current = analyzer_report.all_findings()
+        path = self.findings_history_path
+        previous = load_findings_cache(path) if path is not None else None
+        findings, resolved = merge_history(
+            current, previous.findings if previous is not None else []
+        )
+        if resolved:
+            self.log(
+                f"Document des findings : {len(resolved)} finding(s) des runs "
+                "precedents ne sont plus detecte(s), export en statut resolu."
+            )
+        return findings, resolved
 
     def _stored_findings_qualifications(
         self,
