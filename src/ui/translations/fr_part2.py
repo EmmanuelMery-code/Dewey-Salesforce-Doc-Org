@@ -269,6 +269,7 @@ FR_PART2: dict[str, str] = {
     "data_dictionary_squad_consumer_label": "Squad Consommatrice",
     "data_dictionary_field_comment_label": "Commentaire Dewey (champs)",
     "data_dictionary_field_piloted_by_label": "Piloté par (champs)",
+    "data_dictionary_field_automation_label": "Utilisé dans une automatisation ? (champs)",
     "data_dictionary_concat_section_title": "Commentaire Dewey - Option de concaténation",
     "data_dictionary_concat_description_label": "Concaténer la Description de la métadonnée dans le Commentaire Dewey",
     "data_dictionary_comment_save": "Enregistrer les informations",
@@ -279,13 +280,51 @@ FR_PART2: dict[str, str] = {
     "data_dictionary_fields_column_label": "Label",
     "data_dictionary_fields_column_api_name": "API Name",
     "data_dictionary_copy_piloted_by_button": (
-        "Copier le Piloté par de l'objet\nsur le Piloté par des champs\n"
-        "pour les champs n'ayant pas\nde Piloté par"
+        "Copier le Piloté par\nde l'objet vers les\nchamps sans valeur"
     ),
     "data_dictionary_copy_piloted_by_no_object": "Veuillez sélectionner un objet avant de copier le Piloté par.",
     "data_dictionary_copy_piloted_by_no_value": "L'objet sélectionné n'a pas de Piloté par renseigné.",
     "data_dictionary_copy_piloted_by_no_fields": "Tous les champs de cet objet ont déjà un Piloté par renseigné.",
     "data_dictionary_copy_piloted_by_success": "{count} champ(s) mis à jour avec le Piloté par \"{value}\".",
+    "menu_create_findings_document": "Créer le document des findings",
+    "findings_excel_in_progress": "Création du document des findings en cours...",
+    "findings_excel_success": "Document des findings créé avec succès : {path}",
+    "findings_excel_none_title": "Aucun finding disponible",
+    "findings_excel_none": "Aucun finding n'est disponible. Générez d'abord la documentation pour que l'analyseur produise des findings.",
+    "findings_screen_title": "Document des findings",
+    "findings_screen_description": (
+        "Choisissez l'organisation, puis qualifiez les findings ici même ou "
+        "dans Excel (exportez le classeur, remplissez-le, réimportez-le) : les "
+        "colonnes Qualification (M à P) et US (Q à S) sont mémorisées et "
+        "pré-remplies lors des exports suivants."
+    ),
+    "findings_screen_alias_label": "Organisation (alias) :",
+    "findings_screen_count": "{qualified} finding(s) qualifié(s) sur {total}",
+    "findings_screen_export": "Exporter le classeur",
+    "findings_screen_import": "Importer un classeur qualifié",
+    "findings_screen_column_severity": "Sévérité",
+    "findings_screen_column_rule": "Règle",
+    "findings_screen_column_component": "Composant",
+    "findings_screen_column_title": "Titre du finding",
+    "findings_screen_column_status": "Statut",
+    "findings_screen_column_team": "Équipe",
+    "findings_screen_column_sprint": "Sprint cible",
+    "findings_screen_column_us": "Numéro US",
+    "findings_screen_edit": "Modifier la ligne",
+    "findings_screen_edit_hint": (
+        "Double-cliquez une ligne pour la qualifier directement dans Dewey."
+    ),
+    "findings_screen_select_row": "Sélectionnez d'abord une ligne du tableau.",
+    "findings_edit_title": "Qualification du finding",
+    "findings_edit_us_title": "Titre US",
+    "findings_edit_us_description": "Description US",
+    "findings_edit_acceptance_criteria": "Critères d'acceptation",
+    "findings_import_title": "Importer un classeur des findings qualifié",
+    "findings_import_success": "{count} qualification(s) importée(s) pour {alias} depuis {path}.",
+    "findings_import_unmatched": "{count} ligne(s) du fichier ne correspondent à aucun finding de cette organisation et ont été ignorées.",
+    "findings_import_none": "Aucune colonne Qualification ou US renseignée n'a été trouvée dans ce fichier.",
+    "findings_import_error": "Impossible de lire ce classeur : {error}",
+    "findings_cache_failed": "Impossible d'enregistrer les findings de cette génération : {error}",
     "menu_export_picklist_csvs": "Créer les CSV des picklists",
     "picklist_csv_export_in_progress": "Export des CSV des picklists en cours...",
     "picklist_csv_export_success": "Export des CSV des picklists termine avec succes (dossier picklist/ du repertoire de sortie).",

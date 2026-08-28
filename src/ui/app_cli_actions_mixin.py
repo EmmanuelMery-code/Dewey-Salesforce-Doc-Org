@@ -25,6 +25,8 @@ from pathlib import Path
 from tkinter import messagebox
 from typing import Callable
 
+from src.core.data_dictionary_selection import DataDictionarySelection
+from src.core.findings_qualification import STORE_FILENAME as QUALIFICATION_STORE
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 
 CLI_ACTIONS: tuple[str, ...] = ("manifest", "retrieve", "documentation", "all", "retrivation")
@@ -65,6 +67,13 @@ class AppCliActionsMixin:
         generate_summary_word = bool(self.generate_summary_word_var.get())
         generate_audit_summary_rtf = bool(self.generate_audit_summary_rtf_var.get())
         generate_sarif = bool(self.generate_sarif_var.get())
+        generate_dd_excel = bool(self.generate_data_dictionary_excel_var.get())
+        generate_findings_excel = bool(self.generate_findings_excel_var.get())
+        dd_selection = (
+            DataDictionarySelection.from_settings(self.settings)
+            if generate_dd_excel
+            else None
+        )
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
 
@@ -104,6 +113,10 @@ class AppCliActionsMixin:
                 generate_summary_word=generate_summary_word,
                 generate_audit_summary_rtf=generate_audit_summary_rtf,
                 generate_sarif=generate_sarif,
+                generate_data_dictionary_excel=generate_dd_excel,
+                generate_findings_excel=generate_findings_excel,
+                findings_qualifications_path=self.app_dir / QUALIFICATION_STORE,
+                data_dictionary_selection=dd_selection,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),

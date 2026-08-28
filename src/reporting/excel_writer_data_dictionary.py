@@ -43,6 +43,7 @@ class _ExcelDataDictionaryMixin:
         include_squad_consumer: bool = True,
         include_field_comment: bool = True,
         include_field_piloted_by: bool = True,
+        include_field_automation: bool = True,
         concat_description: bool = True,
     ) -> list[Path]:
         """Generate the Data Dictionary workbook(s).
@@ -62,7 +63,13 @@ class _ExcelDataDictionaryMixin:
         "Commentaire Dewey" and "Piloté par" columns are rendered on each
         object's fields sheet. ``concat_description`` controls whether the
         "Commentaire Dewey" value concatenates the metadata Description or
-        only shows the raw user-entered comment.
+        only shows the raw user-entered comment; it applies to both the
+        object-level (Synthese sheet) and field-level columns, each using
+        its own Description.
+
+        ``include_field_automation`` controls the "Utilisé dans une
+        automatisation ?" column of the fields sheets, filled from the
+        automation usages the parser attached to each field.
 
         Returns the list of written file paths in order.
         """
@@ -124,6 +131,7 @@ class _ExcelDataDictionaryMixin:
                 include_squad_consumer=include_squad_consumer,
                 include_field_comment=include_field_comment,
                 include_field_piloted_by=include_field_piloted_by,
+                include_field_automation=include_field_automation,
                 concat_description=concat_description,
             )
             written.append(path)
@@ -191,6 +199,7 @@ class _ExcelDataDictionaryMixin:
         include_squad_consumer: bool = True,
         include_field_comment: bool = True,
         include_field_piloted_by: bool = True,
+        include_field_automation: bool = True,
         concat_description: bool = True,
     ) -> None:
         workbook = Workbook()
@@ -274,6 +283,7 @@ class _ExcelDataDictionaryMixin:
                 include_squad_consumer=include_squad_consumer,
                 include_field_comment=include_field_comment,
                 include_field_piloted_by=include_field_piloted_by,
+                include_field_automation=include_field_automation,
                 concat_description=concat_description,
             )
 
@@ -292,6 +302,7 @@ class _ExcelDataDictionaryMixin:
         include_squad_consumer: bool = True,
         include_field_comment: bool = True,
         include_field_piloted_by: bool = True,
+        include_field_automation: bool = True,
         concat_description: bool = True,
     ) -> None:
         headers = [
@@ -304,6 +315,10 @@ class _ExcelDataDictionaryMixin:
             "Relationship Name",
             "Description",
         ]
+        # Warns that changing or deleting the field may break something;
+        # an empty cell means no automation references it.
+        if include_field_automation:
+            headers.append("Utilisé dans une automatisation ?")
         # Dewey-authored per-field columns, appended after the raw metadata
         # columns, each independently toggled from the UI.
         if include_field_comment:
@@ -323,8 +338,14 @@ class _ExcelDataDictionaryMixin:
                 field.relationship_name,
                 field.description,
             ]
+            if include_field_automation:
+                row.append(field.automation_usage_label)
             if include_field_comment:
-                row.append(field.dewey_comment)
+                row.append(
+                    field.dewey_comment_combined
+                    if concat_description
+                    else (field.dewey_comment or "")
+                )
             if include_field_piloted_by:
                 row.append(field.dewey_piloted_by)
             rows.append(row)

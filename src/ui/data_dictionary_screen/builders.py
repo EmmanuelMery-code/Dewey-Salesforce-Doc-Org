@@ -66,41 +66,39 @@ class _DataDictionaryUiBuilderMixin:
         )
         fields_frame.pack(fill="x", pady=(0, theme.SPACE_MD))
 
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_comment_label"),
-            variable=self.include_comment_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_piloted_by_label"),
-            variable=self.include_piloted_by_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_status_label"),
-            variable=self.include_status_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_squad_label"),
-            variable=self.include_squad_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_squad_consumer_label"),
-            variable=self.include_squad_consumer_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_field_comment_label"),
-            variable=self.include_field_comment_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
-        ttk.Checkbutton(
-            fields_frame,
-            text=self.app._t("data_dictionary_field_piloted_by_label"),
-            variable=self.include_field_piloted_by_var,
-        ).pack(side="left", padx=theme.SPACE_MD)
+        # Laid out on a grid rather than a single packed row: there are now
+        # enough columns to toggle that they would overflow the window width.
+        field_toggles = (
+            ("data_dictionary_comment_label", self.include_comment_var),
+            ("data_dictionary_piloted_by_label", self.include_piloted_by_var),
+            ("data_dictionary_status_label", self.include_status_var),
+            ("data_dictionary_squad_label", self.include_squad_var),
+            ("data_dictionary_squad_consumer_label", self.include_squad_consumer_var),
+            ("data_dictionary_field_comment_label", self.include_field_comment_var),
+            (
+                "data_dictionary_field_piloted_by_label",
+                self.include_field_piloted_by_var,
+            ),
+            (
+                "data_dictionary_field_automation_label",
+                self.include_field_automation_var,
+            ),
+        )
+        toggles_per_row = 4
+        for column in range(toggles_per_row):
+            fields_frame.columnconfigure(column, weight=1, uniform="dd_toggles")
+        for index, (label_key, variable) in enumerate(field_toggles):
+            ttk.Checkbutton(
+                fields_frame,
+                text=self.app._t(label_key),
+                variable=variable,
+            ).grid(
+                row=index // toggles_per_row,
+                column=index % toggles_per_row,
+                sticky="w",
+                padx=(0, theme.SPACE_MD),
+                pady=theme.SPACE_XS,
+            )
 
         # Separate, clearly distinct option controlling whether the
         # "Commentaire Dewey" column concatenates the metadata Description
@@ -116,13 +114,21 @@ class _DataDictionaryUiBuilderMixin:
             variable=self.concat_description_var,
         ).pack(side="left", padx=theme.SPACE_MD)
 
-        # Objects selection area
-        selection_container = ttk.Frame(main_frame)
-        selection_container.pack(fill="both", expand=True, pady=(0, theme.SPACE_MD))
+        # Objects & extra-info area: a single 3-column grid shared by the
+        # selection row (row 0) and the extra-info row (row 1). Using one
+        # grid with a "uniform" group on the outer columns keeps the object
+        # column and the fields column aligned across both rows, instead of
+        # each row's panels drifting apart with their own natural width.
+        panels_container = ttk.Frame(main_frame)
+        panels_container.pack(fill="both", expand=True, pady=(0, theme.SPACE_MD))
+        panels_container.columnconfigure(0, weight=1, uniform="dd_panels")
+        panels_container.columnconfigure(2, weight=1, uniform="dd_panels")
+        panels_container.rowconfigure(0, weight=1)
+        panels_container.rowconfigure(1, weight=1)
 
         # Left side: Available
-        available_frame = ttk.LabelFrame(selection_container, text="Objets disponibles", padding=theme.SPACE_MD)
-        available_frame.pack(side="left", fill="both", expand=True)
+        available_frame = ttk.LabelFrame(panels_container, text="Objets disponibles", padding=theme.SPACE_MD)
+        available_frame.grid(row=0, column=0, sticky="nsew", pady=(0, theme.SPACE_MD))
 
         filter_row = ttk.Frame(available_frame)
         filter_row.pack(fill="x", pady=(0, theme.SPACE_SM))
@@ -143,8 +149,8 @@ class _DataDictionaryUiBuilderMixin:
         available_scroll.pack(side="right", fill="y")
 
         # Center: Buttons
-        button_frame = ttk.Frame(selection_container, padding=theme.SPACE_MD)
-        button_frame.pack(side="left", fill="y", expand=False)
+        button_frame = ttk.Frame(panels_container, padding=theme.SPACE_MD)
+        button_frame.grid(row=0, column=1, sticky="ns", pady=(0, theme.SPACE_MD))
         
         ttk.Label(button_frame, text="").pack(expand=True) # Spacer
         ttk.Button(button_frame, text=" Ajouter > ", command=self._move_to_selected).pack(pady=theme.SPACE_SM)
@@ -153,8 +159,8 @@ class _DataDictionaryUiBuilderMixin:
 
         # Right side: Selected (with extra visualization columns, sortable
         # by clicking a header and filterable across all its columns)
-        selected_frame = ttk.LabelFrame(selection_container, text="Objets sélectionnés", padding=theme.SPACE_MD)
-        selected_frame.pack(side="left", fill="both", expand=True)
+        selected_frame = ttk.LabelFrame(panels_container, text="Objets sélectionnés", padding=theme.SPACE_MD)
+        selected_frame.grid(row=0, column=2, sticky="nsew", pady=(0, theme.SPACE_MD))
 
         selected_filter_row = ttk.Frame(selected_frame)
         selected_filter_row.pack(fill="x", pady=(0, theme.SPACE_SM))
@@ -167,8 +173,12 @@ class _DataDictionaryUiBuilderMixin:
             side="left", fill="x", expand=True
         )
 
+        # Grid (rather than pack) so the horizontal scrollbar can sit under
+        # the tree while the vertical one stays on its right.
         list_container_right = ttk.Frame(selected_frame)
         list_container_right.pack(fill="both", expand=True)
+        list_container_right.rowconfigure(0, weight=1)
+        list_container_right.columnconfigure(0, weight=1)
 
         self._SELECTED_COLUMN_LABELS = {
             "object": "Objet",
@@ -184,9 +194,21 @@ class _DataDictionaryUiBuilderMixin:
             selectmode="extended",
             height=12,
         )
+        # ``minwidth`` matching ``width`` plus ``stretch=False`` keeps ttk from
+        # squeezing the columns into the available space, which is what makes
+        # the horizontal scrollbar below actually engage. The last column stays
+        # stretchable so a widened window fills the gap instead of showing a
+        # blank strip on the right.
+        last_column = list(self._SELECTED_COLUMN_LABELS)[-1]
         for column in self._SELECTED_COLUMN_LABELS:
             width = 130 if column == "object" else 95
-            self.selected_listbox.column(column, width=width, anchor="w")
+            self.selected_listbox.column(
+                column,
+                width=width,
+                minwidth=width,
+                stretch=(column == last_column),
+                anchor="w",
+            )
         self._update_selected_headings()
         # Background colors reflecting how many of the object's fields have
         # a "Piloté par" value: all filled -> green, some -> yellow, none -> red.
@@ -194,34 +216,44 @@ class _DataDictionaryUiBuilderMixin:
         self.selected_listbox.tag_configure("piloted_some", background="#fdf3cf")
         self.selected_listbox.tag_configure("piloted_none", background="#f8d7d7")
         selected_scroll = ttk.Scrollbar(list_container_right, orient="vertical", command=self.selected_listbox.yview)
-        self.selected_listbox.configure(yscrollcommand=selected_scroll.set)
-        self.selected_listbox.pack(side="left", fill="both", expand=True)
-        selected_scroll.pack(side="right", fill="y")
+        selected_hscroll = ttk.Scrollbar(
+            list_container_right, orient="horizontal", command=self.selected_listbox.xview
+        )
+        self.selected_listbox.configure(
+            yscrollcommand=selected_scroll.set, xscrollcommand=selected_hscroll.set
+        )
+        self.selected_listbox.grid(row=0, column=0, sticky="nsew")
+        selected_scroll.grid(row=0, column=1, sticky="ns")
+        selected_hscroll.grid(row=1, column=0, sticky="ew")
 
         self.available_listbox.bind("<<ListboxSelect>>", self._on_object_select)
         self.selected_listbox.bind("<<TreeviewSelect>>", self._on_selected_tree_select)
 
-        # Object & fields extra-info panels, laid out the same way as the
-        # "Objets disponibles" / button column / "Objets selectionnes" row
-        # above so both panels naturally end up with the same widths.
-        info_container = ttk.Frame(main_frame)
-        info_container.pack(fill="both", expand=True, pady=(0, theme.SPACE_MD))
-
-        # Left: object comment panel (same width as "Objets disponibles")
+        # Left: object comment panel, in the same grid column as
+        # "Objets disponibles" so both share one width.
         self.comment_label_var = tk.StringVar(value=self.app._t("data_dictionary_comment_placeholder"))
         comment_frame = ttk.LabelFrame(
-            info_container, text=self.app._t("data_dictionary_comment_title"), padding=theme.SPACE_MD
+            panels_container, text=self.app._t("data_dictionary_comment_title"), padding=theme.SPACE_MD
         )
-        comment_frame.pack(side="left", fill="both", expand=True)
+        comment_frame.grid(row=1, column=0, sticky="nsew")
 
-        ttk.Label(comment_frame, textvariable=self.comment_label_var, font=theme.FONT_SMALL_ITALIC).pack(
-            anchor="w", pady=(0, theme.SPACE_SM)
-        )
+        # Wrapped so this one-line hint does not dictate the panel width.
+        ttk.Label(
+            comment_frame,
+            textvariable=self.comment_label_var,
+            font=theme.FONT_SMALL_ITALIC,
+            wraplength=320,
+            justify="left",
+        ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
         ttk.Label(comment_frame, text=self.app._t("data_dictionary_comment_label")).pack(anchor="w")
         comment_text_container = ttk.Frame(comment_frame)
         comment_text_container.pack(fill="x", pady=(0, theme.SPACE_SM))
-        self.comment_text = tk.Text(comment_text_container, height=4, wrap="word", state="disabled")
+        # An explicit narrow width keeps tk.Text's 80-character default from
+        # dictating this panel's natural width; it stretches via fill="x".
+        self.comment_text = tk.Text(
+            comment_text_container, height=4, width=20, wrap="word", state="disabled"
+        )
         comment_text_scroll = ttk.Scrollbar(comment_text_container, orient="vertical", command=self.comment_text.yview)
         self.comment_text.configure(yscrollcommand=comment_text_scroll.set)
         self.comment_text.pack(side="left", fill="x", expand=True)
@@ -306,8 +338,8 @@ class _DataDictionaryUiBuilderMixin:
 
         # Middle: bridges the object-level and field-level panels with the
         # "copy Piloté par down to the fields" action.
-        copy_button_frame = ttk.Frame(info_container, padding=theme.SPACE_MD)
-        copy_button_frame.pack(side="left", fill="y", expand=False)
+        copy_button_frame = ttk.Frame(panels_container, padding=theme.SPACE_MD)
+        copy_button_frame.grid(row=1, column=1, sticky="ns")
 
         ttk.Label(copy_button_frame, text="").pack(expand=True)  # Spacer
         ttk.Button(
@@ -317,16 +349,17 @@ class _DataDictionaryUiBuilderMixin:
         ).pack(pady=theme.SPACE_SM)
         ttk.Label(copy_button_frame, text="").pack(expand=True)  # Spacer
 
-        # Right: per-field extra-info panel (same width as "Objets selectionnes")
+        # Right: per-field extra-info panel, in the same grid column as
+        # "Objets selectionnes" so both share one width.
         self.fields_comment_label_var = tk.StringVar(
             value=self.app._t("data_dictionary_fields_comment_placeholder")
         )
         fields_comment_frame = ttk.LabelFrame(
-            info_container,
+            panels_container,
             text=self.app._t("data_dictionary_fields_comment_title"),
             padding=theme.SPACE_MD,
         )
-        fields_comment_frame.pack(side="left", fill="both", expand=True)
+        fields_comment_frame.grid(row=1, column=2, sticky="nsew")
 
         fields_list_container = ttk.Frame(fields_comment_frame)
         fields_list_container.pack(fill="both", expand=True, pady=(0, theme.SPACE_SM))
@@ -354,6 +387,8 @@ class _DataDictionaryUiBuilderMixin:
             fields_comment_frame,
             textvariable=self.fields_comment_label_var,
             font=theme.FONT_SMALL_ITALIC,
+            wraplength=320,
+            justify="left",
         ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
         field_extra_row = ttk.Frame(fields_comment_frame)

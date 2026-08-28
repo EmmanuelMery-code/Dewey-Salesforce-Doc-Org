@@ -26,6 +26,8 @@ class GenerationResult:
     profile_excel: Path | None = None
     inventory_excel: Path | None = None
     data_dictionary_excels: list[Path] = field(default_factory=list)
+    selected_data_dictionary_excels: list[Path] = field(default_factory=list)
+    findings_excel: Path | None = None
     picklists_excel: Path | None = None
     pmd_excel: Path | None = None
     data_dictionary_word: Path | None = None

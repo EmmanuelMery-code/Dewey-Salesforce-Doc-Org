@@ -19,6 +19,7 @@ ENV/
 # Local app settings
 app_settings.json
 history.db
+last_findings.json
 technical_debt.json
 innovations.json
 dashboards.json

@@ -300,6 +300,8 @@ FR_PART1: dict[str, str] = {
     "configuration_system_prompt_description": "Instructions generales envoyees a l'IA avant chaque conversation. Le contexte de l'org est ajoute automatiquement en dessous.",
     "configuration_system_prompt_reset": "Reinitialiser par defaut",
     "configuration_generate_excels": "Generer les Excels",
+    "configuration_generate_data_dictionary_excel": "Generer le Data Dictionnary pour les objets selectionnes",
+    "configuration_generate_findings_excel": "Generer le classeur Excel des findings",
     "configuration_generate_org_check_reports": "Generer les rapports Org Check",
     "configuration_generate_data_dictionary_word": "Generer le Data Dictionary Word",
     "configuration_generate_summary_word": "Generer le resume Word",

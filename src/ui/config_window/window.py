@@ -133,6 +133,12 @@ def show_configuration_screen(app: Application) -> None:
         "generate_sarif": tk.BooleanVar(
             value=bool(app.generate_sarif_var.get())
         ),
+        "generate_data_dictionary_excel": tk.BooleanVar(
+            value=bool(app.generate_data_dictionary_excel_var.get())
+        ),
+        "generate_findings_excel": tk.BooleanVar(
+            value=bool(app.generate_findings_excel_var.get())
+        ),
         "run_tests": tk.BooleanVar(value=bool(app.run_tests_var.get())),
         "calculate_coverage": tk.BooleanVar(value=bool(app.calculate_coverage_var.get())),
         "include_comparison": tk.BooleanVar(value=bool(app.include_comparison_var.get())),

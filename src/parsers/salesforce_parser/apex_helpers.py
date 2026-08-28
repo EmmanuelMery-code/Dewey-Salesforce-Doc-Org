@@ -4,14 +4,40 @@ from __future__ import annotations
 
 import re
 
-_SOQL_IN_LOOP_RE = re.compile(
-    r"\[\s*SELECT\b|Database\.query\s*\(", re.IGNORECASE
-)
-_DML_IN_LOOP_RE = re.compile(
-    r"\b(?:insert|update|upsert|delete|undelete|merge)\b"
-    r"|Database\.(?:insert|update|upsert|delete|undelete|merge)\s*\(",
+_DML_KEYWORDS = "upsert|undelete|insert|update|delete|merge"
+
+# Inline SOQL (`[SELECT ...]`) plus the dynamic-query entry points of the
+# Database class. Longest method names come first so the alternation cannot
+# settle on a shorter prefix.
+_SOQL_RE = re.compile(
+    r"\[\s*SELECT\b"
+    r"|\bDatabase\s*\.\s*(?:"
+    r"getQueryLocatorWithBinds|getQueryLocator"
+    r"|countQueryWithBinds|countQuery"
+    r"|queryWithBinds|query"
+    r")\s*\(",
     re.IGNORECASE,
 )
+
+_SOSL_RE = re.compile(r"\[\s*FIND\b|\bSearch\s*\.\s*query\s*\(", re.IGNORECASE)
+
+# Real DML only, in two shapes:
+#   * the statement form (`insert acc;`, `update as user recs;`), which requires
+#     the keyword to open a statement and to be followed by an operand. The
+#     negative lookbehind rejects member access (`Trigger.isUpdate`) and the
+#     operand lookahead rejects trigger event lists (`after insert,`), the SOQL
+#     `FOR UPDATE` clause and method declarations (`void update(...)`).
+#   * the Database method form, including the Immediate/Async variants.
+# These keywords are reserved in Apex, so they can never be identifiers; that
+# is what makes the two shapes above exhaustive.
+_DML_RE = re.compile(
+    r"(?<![.\w])(?:" + _DML_KEYWORDS + r")\s+(?=[A-Za-z_])"
+    r"|\bDatabase\s*\.\s*(?:" + _DML_KEYWORDS + r")(?:Immediate|Async)?\s*\(",
+    re.IGNORECASE,
+)
+
+_SOQL_IN_LOOP_RE = _SOQL_RE
+_DML_IN_LOOP_RE = _DML_RE
 # Flags construction of an Http/HttpRequest instance, the syntactic marker of
 # a synchronous HTTP callout (the classic `new HttpRequest(); ... http.send(req);`
 # pair). This mirrors the SOQL/DML heuristics above: it does not attempt to

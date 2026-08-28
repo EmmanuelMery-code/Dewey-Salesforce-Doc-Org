@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox
 
+from src.core.data_dictionary_selection import (
+    DataDictionarySelection,
+    data_dictionary_filename_base,
+)
 from src.parsers.salesforce_parser import SalesforceMetadataParser
 from src.reporting.excel_writer import ExcelReportWriter
 from src.reporting.html_writer import HtmlReportWriter
@@ -15,6 +18,33 @@ from src.ui.picklist_csv_export import export_picklist_csvs
 
 class _DataDictionaryGenerationMixin:
     """Kicks off the Excel/Word/HTML Data Dictionary generation."""
+
+    def _selection(self) -> DataDictionarySelection:
+        """Snapshot of the screen state, in the form shared with the
+        full documentation run."""
+        return DataDictionarySelection(
+            objects=set(self.selected_objects),
+            object_comments=dict(self.object_comments),
+            object_piloted_by=dict(self.object_piloted_by),
+            object_status=dict(self.object_status),
+            object_squad=dict(self.object_squad),
+            object_squad_consumer=dict(self.object_squad_consumer),
+            field_comments={
+                obj: dict(fields) for obj, fields in self.field_comments.items()
+            },
+            field_piloted_by={
+                obj: dict(fields) for obj, fields in self.field_piloted_by.items()
+            },
+            include_comment=self.include_comment_var.get(),
+            include_piloted_by=self.include_piloted_by_var.get(),
+            include_status=self.include_status_var.get(),
+            include_squad=self.include_squad_var.get(),
+            include_squad_consumer=self.include_squad_consumer_var.get(),
+            include_field_comment=self.include_field_comment_var.get(),
+            include_field_piloted_by=self.include_field_piloted_by_var.get(),
+            include_field_automation=self.include_field_automation_var.get(),
+            concat_description=self.concat_description_var.get(),
+        )
 
     def _generate(self) -> None:
         if not self.selected_objects:
@@ -27,9 +57,8 @@ class _DataDictionaryGenerationMixin:
 
         # Check for existing files
         output_dir = Path(self.app.output_var.get())
-        date_str = datetime.now().strftime("%Y%m%d")
-        filename_base = f"dataDictionnary_{date_str}"
-        
+        filename_base = data_dictionary_filename_base()
+
         existing_files = []
         if self.excel_var.get():
             excel_path = output_dir / "excel" / f"{filename_base}.xlsx"
@@ -62,6 +91,7 @@ class _DataDictionaryGenerationMixin:
         self.app.settings["dd_include_squad_consumer"] = self.include_squad_consumer_var.get()
         self.app.settings["dd_include_field_comment"] = self.include_field_comment_var.get()
         self.app.settings["dd_include_field_piloted_by"] = self.include_field_piloted_by_var.get()
+        self.app.settings["dd_include_field_automation"] = self.include_field_automation_var.get()
         self.app.settings["dd_concat_description_in_comment"] = self.concat_description_var.get()
         self.app._save_settings()
 
@@ -96,37 +126,22 @@ class _DataDictionaryGenerationMixin:
             log_callback=self.app.task_manager.queue_log,
         )
         snapshot = parser.parse()
-        
-        # Filter snapshot objects
-        snapshot.objects = [obj for obj in snapshot.objects if obj.api_name in self.selected_objects]
 
-        # Attach the user-defined extra info ("Commentaire Dewey", "Piloté
-        # par", "Status") to each object so the writers can include it
-        # alongside the parsed metadata.
-        for obj in snapshot.objects:
-            obj.dewey_comment = self.object_comments.get(obj.api_name, "")
-            obj.dewey_piloted_by = self.object_piloted_by.get(obj.api_name, "")
-            obj.dewey_status = self.object_status.get(obj.api_name, self.STATUS_OPTIONS[0])
-            obj.dewey_squad = self.object_squad.get(obj.api_name, "")
-            obj.dewey_squad_consumer = self.object_squad_consumer.get(obj.api_name, "")
+        # Restrict the snapshot to the selected objects and attach the
+        # user-defined extra info ("Commentaire Dewey", "Piloté par",
+        # "Status", squads) so the writers can include it alongside the
+        # parsed metadata.
+        selection = self._selection()
+        snapshot.objects = selection.apply(snapshot.objects)
 
-            field_comments = self.field_comments.get(obj.api_name, {})
-            field_piloted_by = self.field_piloted_by.get(obj.api_name, {})
-            for field_info in obj.fields:
-                field_info.dewey_comment = field_comments.get(field_info.api_name, "")
-                field_info.dewey_piloted_by = field_piloted_by.get(field_info.api_name, "")
-        
-        date_str = datetime.now().strftime("%Y%m%d")
-        filename_base = f"dataDictionnary_{date_str}"
+        filename_base = data_dictionary_filename_base()
 
-        include_comment = self.include_comment_var.get()
-        include_piloted_by = self.include_piloted_by_var.get()
-        include_status = self.include_status_var.get()
-        include_squad = self.include_squad_var.get()
-        include_squad_consumer = self.include_squad_consumer_var.get()
-        include_field_comment = self.include_field_comment_var.get()
-        include_field_piloted_by = self.include_field_piloted_by_var.get()
-        concat_description = self.concat_description_var.get()
+        include_comment = selection.include_comment
+        include_piloted_by = selection.include_piloted_by
+        include_status = selection.include_status
+        include_squad = selection.include_squad
+        include_squad_consumer = selection.include_squad_consumer
+        concat_description = selection.concat_description
 
         if self.excel_var.get():
             excel_dir = output_dir / "excel"
@@ -136,14 +151,7 @@ class _DataDictionaryGenerationMixin:
                 snapshot.objects,
                 excel_dir,
                 filename_base=filename_base,
-                include_comment=include_comment,
-                include_piloted_by=include_piloted_by,
-                include_status=include_status,
-                include_squad=include_squad,
-                include_squad_consumer=include_squad_consumer,
-                include_field_comment=include_field_comment,
-                include_field_piloted_by=include_field_piloted_by,
-                concat_description=concat_description,
+                **selection.workbook_options(),
             )
 
         if self.word_var.get():

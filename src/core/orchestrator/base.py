@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Callable
 
 from src.core.customization_metrics import PostureCapabilityConfig
+from src.core.data_dictionary_selection import DataDictionarySelection
 from src.core.index_card_visibility import IndexCardVisibility
 
 LogCallback = Callable[[str], None]
@@ -37,6 +38,10 @@ class _OrchestratorState:
     generate_summary_word: bool
     generate_audit_summary_rtf: bool
     generate_sarif: bool
+    generate_data_dictionary_excel: bool
+    generate_findings_excel: bool
+    findings_qualifications_path: Path | None
+    data_dictionary_selection: DataDictionarySelection | None
     scoring_weights: dict[str, int] | None
     adopt_adapt_weights: dict[str, int] | None
     scoring_thresholds: tuple[int, int, int] | None

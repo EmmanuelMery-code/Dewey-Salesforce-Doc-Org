@@ -316,6 +316,8 @@ EN_PART1: dict[str, str] = {
     "configuration_system_prompt_description": "General instructions sent to the AI before each conversation. The org context is appended automatically below.",
     "configuration_system_prompt_reset": "Reset to default",
     "configuration_generate_excels": "Generate Excel files",
+    "configuration_generate_data_dictionary_excel": "Generate the Data Dictionary for the selected objects",
+    "configuration_generate_findings_excel": "Generate the findings Excel workbook",
     "configuration_generate_org_check_reports": "Generate Org Check reports",
     "configuration_generate_data_dictionary_word": "Generate the Data Dictionary Word document",
     "configuration_generate_summary_word": "Generate the summary Word document",

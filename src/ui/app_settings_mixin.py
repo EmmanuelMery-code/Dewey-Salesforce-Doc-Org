@@ -110,6 +110,10 @@ class AppSettingsMixin:
             "generate_audit_summary_rtf": bool(self.generate_audit_summary_rtf_var.get()),
             "generate_html": bool(self.generate_html_var.get()),
             "generate_sarif": bool(self.generate_sarif_var.get()),
+            "generate_data_dictionary_excel": bool(
+                self.generate_data_dictionary_excel_var.get()
+            ),
+            "generate_findings_excel": bool(self.generate_findings_excel_var.get()),
             "scoring_weights": dict(self.scoring_weights),
             "adopt_adapt_weights": dict(self.adopt_adapt_weights),
             "scoring_thresholds": list(self.scoring_thresholds),

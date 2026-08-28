@@ -12,6 +12,7 @@ from src.core.customization_metrics import (
     compute_adoption_stats,
     compute_data_model_stats,
 )
+from src.core.data_dictionary_selection import DataDictionarySelection
 from src.core.index_card_visibility import IndexCardVisibility
 from src.core.models import PmdViolation
 from src.core.orchestrator.base import LogCallback
@@ -42,6 +43,10 @@ class SalesforceDocumentationGenerator(
         generate_summary_word: bool = True,
         generate_audit_summary_rtf: bool = True,
         generate_sarif: bool = False,
+        generate_data_dictionary_excel: bool = False,
+        generate_findings_excel: bool = False,
+        findings_qualifications_path: str | Path | None = None,
+        data_dictionary_selection: DataDictionarySelection | None = None,
         scoring_weights: dict[str, int] | None = None,
         adopt_adapt_weights: dict[str, int] | None = None,
         scoring_thresholds: tuple[int, int, int] | None = None,
@@ -79,6 +84,17 @@ class SalesforceDocumentationGenerator(
         self.generate_summary_word = generate_summary_word
         self.generate_audit_summary_rtf = generate_audit_summary_rtf
         self.generate_sarif = generate_sarif
+        self.generate_data_dictionary_excel = generate_data_dictionary_excel
+        self.generate_findings_excel = generate_findings_excel
+        # Store of the TechLead columns imported from a reviewed findings
+        # workbook. Left unset in headless mode, where the workbook is not
+        # meant to be round-tripped through Excel.
+        self.findings_qualifications_path = (
+            Path(findings_qualifications_path).resolve()
+            if findings_qualifications_path
+            else None
+        )
+        self.data_dictionary_selection = data_dictionary_selection
         self.scoring_weights = scoring_weights
         self.adopt_adapt_weights = adopt_adapt_weights
         self.scoring_thresholds = scoring_thresholds
@@ -161,6 +177,11 @@ class SalesforceDocumentationGenerator(
         else:
             self.log("Generation des Excels desactivee dans la configuration.")
 
+        if self.generate_data_dictionary_excel:
+            self._generate_selected_data_dictionary_excel(
+                snapshot, excel_writer, excel_dir, result
+            )
+
         if not self.generate_html:
             self.log("Generation HTML desactivee dans la configuration.")
 
@@ -192,6 +213,9 @@ class SalesforceDocumentationGenerator(
         self.log(
             f"Analyseur : {len(analyzer_report.all_findings())} finding(s) detecte(s)."
         )
+
+        if self.generate_findings_excel:
+            self._generate_findings_excel(analyzer_report, result)
 
         if self.generate_sarif:
             self._generate_sarif(analyzer_report, result)

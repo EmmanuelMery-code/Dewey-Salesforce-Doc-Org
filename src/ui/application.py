@@ -351,6 +351,12 @@ class Application(
         self.generate_sarif_var = tk.BooleanVar(
             value=bool(self.settings.get("generate_sarif", False))
         )
+        self.generate_data_dictionary_excel_var = tk.BooleanVar(
+            value=bool(self.settings.get("generate_data_dictionary_excel", False))
+        )
+        self.generate_findings_excel_var = tk.BooleanVar(
+            value=bool(self.settings.get("generate_findings_excel", False))
+        )
         self.run_tests_var = tk.BooleanVar(
             value=bool(self.settings.get("run_tests", False))
         )
@@ -412,6 +418,7 @@ class Application(
         self.thresholds_window: tk.Toplevel | None = None
         self.latest_metrics = None
         self.latest_snapshot = None
+        self.latest_analyzer_report = None
 
         # Weights and thresholds
         self.scoring_weights = self._load_scoring_weights(self.settings)

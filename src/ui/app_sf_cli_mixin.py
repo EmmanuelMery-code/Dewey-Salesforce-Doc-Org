@@ -11,6 +11,8 @@ from threading import Thread
 from tkinter import messagebox
 from typing import Callable
 
+from src.core.data_dictionary_selection import DataDictionarySelection
+from src.core.findings_qualification import STORE_FILENAME as QUALIFICATION_STORE
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
 from src.core.sf_cli_service import OrgSummary
 
@@ -229,6 +231,12 @@ class AppSfCliMixin:
             return
 
         generate_excels = bool(self.generate_excels_var.get())
+        generate_dd_excel = bool(self.generate_data_dictionary_excel_var.get())
+        dd_selection = (
+            DataDictionarySelection.from_settings(self.settings)
+            if generate_dd_excel
+            else None
+        )
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
         org_ref = selected_org.org_ref
@@ -252,6 +260,10 @@ class AppSfCliMixin:
                 generate_data_dictionary_word=bool(self.generate_data_dictionary_word_var.get()),
                 generate_summary_word=bool(self.generate_summary_word_var.get()),
                 generate_sarif=bool(self.generate_sarif_var.get()),
+                generate_data_dictionary_excel=generate_dd_excel,
+                generate_findings_excel=bool(self.generate_findings_excel_var.get()),
+                findings_qualifications_path=self.app_dir / QUALIFICATION_STORE,
+                data_dictionary_selection=dd_selection,
                 scoring_weights=dict(self.scoring_weights),
                 adopt_adapt_weights=dict(self.adopt_adapt_weights),
                 scoring_thresholds=tuple(self.scoring_thresholds),

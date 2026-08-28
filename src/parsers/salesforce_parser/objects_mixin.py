@@ -92,6 +92,7 @@ class _ObjectsMixin(_ParserState):
             custom="__" in api_name,
             reference_to=child_texts(root, "referenceTo"),
             relationship_name=child_text(root, "relationshipName"),
+            formula=child_text(root, "formula"),
         )
         if field_info.data_type in _PICKLIST_TYPES:
             self._parse_picklist_values(root, field_info, global_value_sets or {})

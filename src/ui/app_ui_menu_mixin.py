@@ -39,6 +39,10 @@ class _AppUiMenuMixin:
             command=self._show_data_dictionary_screen,
         )
         documentation_menu.add_command(
+            label=self._t("menu_create_findings_document"),
+            command=self._show_findings_screen,
+        )
+        documentation_menu.add_command(
             label=self._t("menu_export_picklist_csvs"),
             command=self._menu_export_picklist_csvs,
         )
