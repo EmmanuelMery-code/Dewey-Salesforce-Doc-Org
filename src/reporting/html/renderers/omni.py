@@ -31,6 +31,10 @@ LogCallback = Callable[[str], None]
 
 FLEXCARD_LABEL = "FlexCards"
 
+# Label of the index tab holding these pages; the back link anchor is derived
+# from it so both stay in sync.
+OMNI_TAB_LABEL = "Omni / BRE"
+
 OMNI_SCORING_FOLDERS: dict[str, str] = {
     "omniscripts": "OmniScripts",
     "omniintegrationprocedures": "Integration Procedures",
@@ -207,7 +211,7 @@ def render_omni_page(
         ],
     )
     body = f"""
-{index_back_link(current_path, output_dir, "omni")}
+{index_back_link(current_path, output_dir, safe_slug(OMNI_TAB_LABEL))}
 <h1>{html_value(name)}</h1>
 <span class="badge">{html_value(category_label)}</span>
 <span class="badge">{html_value(subcategory)}</span>
