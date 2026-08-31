@@ -207,6 +207,7 @@ class _InventoryMixin(_ParserState):
             keywords = ("omni", "omnistudio", "datasource", "vlocity")
             known_folders = {
                 "omniscripts",
+                "omniuicard",
                 "omniuicards",
                 "vlocitycards",
                 "omnidatatransforms",

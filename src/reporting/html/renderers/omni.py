@@ -7,7 +7,7 @@ from typing import Callable
 
 from src.analyzer.models import Finding
 from src.core.models import MetadataSnapshot
-from src.core.utils import html_value, safe_slug, write_text
+from src.core.utils import child_text, html_value, parse_xml, safe_slug, write_text
 from src.reporting.html_mermaid import (
     data_transform_mermaid,
     data_transform_meta,
@@ -29,11 +29,16 @@ from src.reporting.html.page_shell import (
 LogCallback = Callable[[str], None]
 
 
+FLEXCARD_LABEL = "FlexCards"
+
 OMNI_SCORING_FOLDERS: dict[str, str] = {
     "omniscripts": "OmniScripts",
     "omniintegrationprocedures": "Integration Procedures",
-    "omniuicards": "Omni UI Cards",
-    "vlocitycards": "Omni UI Cards",
+    # `omniUiCard` (singular) is the folder name used by the Metadata API for
+    # OmniUiCard; the plural / vlocityCards variants come from older orgs.
+    "omniuicard": FLEXCARD_LABEL,
+    "omniuicards": FLEXCARD_LABEL,
+    "vlocitycards": FLEXCARD_LABEL,
     "omnidatatransforms": "Data Transforms",
     "omniprocesses": "Omni Processes",
     # Business Rules Engine
@@ -46,6 +51,33 @@ OMNI_SCORING_FOLDERS: dict[str, str] = {
     "calculationmatrices": "Calculation Matrices",
     "recommendationstrategies": "Recommendation Strategies",
 }
+
+# Scalar OmniUiCard tags worth surfacing on a FlexCard page, in display order.
+FLEXCARD_META_FIELDS: tuple[tuple[str, str], ...] = (
+    ("Libelle", "masterLabel"),
+    ("Description", "description"),
+    ("Version", "versionNumber"),
+    ("Active", "isActive"),
+    ("Type de carte", "omniUiCardType"),
+    ("Auteur", "authorName"),
+)
+
+
+def flexcard_meta_rows(source_path: Path) -> list[tuple[str, str]]:
+    """Read the OmniUiCard XML and return its populated scalar fields."""
+
+    if not source_path.is_file():
+        return []
+    try:
+        root = parse_xml(source_path)
+    except Exception:  # noqa: BLE001 - a malformed card must not break the report
+        return []
+    rows: list[tuple[str, str]] = []
+    for label, tag in FLEXCARD_META_FIELDS:
+        value = child_text(root, tag)
+        if value:
+            rows.append((label, value))
+    return rows
 
 
 def render_omni_page(
@@ -71,6 +103,8 @@ def render_omni_page(
         ("Type de fichier", file_type),
         ("Source", source_rel or "Non renseigne"),
     ]
+    if subcategory == FLEXCARD_LABEL and source_rel:
+        meta_rows.extend(flexcard_meta_rows(snapshot.source_dir / source_rel))
     meta_html = "".join(
         f"<li><strong>{html_value(label)}:</strong> {html_value(value or 'Non renseigne')}</li>"
         for label, value in meta_rows
