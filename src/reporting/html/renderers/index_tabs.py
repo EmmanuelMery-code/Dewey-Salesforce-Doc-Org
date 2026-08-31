@@ -14,6 +14,7 @@ from src.reporting.html.renderers.index_panels import (
     render_index_omni_panel,
     render_index_pmd_panel,
 )
+from src.reporting.html.renderers.omni import OMNI_TAB_LABEL
 from src.reporting.html.renderers.index_tables import (
     render_agent_rows,
     render_apex_rows,
@@ -141,7 +142,7 @@ def render_index_tabs(
                 flow_panel,
             ),
             (
-                "Omni / BRE",
+                OMNI_TAB_LABEL,
                 omni_panel,
             ),
             (

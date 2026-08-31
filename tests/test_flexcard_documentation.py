@@ -15,9 +15,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from src.core.utils import safe_slug
 from src.parsers.salesforce_parser import SalesforceMetadataParser
+from src.reporting.html.page_shell import tabbed_sections
 from src.reporting.html.renderers.index_panels import render_index_omni_panel
-from src.reporting.html.renderers.omni import write_omni_pages
+from src.reporting.html.renderers.omni import OMNI_TAB_LABEL, write_omni_pages
 
 FLEXCARD = """<?xml version="1.0" encoding="UTF-8"?>
 <OmniUiCard xmlns="http://soap.sforce.com/2006/04/metadata">
@@ -92,3 +94,13 @@ class TestFlexCardDocumentation:
 
         assert "FlexCards (1)" in panel
         assert "omni/flexcards/accountoverview.html" in panel
+
+    def test_back_link_targets_the_existing_omni_tab_anchor(self, tmp_path: Path) -> None:
+        omni_pages, _ = self._write_pages(tmp_path)
+
+        page = omni_pages["FlexCards"][0]["page"].read_text(encoding="utf-8")
+        index_tab = tabbed_sections("index", [(OMNI_TAB_LABEL, "<p>panel</p>")])
+        anchor = f"index-panel-{safe_slug(OMNI_TAB_LABEL)}"
+
+        assert f'id="{anchor}"' in index_tab.replace("'", '"')
+        assert f"#{anchor}" in page
