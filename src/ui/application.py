@@ -42,6 +42,7 @@ from src.core.sf_cli_service import OrgSummary, SalesforceCliService
 from src.ui import theme
 from src.ui.app_ai_mixin import AppAiMixin
 from src.ui.app_cli_actions_mixin import AppCliActionsMixin
+from src.ui.app_documentation_task_mixin import AppDocumentationTaskMixin
 from src.ui.app_generation_mixin import AppGenerationMixin
 from src.ui.app_language_mixin import AppLanguageMixin
 from src.ui.app_settings_mixin import AppSettingsMixin
@@ -73,6 +74,7 @@ class Application(
     AppSettingsMixin,
     AppLanguageMixin,
     AppSfCliMixin,
+    AppDocumentationTaskMixin,
     AppGenerationMixin,
     AppCliActionsMixin,
     AppAiMixin,

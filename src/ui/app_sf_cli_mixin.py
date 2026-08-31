@@ -11,8 +11,7 @@ from threading import Thread
 from tkinter import messagebox
 from typing import Callable
 
-from src.core.data_dictionary_selection import DataDictionarySelection
-from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
+from src.core.orchestrator import GenerationResult
 from src.core.sf_cli_service import OrgSummary
 
 
@@ -243,10 +242,17 @@ class AppSfCliMixin:
         self._append_log(self._t("output_log", path=output))
 
         documentation_task = self._build_documentation_task(
-            source, output, org_ref, True, exclusion_file, pmd_ruleset
+            source,
+            output,
+            org_ref,
+            True,
+            exclusion_file,
+            pmd_ruleset,
+            reset_command_stats=False,
         )
 
         def task() -> GenerationResult:
+            self.cli_service.reset_command_stats()
             self.cli_service.retrieve_from_org(org_ref, source, manifest_path)
             return documentation_task()
 
@@ -285,65 +291,22 @@ class AppSfCliMixin:
         if self.pmd_enabled_var.get() and self.pmd_ruleset_var.get().strip() and pmd_ruleset is None:
             return
 
-        generate_excels = bool(self.generate_excels_var.get())
-        generate_dd_excel = bool(self.generate_data_dictionary_excel_var.get())
-        dd_selection = (
-            DataDictionarySelection.from_settings(self.settings)
-            if generate_dd_excel
-            else None
-        )
-        generate_org_check = bool(self.generate_org_check_reports_var.get())
-        org_check_choice = self.org_check_choice_var.get().strip()
         org_ref = selected_org.org_ref
-        run_alias = self._run_alias(org_ref)
-        findings_paths = self._findings_paths(run_alias)
+        documentation_task = self._build_documentation_task(
+            source,
+            output,
+            org_ref,
+            True,
+            exclusion_file,
+            pmd_ruleset,
+            reset_command_stats=False,
+        )
 
         def task() -> GenerationResult:
             self.cli_service.reset_command_stats()
-            manifest_path = self.cli_service.generate_manifest(selected_org.org_ref, source)
-            retrieved_path = self.cli_service.retrieve_from_org(
-                selected_org.org_ref, source, manifest_path
-            )
-            self.task_manager.queue_log("Recuperation de la couverture de tests...")
-            test_coverage = self._fetch_test_coverage(selected_org.org_ref)
-            self._run_org_check_pre_step(output, generate_org_check, org_check_choice, org_ref)
-            generator = SalesforceDocumentationGenerator(
-                retrieved_path,
-                output,
-                exclusion_config_path=exclusion_file,
-                pmd_enabled=bool(self.pmd_enabled_var.get()),
-                pmd_ruleset_path=pmd_ruleset,
-                generate_excels=generate_excels,
-                generate_data_dictionary_word=bool(self.generate_data_dictionary_word_var.get()),
-                generate_summary_word=bool(self.generate_summary_word_var.get()),
-                generate_sarif=bool(self.generate_sarif_var.get()),
-                generate_data_dictionary_excel=generate_dd_excel,
-                generate_findings_excel=bool(self.generate_findings_excel_var.get()),
-                **findings_paths,
-                data_dictionary_selection=dd_selection,
-                scoring_weights=dict(self.scoring_weights),
-                adopt_adapt_weights=dict(self.adopt_adapt_weights),
-                scoring_thresholds=tuple(self.scoring_thresholds),
-                adopt_adapt_thresholds=tuple(self.adopt_adapt_thresholds),
-                data_model_thresholds=tuple(self.data_model_thresholds),
-                profiles_thresholds=tuple(self.profiles_thresholds),
-                profiles_ps_ratio_thresholds=tuple(self.profiles_ps_ratio_thresholds),
-                ai_usage_tags=list(self.ai_usage_tags),
-                posture_config=list(self.posture_config),
-                test_coverage_data=test_coverage,
-                technical_debt_path=self.technical_debt_file_var.get().strip(),
-                innovation_path=self.innovation_file_var.get().strip(),
-                analyzer_rules_path=self.analyzer_rules_file_var.get().strip(),
-                index_card_visibility=self._current_index_card_visibility(),
-                language=self.language,
-                include_comparison=bool(self.include_comparison_var.get()),
-                comparison_target=self.comparison_target_var.get().strip() or "auto",
-                log_callback=self.task_manager.queue_log,
-            )
-            generator.alias = run_alias
-            result = generator.generate()
-            self.cli_service.log_command_summary()
-            return result
+            manifest_path = self.cli_service.generate_manifest(org_ref, source)
+            self.cli_service.retrieve_from_org(org_ref, source, manifest_path)
+            return documentation_task()
 
         self.task_manager.start_task(
             status_text=self._t("pipeline_in_progress"),
