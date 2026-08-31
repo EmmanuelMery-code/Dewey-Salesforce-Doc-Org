@@ -77,6 +77,7 @@ class AppLanguageMixin:
         self.generate_manifest_button.configure(text=self._t("generate_manifest"))
         self.retrieve_button.configure(text=self._t("retrieve"))
         self.delete_button.configure(text=self._t("delete"))
+        self.retrieve_and_doc_button.configure(text=self._t("retrieve_and_doc"))
         self.full_pipeline_button.configure(text=self._t("full_pipeline"))
         self.org_check_button.configure(text=self._t("generate_org_check_excel"))
         self.generate_button.configure(text=self._t("generate_doc"))

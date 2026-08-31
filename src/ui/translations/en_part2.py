@@ -73,6 +73,7 @@ EN_PART2: dict[str, str] = {
     "refresh": "Refresh",
     "generate_manifest": "Generate manifest",
     "retrieve": "Run retrieve",
+    "retrieve_and_doc": "Retrieve + Docs",
     "full_pipeline": "Manifest + Retrieve + Docs",
     "generate_doc": "Generate documentation",
     "generate_org_check_excel": "Generate excel",
@@ -93,10 +94,18 @@ EN_PART2: dict[str, str] = {
     "select_org_manifest": "Select an org before generating the manifest.",
     "select_org_retrieve": "Select an org before running retrieve.",
     "select_org_pipeline": "Select an org before running the full pipeline.",
+    "select_org_retrieve_doc": "Select an org before running retrieve + documentation.",
     "select_org_org_check": "Select an org before running an org check.",
     "org_check_choice_required": "Select an org check type.",
     "manifest_missing_title": "Manifest missing",
     "manifest_missing_message": "No manifest was found in the source folder. Do you want to generate it and then run retrieve?",
+    "manifest_required_title": "Manifest not found",
+    "manifest_required_message": (
+        "The \"Retrieve + Docs\" button reuses an existing manifest, but no file was "
+        "found here:\n\n{path}\n\n"
+        "Generate the manifest first with the \"Generate manifest\" button, or use the "
+        "\"Manifest + Retrieve + Docs\" button which chains all three steps."
+    ),
     "action_already_running": "An action is already running.",
     "choose_analyzer_rules_file": "Choose analyzer rules file",
     "choose_source_folder": "Choose source folder",
@@ -119,6 +128,8 @@ EN_PART2: dict[str, str] = {
     "manifest_retrieve_done": "Manifest generated and retrieve completed.",
     "pipeline_in_progress": "Manifest + retrieve + documentation in progress...",
     "pipeline_done": "Full pipeline completed.",
+    "retrieve_doc_in_progress": "Retrieve + documentation in progress...",
+    "retrieve_doc_done": "Retrieve + documentation completed.",
     "org_check_in_progress": "Org check generation in progress...",
     "org_check_done": "Org check completed.",
     "org_check_ready": "Org check Excel generated: {path}",
@@ -128,6 +139,8 @@ EN_PART2: dict[str, str] = {
     "source_log": "Source: {path}",
     "output_log": "Output: {path}",
     "pipeline_log": "Full pipeline for org: {org}",
+    "retrieve_doc_log": "Retrieve + documentation for org: {org}",
+    "manifest_reused_log": "Reusing existing manifest: {path}",
     "index_log": "Generated index: {path}",
     "org_selected_log": "Org selected: {alias}",
     "delete": "Delete",

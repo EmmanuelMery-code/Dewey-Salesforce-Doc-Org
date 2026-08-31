@@ -79,6 +79,7 @@ FR_PART2: dict[str, str] = {
     "message_delete": "Voulez-vous vraiment supprimer cette org de la liste ?",
     "delete_done": "Suppression terminee.",
     "delete_in_progress": "Suppression de l'org en cours...",
+    "retrieve_and_doc": "Retrieve + Doc",
     "full_pipeline": "Manifest + Retrieve + Doc",
     "generate_doc": "Generer la documentation",
     "generate_org_check_excel": "Generer l'excel",
@@ -99,10 +100,18 @@ FR_PART2: dict[str, str] = {
     "select_org_manifest": "Selectionnez une org avant de generer le manifest.",
     "select_org_retrieve": "Selectionnez une org avant de lancer le retrieve.",
     "select_org_pipeline": "Selectionnez une org avant de lancer le pipeline complet.",
+    "select_org_retrieve_doc": "Selectionnez une org avant de lancer le retrieve + documentation.",
     "select_org_org_check": "Selectionnez une org avant de lancer un org check.",
     "org_check_choice_required": "Selectionnez un type de org check.",
     "manifest_missing_title": "Manifest absent",
     "manifest_missing_message": "Aucun manifest n'a ete trouve dans le dossier source. Voulez-vous le generer puis lancer le retrieve ?",
+    "manifest_required_title": "Manifest introuvable",
+    "manifest_required_message": (
+        "Le bouton \"Retrieve + Doc\" reutilise un manifest deja present, mais aucun "
+        "fichier n'a ete trouve ici :\n\n{path}\n\n"
+        "Generez d'abord le manifest avec le bouton \"Generer manifest\", ou utilisez "
+        "le bouton \"Manifest + Retrieve + Doc\" qui enchaine les trois etapes."
+    ),
     "action_already_running": "Une action est deja en cours.",
     "choose_analyzer_rules_file": "Choisir le fichier de regles d'analyse",
     "choose_source_folder": "Choisir le dossier source",
@@ -125,6 +134,8 @@ FR_PART2: dict[str, str] = {
     "manifest_retrieve_done": "Manifest genere puis retrieve termine.",
     "pipeline_in_progress": "Manifest + retrieve + documentation en cours...",
     "pipeline_done": "Pipeline complet termine.",
+    "retrieve_doc_in_progress": "Retrieve + documentation en cours...",
+    "retrieve_doc_done": "Retrieve + documentation termines.",
     "org_check_in_progress": "Generation Org Check en cours...",
     "org_check_done": "Org Check termine.",
     "org_check_ready": "Excel Org Check genere: {path}",
@@ -134,6 +145,8 @@ FR_PART2: dict[str, str] = {
     "source_log": "Source: {path}",
     "output_log": "Sortie: {path}",
     "pipeline_log": "Pipeline complet sur l'org: {org}",
+    "retrieve_doc_log": "Retrieve + documentation sur l'org: {org}",
+    "manifest_reused_log": "Manifest existant reutilise: {path}",
     "index_log": "Index genere: {path}",
     "org_selected_log": "Org selectionnee : {alias}",
     "production": "Production",
