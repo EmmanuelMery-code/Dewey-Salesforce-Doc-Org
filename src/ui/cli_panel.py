@@ -72,6 +72,11 @@ def build_panel(app: Application, parent: ttk.Frame) -> None:
     )
     app.delete_button.pack(side="left", padx=(0, theme.SPACE_SM))
 
+    app.retrieve_and_doc_button = app._track_button(
+        ttk.Button(org_row, command=app._run_retrieve_and_doc)
+    )
+    app.retrieve_and_doc_button.pack(side="left", padx=(0, theme.SPACE_SM))
+
     app.full_pipeline_button = app._track_button(
         ttk.Button(org_row, style=theme.PRIMARY_BUTTON, command=app._run_full_pipeline)
     )

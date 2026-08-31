@@ -201,6 +201,62 @@ class AppSfCliMixin:
             on_success=lambda p: self.source_var.set(str(p)),
         )
 
+    def _run_retrieve_and_doc(self) -> None:
+        """Retrieve then generate the documentation, reusing an existing manifest.
+
+        The manifest is never regenerated here, so the source folder policy is
+        deliberately not applied: emptying or relocating the source folder would
+        discard the very manifest this action is meant to reuse.
+        """
+        source = self._validate_source_for_cli()
+        if source is None:
+            return
+        manifest_path = source / "manifest" / "package.xml"
+        if not manifest_path.exists():
+            messagebox.showerror(
+                self._t("manifest_required_title"),
+                self._t("manifest_required_message", path=manifest_path),
+            )
+            return
+        selected_org = self._selected_org()
+        if selected_org is None:
+            messagebox.showerror(self._t("error_title"), self._t("select_org_retrieve_doc"))
+            return
+        if not self._apply_output_dir_policy():
+            return
+        output = self._validate_output_dir()
+        if output is None:
+            return
+        exclusion_file = self._selected_exclusion_file()
+        if self.exclusion_file_var.get().strip() and exclusion_file is None:
+            return
+        pmd_ruleset = (
+            self._selected_pmd_ruleset_file() if self.pmd_enabled_var.get() else None
+        )
+        if self.pmd_enabled_var.get() and self.pmd_ruleset_var.get().strip() and pmd_ruleset is None:
+            return
+
+        org_ref = selected_org.org_ref
+        self._append_log(self._t("retrieve_doc_log", org=org_ref))
+        self._append_log(self._t("manifest_reused_log", path=manifest_path))
+        self._append_log(self._t("source_log", path=source))
+        self._append_log(self._t("output_log", path=output))
+
+        documentation_task = self._build_documentation_task(
+            source, output, org_ref, True, exclusion_file, pmd_ruleset
+        )
+
+        def task() -> GenerationResult:
+            self.cli_service.retrieve_from_org(org_ref, source, manifest_path)
+            return documentation_task()
+
+        self.task_manager.start_task(
+            status_text=self._t("retrieve_doc_in_progress"),
+            task=task,
+            success_message=self._t("retrieve_doc_done"),
+            on_success=self._on_generation_result,
+        )
+
     def _run_full_pipeline(self) -> None:
         if not self._apply_source_dir_policy():
             return
