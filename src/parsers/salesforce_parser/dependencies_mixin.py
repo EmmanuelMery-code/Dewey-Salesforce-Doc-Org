@@ -397,8 +397,11 @@ class _DependenciesMixin(_OrphanDetectionMixin, _ParserState):
         # response actions, FlexCard field bindings, ...) for Field references.
         omni_glob_patterns = (
             ("omniScripts", "*.os-meta.xml"),
+            ("omniIntegrationProcedures", "*.oip-meta.xml"),
             ("omniIntegrationProcedures", "*.ip-meta.xml"),
             ("omniDataTransforms", "*.rpt-meta.xml"),
+            ("omniUiCard", "*.ouc-meta.xml"),
+            ("omniUiCard", "*.card-meta.xml"),
             ("omniUiCards", "*.ouc-meta.xml"),
             ("omniUiCards", "*.card-meta.xml"),
             ("vlocityCards", "*.ouc-meta.xml"),

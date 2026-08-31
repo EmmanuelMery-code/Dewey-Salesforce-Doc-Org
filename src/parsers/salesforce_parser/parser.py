@@ -179,34 +179,34 @@ class SalesforceMetadataParser(
                     if not self._is_excluded("omni", path.stem.replace(".os-meta", ""))
                 ]
             )
-            metrics.omni_integration_procedures += len(
-                [
-                    path
-                    for path in (package_root / "omniIntegrationProcedures").glob("*.ip-meta.xml")
-                    if not self._is_excluded("omni", path.stem.replace(".ip-meta", ""))
-                ]
-            )
-            metrics.omni_ui_cards += len(
-                [
-                    path
-                    for path in (package_root / "omniUiCards").glob("*.ouc-meta.xml")
-                    if not self._is_excluded("omni", path.stem.replace(".ouc-meta", ""))
-                ]
-            )
-            metrics.omni_ui_cards += len(
-                [
-                    path
-                    for path in (package_root / "omniUiCards").glob("*.card-meta.xml")
-                    if not self._is_excluded("omni", path.stem.replace(".card-meta", ""))
-                ]
-            )
-            metrics.omni_ui_cards += len(
-                [
-                    path
-                    for path in (package_root / "vlocityCards").glob("*.ouc-meta.xml")
-                    if not self._is_excluded("omni", path.stem.replace(".ouc-meta", ""))
-                ]
-            )
+            # The Metadata API suffix for OmniIntegrationProcedure is `.oip`;
+            # `.ip` only appears in older orgs.
+            for ip_suffix in (".oip-meta", ".ip-meta"):
+                metrics.omni_integration_procedures += len(
+                    [
+                        path
+                        for path in (package_root / "omniIntegrationProcedures").glob(
+                            f"*{ip_suffix}.xml"
+                        )
+                        if not self._is_excluded("omni", path.stem.replace(ip_suffix, ""))
+                    ]
+                )
+            # The Metadata API folder for OmniUiCard is `omniUiCard` (singular);
+            # the plural and vlocityCards variants only exist in older orgs.
+            for cards_folder, cards_suffix in (
+                ("omniUiCard", ".ouc-meta"),
+                ("omniUiCard", ".card-meta"),
+                ("omniUiCards", ".ouc-meta"),
+                ("omniUiCards", ".card-meta"),
+                ("vlocityCards", ".ouc-meta"),
+            ):
+                metrics.omni_ui_cards += len(
+                    [
+                        path
+                        for path in (package_root / cards_folder).glob(f"*{cards_suffix}.xml")
+                        if not self._is_excluded("omni", path.stem.replace(cards_suffix, ""))
+                    ]
+                )
             metrics.omni_data_transforms += len(
                 [
                     path
