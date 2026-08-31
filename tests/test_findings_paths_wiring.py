@@ -1,9 +1,10 @@
-"""The findings stores must reach the generator from every entry point.
+"""One generator construction, reached by every entry point.
 
 A generator built without ``findings_history_path`` still produces the
 findings workbook, only stripped of the findings of the past runs — a
 regression nothing else would catch. These tests pin the helper that carries
-the paths and check that every UI entry point actually uses it.
+the paths, and check that the generator is instantiated in exactly one place
+so no entry point can quietly drift from the others.
 """
 
 from __future__ import annotations
@@ -18,7 +19,11 @@ from src.core.findings_qualification import STORE_FILENAME
 from src.core.orchestrator import SalesforceDocumentationGenerator
 from src.ui.app_generation_mixin import AppGenerationMixin
 
-#: Modules that build a generator on behalf of the user.
+#: The only module allowed to instantiate the generator.
+TASK_BUILDER = "src/ui/app_documentation_task_mixin.py"
+
+#: Modules that start a documentation run on behalf of the user. Each must go
+#: through the shared builder rather than instantiating its own generator.
 ENTRY_POINTS = (
     "src/ui/app_generation_mixin.py",
     "src/ui/app_sf_cli_mixin.py",
@@ -64,7 +69,14 @@ class TestFindingsPaths:
         )["findings_history_path"] == findings_cache_path(tmp_path, "mh_recette_org")
 
 
-class TestEveryEntryPointIsWired:
+class TestASingleGeneratorConstruction:
+    """The documentation must not depend on which button produced it.
+
+    The generator takes some forty options; as long as several entry points
+    build their own, they drift apart and the same org yields different
+    reports. So exactly one module may instantiate it.
+    """
+
     def _generator_calls(self, module: str) -> list[ast.Call]:
         tree = ast.parse((REPO_ROOT / module).read_text(encoding="utf-8"))
         return [
@@ -75,19 +87,39 @@ class TestEveryEntryPointIsWired:
             and node.func.id == "SalesforceDocumentationGenerator"
         ]
 
-    def test_every_entry_point_builds_one_generator(self) -> None:
-        assert {module: len(self._generator_calls(module)) for module in ENTRY_POINTS} == {
-            module: 1 for module in ENTRY_POINTS
+    def _builder_calls(self, module: str) -> list[ast.Call]:
+        tree = ast.parse((REPO_ROOT / module).read_text(encoding="utf-8"))
+        return [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "_build_documentation_task"
+        ]
+
+    def test_the_generator_is_built_in_a_single_place(self) -> None:
+        building = {
+            path.relative_to(REPO_ROOT).as_posix()
+            for path in (REPO_ROOT / "src" / "ui").rglob("*.py")
+            if self._generator_calls(path.relative_to(REPO_ROOT).as_posix())
         }
 
-    def test_no_entry_point_forgets_the_findings_paths(self) -> None:
-        for module in ENTRY_POINTS:
-            call = self._generator_calls(module)[0]
-            keywords = {keyword.arg for keyword in call.keywords}
-            unpacked = {
-                keyword.value.id
-                for keyword in call.keywords
-                if keyword.arg is None and isinstance(keyword.value, ast.Name)
-            }
-            wired = "findings_history_path" in keywords or "findings_paths" in unpacked
-            assert wired, f"{module} construit le generateur sans l'historique"
+        assert building == {TASK_BUILDER}
+
+    def test_that_single_construction_carries_the_findings_paths(self) -> None:
+        calls = self._generator_calls(TASK_BUILDER)
+        assert len(calls) == 1
+
+        keywords = {keyword.arg for keyword in calls[0].keywords}
+        unpacked = {
+            keyword.value.id
+            for keyword in calls[0].keywords
+            if keyword.arg is None and isinstance(keyword.value, ast.Name)
+        }
+        wired = "findings_history_path" in keywords or "findings_paths" in unpacked
+        assert wired, f"{TASK_BUILDER} construit le generateur sans l'historique"
+
+    def test_every_entry_point_goes_through_the_shared_builder(self) -> None:
+        assert {module: bool(self._builder_calls(module)) for module in ENTRY_POINTS} == {
+            module: True for module in ENTRY_POINTS
+        }
