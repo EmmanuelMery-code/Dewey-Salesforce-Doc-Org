@@ -11,7 +11,7 @@ forwards the public API so existing callers keep working unchanged.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Collection
 
 from src.core.ai_usage import AIUsageEntry, AIUsageStats
 from src.core.customization_metrics import (
@@ -47,6 +47,7 @@ from src.reporting.html.renderers import (
     security as security_renderer,
     security_matrix as security_matrix_renderer,
     psg as psg_renderer,
+    psg_details as psg_details_renderer,
 )
 
 
@@ -380,6 +381,9 @@ class HtmlReportWriter:
         pages["psg_list"] = psg_renderer.write_psg_list_page(
             snapshot, self.output_dir, self.assets_dir
         )
+        pages["psg_details"] = psg_details_renderer.write_psg_details_page(
+            snapshot, self.output_dir, self.assets_dir
+        )
         return pages
 
     def write_index(
@@ -413,6 +417,7 @@ class HtmlReportWriter:
         alias: str = "",
         comparison_page: Path | None = None,
         comparison_regressions: int | None = None,
+        data_dictionary_objects: Collection[str] | None = None,
     ) -> Path:
         return index_renderer.write_index(
             snapshot,
@@ -447,4 +452,5 @@ class HtmlReportWriter:
             alias=alias,
             comparison_page=comparison_page,
             comparison_regressions=comparison_regressions,
+            data_dictionary_objects=data_dictionary_objects,
         )

@@ -47,6 +47,7 @@ class _SecurityMixin(_ParserState):
                         allow_delete=to_bool(child_text(node, "allowDelete")),
                         view_all_records=to_bool(child_text(node, "viewAllRecords")),
                         modify_all_records=to_bool(child_text(node, "modifyAllRecords")),
+                        view_all_fields=to_bool(child_text(node, "viewAllFields")),
                     )
                 )
 

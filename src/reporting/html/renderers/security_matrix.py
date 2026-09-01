@@ -35,6 +35,7 @@ def write_security_matrix_page(
                 if perm.allow_delete: crud += "D"
                 if perm.view_all_records: crud += "V"
                 if perm.modify_all_records: crud += "M"
+                if perm.view_all_fields: crud += "F"
                 row.append(f"<td title='{art.name} on {obj_name}'>{crud}</td>")
             else:
                 row.append("<td class='empty'>-</td>")
@@ -56,6 +57,7 @@ def write_security_matrix_page(
         <li><strong>D</strong> : Delete (Suppression)</li>
         <li><strong>V</strong> : View All (Voir tout)</li>
         <li><strong>M</strong> : Modify All (Modifier tout)</li>
+        <li><strong>F</strong> : View All Fields (Voir tous les champs)</li>
     </ul>
 </div>
 

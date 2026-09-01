@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Collection
 
 from src.core.models import MetadataSnapshot, PmdViolation, ReviewResult
+from src.core.psg_access import SUMMARY_WORKBOOK_NAME
 from src.reporting.html.page_shell import tabbed_sections
 from src.reporting.html.renderers.index_panels import (
     render_excel_exports,
@@ -15,6 +17,10 @@ from src.reporting.html.renderers.index_panels import (
     render_index_pmd_panel,
 )
 from src.reporting.html.renderers.omni import OMNI_TAB_LABEL
+from src.reporting.html.renderers.psg_summary import (
+    INDEX_TAB_GROUP,
+    SHARING_RULES_TAB_LABEL,
+)
 from src.reporting.html.renderers.index_tables import (
     render_agent_rows,
     render_apex_rows,
@@ -42,6 +48,7 @@ def render_index_tabs(
     prompt_pages: dict[str, Path],
     security_pages: dict[str, Path] | None,
     analyzer_report,
+    data_dictionary_objects: Collection[str] | None = None,
 ) -> str:
     """Build the full ``tabbed_sections`` HTML block shown below the summary cards."""
     object_rows = render_object_rows(snapshot, object_pages, current_path)
@@ -51,6 +58,9 @@ def render_index_tabs(
         current_path,
         security_pages,
         analyzer_report,
+        data_dictionary_objects,
+        root_dir / "excel" / SUMMARY_WORKBOOK_NAME,
+        object_pages,
     )
 
     sharing_rule_rows = render_sharing_rule_rows(snapshot)
@@ -115,7 +125,7 @@ def render_index_tabs(
     )
 
     return tabbed_sections(
-        "index",
+        INDEX_TAB_GROUP,
         [
             (
                 "Exports Excel",
@@ -130,7 +140,7 @@ def render_index_tabs(
                 security_dashboard_tab,
             ),
             (
-                "Sharing Rules",
+                SHARING_RULES_TAB_LABEL,
                 f"<table><thead><tr><th>Objet</th><th>Nom</th><th>Type</th><th>Label</th><th>Description</th></tr></thead><tbody>{sharing_rule_rows}</tbody></table>",
             ),
             (

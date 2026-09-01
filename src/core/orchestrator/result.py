@@ -32,6 +32,7 @@ class GenerationResult:
     selected_data_dictionary_excels: list[Path] = field(default_factory=list)
     findings_excel: Path | None = None
     picklists_excel: Path | None = None
+    psg_summary_excel: Path | None = None
     pmd_excel: Path | None = None
     data_dictionary_word: Path | None = None
     summary_word: Path | None = None
