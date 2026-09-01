@@ -15,6 +15,7 @@ class ObjectPermission:
     allow_delete: bool = False
     view_all_records: bool = False
     modify_all_records: bool = False
+    view_all_fields: bool = False
 
 
 @dataclass(slots=True)

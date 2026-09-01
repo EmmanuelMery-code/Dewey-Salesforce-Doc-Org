@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Collection
 
 from src.core.ai_usage import AIUsageEntry, AIUsageStats
 from src.core.customization_metrics import (
@@ -63,6 +63,7 @@ def render_index(
     alias: str = "",
     comparison_page: Path | None = None,
     comparison_regressions: int | None = None,
+    data_dictionary_objects: Collection[str] | None = None,
 ) -> str:
     visibility = card_visibility or IndexCardVisibility()
     listing = listing_pages or {}
@@ -90,6 +91,7 @@ def render_index(
         prompt_pages,
         security_pages,
         analyzer_report,
+        data_dictionary_objects,
     )
 
     summary_tabs = render_index_summary_tabs(
@@ -178,6 +180,7 @@ def write_index(
     alias: str = "",
     comparison_page: Path | None = None,
     comparison_regressions: int | None = None,
+    data_dictionary_objects: Collection[str] | None = None,
 ) -> Path:
     path = output_dir / "index.html"
     write_text(
@@ -215,6 +218,7 @@ def write_index(
             alias=alias,
             comparison_page=comparison_page,
             comparison_regressions=comparison_regressions,
+            data_dictionary_objects=data_dictionary_objects,
         ),
     )
     log(f"Index genere: {path}")

@@ -47,6 +47,17 @@ def index_back_link(
     return f"<div class=\"topnav\"><a href=\"{href}\">Retour a l'index</a></div>"
 
 
+def tab_panel_id(group_id: str, label: str) -> str:
+    """Id of the panel :func:`tabbed_sections` builds for ``label``.
+
+    Lets a page link straight at a tab of another widget without hardcoding
+    the naming scheme. Only valid for a label used once in the group, since
+    duplicates get a numeric suffix.
+    """
+
+    return f"{group_id}-panel-{safe_slug(label)}"
+
+
 def tabbed_sections(group_id: str, sections: list[tuple[str, str]]) -> str:
     """Render a tabbed widget grouping ``sections`` (label, html) tuples.
 
@@ -66,7 +77,7 @@ def tabbed_sections(group_id: str, sections: list[tuple[str, str]]) -> str:
             slug = f"{base_slug}-{suffix}"
         used_slugs.add(slug)
         tab_id = f"{group_id}-tab-{slug}"
-        panel_id = f"{group_id}-panel-{slug}"
+        panel_id = tab_panel_id(group_id, slug)
         active_class = " active" if index == 0 else ""
         button_html.append(
             f"<button class='tab-button{active_class}' type='button' data-tab-group='{group_id}' data-tab-target='{panel_id}' id='{tab_id}'>{html_value(label)}</button>"

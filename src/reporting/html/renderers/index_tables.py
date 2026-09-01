@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Collection
 
 from src.core.models import MetadataSnapshot
 from src.core.utils import html_value
 from src.reporting.html.page_shell import href_relative, tabbed_sections
+from src.reporting.html.renderers.psg_summary import render_psg_group_summary
 
 
 def render_object_rows(
@@ -72,6 +74,9 @@ def render_security_dashboard_tab(
     current_path: Path,
     security_pages: dict[str, Path] | None,
     analyzer_report,
+    data_dictionary_objects: Collection[str] | None = None,
+    psg_summary_workbook: Path | None = None,
+    object_pages: dict[str, Path] | None = None,
 ) -> str:
     risk_style = {
         "danger": "background:rgba(255,68,68,.08);color:#c00",
@@ -150,6 +155,19 @@ def render_security_dashboard_tab(
     ratio_color = ratio_colors.get(metrics.profiles_ps_ratio_level, "#888")
     profiles_href = href_relative(current_path, security_pages["profiles_list"]) if security_pages and "profiles_list" in security_pages else ""
     permsets_href = href_relative(current_path, security_pages["permsets_list"]) if security_pages and "permsets_list" in security_pages else ""
+    matrix_page = (security_pages or {}).get("security_matrix")
+    matrix_href = href_relative(current_path, matrix_page) if matrix_page else ""
+    psg_list_page = (security_pages or {}).get("psg_list")
+    psg_list_href = href_relative(current_path, psg_list_page) if psg_list_page else ""
+    psg_details_page = (security_pages or {}).get("psg_details")
+    psg_details_href = (
+        href_relative(current_path, psg_details_page) if psg_details_page else ""
+    )
+    psg_workbook_href = (
+        href_relative(current_path, psg_summary_workbook)
+        if psg_summary_workbook and psg_summary_workbook.exists()
+        else ""
+    )
     profiles_title = f"<a href='{profiles_href}'>Profiles</a>" if profiles_href else "Profiles"
     permsets_title = f"<a href='{permsets_href}'>Permission Sets</a>" if permsets_href else "Permission Sets"
 
@@ -191,8 +209,22 @@ def render_security_dashboard_tab(
         ("Synthese", summary),
         ("Profiles", f"<h4>{profiles_title} ({len(snapshot.profiles)})</h4><table><thead><tr><th>Profil</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{profile_rows}</tbody></table>"),
         ("Permission Sets", f"<h4>{permsets_title} ({len(snapshot.permission_sets)})</h4><table><thead><tr><th>Permission Set</th><th>Type</th><th>Risque</th><th>Droits objet</th><th>Droits champ</th></tr></thead><tbody>{permset_rows}</tbody></table>"),
-        ("CRUD", f"<p><a href='{href_relative(current_path, security_pages.get('security_matrix')) if security_pages else '#'}' target='_blank' rel='noopener'>Ouvrir la matrice de securite (CRUD) dans un nouvel onglet</a></p>"),
-        ("PS Group", f"<p><a href='{href_relative(current_path, security_pages.get('psg_list')) if security_pages else '#'}' target='_blank' rel='noopener'>Ouvrir les Permission Set Groups dans un nouvel onglet</a></p>"),
+        ("CRUD", f"<p><a href='{matrix_href or '#'}' target='_blank' rel='noopener'>Ouvrir la matrice de securite (CRUD) dans un nouvel onglet</a></p>"),
+        ("PS Group", f"<p><a href='{psg_list_href or '#'}' target='_blank' rel='noopener'>Ouvrir les Permission Set Groups dans un nouvel onglet</a></p>"),
+        (
+            "PSet Group Summary",
+            render_psg_group_summary(
+                snapshot,
+                psg_list_href,
+                data_dictionary_objects,
+                psg_details_href,
+                psg_workbook_href,
+                {
+                    name: href_relative(current_path, page)
+                    for name, page in (object_pages or {}).items()
+                },
+            ),
+        ),
     ])
 
 

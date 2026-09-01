@@ -242,6 +242,12 @@ TABS_SCRIPT = """
     panel.classList.add("active");
     const button = document.querySelector(`[data-tab-group="${group}"][data-tab-target="${panel.id}"]`);
     if (button) button.classList.add("active");
+    // A nested panel stays hidden unless its ancestors are activated too,
+    // so a link pointing straight at a sub-tab shows nothing.
+    const parent = panel.parentElement
+      ? panel.parentElement.closest("[data-tab-panel]")
+      : null;
+    if (parent) activatePanel(parent);
     renderMermaidIn(panel);
     return true;
   };

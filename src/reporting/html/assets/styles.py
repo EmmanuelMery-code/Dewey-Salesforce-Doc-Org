@@ -131,6 +131,27 @@ code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
 .tab-button.active { background: #dbeafe; color: #1e3a8a; border-color: #93c5fd; }
 .tab-panel { display: none; padding: 14px; }
 .tab-panel.active { display: block; }
+.psg-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 10px 0; font-size: 0.88rem; }
+.psg-toolbar input[type="search"] { padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 6px; min-width: 220px; }
+.psg-toolbar label { color: #334155; display: inline-flex; align-items: center; gap: 6px; }
+.psg-count { color: #64748b; }
+.psg-matrix-wrap { overflow: auto; max-height: 70vh; border: 1px solid #cbd5e1; border-radius: 6px; }
+.psg-matrix { border-collapse: separate; border-spacing: 0; font-size: 0.8rem; width: auto; }
+.psg-matrix th, .psg-matrix td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 4px 8px; white-space: nowrap; text-align: center; }
+.psg-matrix thead tr:first-child th { position: sticky; top: 0; height: 32px; background: #f1f5f9; z-index: 2; }
+.psg-matrix thead tr:nth-child(2) th { position: sticky; top: 32px; background: #f8fafc; z-index: 2; font-weight: 500; color: #475569; }
+.psg-matrix .psg-group-head { background: #e2e8f0; color: #1e293b; }
+.psg-matrix .psg-sticky { position: sticky; left: 0; background: white; text-align: left; font-weight: 600; z-index: 1; box-shadow: 1px 0 0 #cbd5e1; }
+.psg-matrix thead .psg-sticky { background: #f1f5f9; z-index: 3; }
+.psg-matrix tbody tr:hover td, .psg-matrix tbody tr:hover .psg-sticky { background: #f8fafc; }
+.psg-matrix .psg-owd { color: #475569; }
+.psg-matrix .psg-cell { padding: 3px 6px; }
+.psg-none { color: #cbd5e1; }
+.psg-flag { display: inline-block; min-width: 20px; padding: 1px 3px; margin: 0 1px; border-radius: 4px; font-weight: 700; font-size: 0.72rem; cursor: help; }
+.psg-flag.on { background: #dcfce7; color: #15803d; }
+.psg-flag.off { background: #f1f5f9; color: #cbd5e1; }
+.psg-check.on { color: #15803d; font-weight: 700; text-align: center; }
+.psg-check.off { color: #cbd5e1; text-align: center; }
         """.strip()
 
 

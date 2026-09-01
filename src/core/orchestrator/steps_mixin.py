@@ -20,6 +20,7 @@ from src.core.models import MetadataSnapshot, PmdViolation
 from src.core.orchestrator.base import _OrchestratorState
 from src.core.orchestrator.result import GenerationResult
 from src.core.pmd_service import PmdService
+from src.core.psg_access import SUMMARY_WORKBOOK_NAME
 from src.core.utils import safe_slug
 from src.reporting.excel_writer import ExcelReportWriter
 from src.reporting.excel_writer_findings import (
@@ -91,6 +92,18 @@ class _StepsMixin(_OrchestratorState):
             "picklists.xlsx",
             lambda: excel_writer.write_picklists_workbook(
                 snapshot.objects, excel_dir / "picklists.xlsx"
+            ),
+        )
+        result.psg_summary_excel = self._safe_run(
+            SUMMARY_WORKBOOK_NAME,
+            lambda: excel_writer.write_psg_summary_workbook(
+                snapshot,
+                excel_dir / SUMMARY_WORKBOOK_NAME,
+                selected_objects=(
+                    self.data_dictionary_selection.objects
+                    if self.data_dictionary_selection is not None
+                    else None
+                ),
             ),
         )
 
@@ -444,4 +457,9 @@ class _StepsMixin(_OrchestratorState):
             alias=self.alias,
             comparison_page=comparison_page,
             comparison_regressions=comparison_regressions,
+            data_dictionary_objects=(
+                self.data_dictionary_selection.objects
+                if self.data_dictionary_selection is not None
+                else None
+            ),
         )

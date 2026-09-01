@@ -77,11 +77,10 @@ class AppDocumentationTaskMixin:
         generate_sarif = bool(self.generate_sarif_var.get())
         generate_dd_excel = bool(self.generate_data_dictionary_excel_var.get())
         generate_findings_excel = bool(self.generate_findings_excel_var.get())
-        dd_selection = (
-            DataDictionarySelection.from_settings(self.settings)
-            if generate_dd_excel
-            else None
-        )
+        # Always read the Data Dictionary screen selection: the flag only
+        # drives the extra workbook, while the HTML index uses the picked
+        # objects to offer its "selected objects only" filters.
+        dd_selection = DataDictionarySelection.from_settings(self.settings)
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
         run_alias = self._run_alias(org_ref)
