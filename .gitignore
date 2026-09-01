@@ -35,6 +35,21 @@ exclusion_PV.xlsx
 # Local Salesforce CLI / SFDX state
 .sf_cli_project/
 .sfdx/
+.sf/
+
+# Salesforce CLI command output dumped at the repo root (org lists, metadata
+# listings, deploy reports): local scratch data, never part of the tool.
+/orglist.json
+/md_*.json
+/dryrun*.json
+/deploy*.json
+
+# Local SFDX projects used to fix or deploy an org from this workspace
+/smatch-org/
+/smatch-fix/
+
+# Data Dictionary workbooks exported for a client (org data, not committed)
+/*.xlsx
 
 # Generated outputs
 output_test/
