@@ -189,6 +189,8 @@ class SalesforceDocumentationGenerator(
                 snapshot, excel_writer, excel_dir, result
             )
 
+        self._generate_data_model_diagram(snapshot, result)
+
         if not self.generate_html:
             self.log("Generation HTML desactivee dans la configuration.")
 

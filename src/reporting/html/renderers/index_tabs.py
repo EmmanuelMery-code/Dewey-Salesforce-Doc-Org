@@ -9,6 +9,7 @@ from src.core.models import MetadataSnapshot, PmdViolation, ReviewResult
 from src.core.psg_access import SUMMARY_WORKBOOK_NAME
 from src.reporting.html.page_shell import tabbed_sections
 from src.reporting.html.renderers.index_panels import (
+    render_diagram_exports,
     render_excel_exports,
     render_index_analyzer_panel,
     render_index_dependencies_panel,
@@ -68,6 +69,7 @@ def render_index_tabs(
     flow_panel = render_flow_panel(snapshot, flow_pages, current_path)
 
     excel_links = render_excel_exports(root_dir, current_path)
+    diagram_links = render_diagram_exports(root_dir, current_path)
     omni_panel = render_index_omni_panel(omni_pages, current_path)
     agent_rows = render_agent_rows(snapshot, agent_pages, current_path)
     prompt_rows = render_prompt_rows(snapshot, prompt_pages, current_path)
@@ -130,6 +132,10 @@ def render_index_tabs(
             (
                 "Exports Excel",
                 excel_links,
+            ),
+            (
+                "Diagrammes",
+                diagram_links,
             ),
             (
                 "Objets",
