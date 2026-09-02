@@ -30,17 +30,47 @@ from src.core.psg_access import (
 YES = "Oui"
 NO = ""
 
+#: Marque d'un droit non accorde dans la matrice, equivalent d'un badge eteint.
+NOT_GRANTED = "-"
+
 
 def _codes(access, flags: tuple[tuple[str, str, str], ...]) -> str:
-    """Codes des droits accordes, comme les badges allumes de la matrice HTML."""
+    """Etat de chaque droit, comme les badges allumes ou eteints de la matrice HTML.
 
-    if access is None:
-        return ""
-    return " ".join(code for code, _label, attribute in flags if access.granted(attribute))
+    Les codes gardent une position fixe et un droit absent s'ecrit ``-`` : une
+    cellule entierement vide laisserait croire que l'export n'a rien ecrit,
+    alors que le groupe n'accorde simplement aucun droit sur cet objet.
+    """
+
+    return " ".join(
+        code if access is not None and access.granted(attribute) else NOT_GRANTED
+        for code, _label, attribute in flags
+    )
 
 
 def _group_title(access: GroupAccess) -> str:
     return access.group.label or access.group.name
+
+
+def _empty_group_reason(access: GroupAccess) -> str:
+    """Pourquoi les deux colonnes d'un groupe n'affichent que des droits absents.
+
+    Sans cette precision, une colonne entierement a ``-`` se lit comme une
+    donnee manquante alors qu'elle traduit une realite de l'org ou une limite
+    du retrieve.
+    """
+
+    if not access.group.permission_sets:
+        return "aucun permission set membre"
+    if not access.resolved_permission_sets:
+        return "permission sets membres non analyses"
+    return "aucun droit objet"
+
+
+def _matrix_group_title(access: GroupAccess) -> str:
+    if access.objects:
+        return _group_title(access)
+    return f"{_group_title(access)} ({_empty_group_reason(access)})"
 
 
 class _ExcelPsgSummaryMixin:
@@ -80,6 +110,9 @@ class _ExcelPsgSummaryMixin:
             workbook.create_sheet("Matrice"),
             self._psg_matrix_headers(accesses, selected),
             self._psg_matrix_rows(accesses, object_names, owd, rule_counts, selected),
+            # La matrice porte deux colonnes par groupe : sans colonne objet
+            # figee, les droits lus a droite ne se rattachent plus a une ligne.
+            freeze_panes="B2",
         )
         self._write_sheet(
             workbook.create_sheet("DroitsParGroupe"),
@@ -193,7 +226,7 @@ class _ExcelPsgSummaryMixin:
         if selected:
             headers.append("Selectionne (Data Dictionary)")
         for access in accesses:
-            title = _group_title(access)
+            title = _matrix_group_title(access)
             headers.extend([f"{title} - CRUD", f"{title} - Sharing & Visibility"])
         return headers
 
@@ -351,6 +384,19 @@ class _ExcelPsgSummaryMixin:
         rows.extend(
             ["Sharing & Visibility", code, label]
             for code, label, _attribute in SHARING_FLAGS
+        )
+        rows.append(
+            [
+                "Lecture de l'onglet Matrice",
+                NOT_GRANTED,
+                "Droit non accorde. Chaque cellule liste les droits dans un ordre "
+                f"fixe ({' '.join(code for code, _label, _a in CRUD_FLAGS)} pour le "
+                f"CRUD, {' '.join(code for code, _label, _a in SHARING_FLAGS)} pour "
+                "le Sharing & Visibility) : un tiret remplace le code du droit "
+                "absent. Une colonne entierement a tirets signifie que le groupe "
+                "n'accorde aucun droit objet, sa raison est rappelee dans "
+                "l'en-tete de la colonne.",
+            ]
         )
         rows.extend(["Statut du groupe", value, description] for value, description in STATUS_HELP)
         rows.extend(
