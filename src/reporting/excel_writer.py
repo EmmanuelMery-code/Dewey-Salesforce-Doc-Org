@@ -317,7 +317,13 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin):
         self.log(f"Classeur Picklist genere ({len(rows)} champ(s)): {output}")
         return output
 
-    def _write_sheet(self, worksheet, headers: list[str], rows: list[list[object]]) -> None:
+    def _write_sheet(
+        self,
+        worksheet,
+        headers: list[str],
+        rows: list[list[object]],
+        freeze_panes: str = "A2",
+    ) -> None:
         worksheet.append(headers)
         header_fill = PatternFill(fill_type="solid", fgColor="DCE6F1")
         for cell in worksheet[1]:
@@ -327,7 +333,7 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin):
         for row in rows:
             worksheet.append(row)
 
-        worksheet.freeze_panes = "A2"
+        worksheet.freeze_panes = freeze_panes
         worksheet.auto_filter.ref = worksheet.dimensions
 
         for index, header in enumerate(headers, start=1):

@@ -18,7 +18,9 @@ Contrats testes :
 
   ExcelReportWriter().write_psg_summary_workbook(...) -> Path
     ecrit le classeur equivalent au sous-onglet : un onglet par tableau du
-    sous-onglet et de sa page de detail, liste dans les exports Excel.
+    sous-onglet et de sa page de detail, liste dans les exports Excel. Comme
+    les badges de la matrice HTML, chaque cellule de l'onglet Matrice montre
+    l'etat de tous les droits, un tiret marquant un droit non accorde.
 """
 
 from __future__ import annotations
@@ -96,6 +98,33 @@ SALES_GROUP = """<?xml version="1.0" encoding="UTF-8"?>
     <status>Updated</status>
     <permissionSets>Sales_Core</permissionSets>
     <permissionSets>Sales_Admin</permissionSets>
+    <permissionSets>Missing_Set</permissionSets>
+</PermissionSetGroup>
+"""
+
+# Groupe n'accordant qu'une partie du CRUD : Sales_Core laisse Update et Delete
+# a false, ainsi qu'aucun droit Sharing & Visibility.
+PARTIAL_GROUP = """<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Core Only</label>
+    <status>Updated</status>
+    <permissionSets>Sales_Core</permissionSets>
+</PermissionSetGroup>
+"""
+
+# Cas rencontres sur une org reelle : un groupe sans aucun permission set dans
+# le retrieve, et un groupe dont les membres n'ont pas ete analyses.
+MEMBERLESS_GROUP = """<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Empty Group</label>
+    <status>Updated</status>
+</PermissionSetGroup>
+"""
+
+UNRESOLVED_GROUP = """<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSetGroup xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Unknown Members</label>
+    <status>Updated</status>
     <permissionSets>Missing_Set</permissionSets>
 </PermissionSetGroup>
 """
@@ -365,6 +394,20 @@ class TestPsgSummaryWorkbook:
     def _rows(sheet) -> list[list[object]]:
         return [list(row) for row in sheet.iter_rows(values_only=True)]
 
+    def _matrix(self, tmp_path: Path, groups: dict[str, str]) -> list[list[object]]:
+        """Onglet Matrice d'une source enrichie de groupes supplementaires."""
+
+        source = _build_source(tmp_path)
+        for file_name, content in groups.items():
+            (source / "permissionsetgroups" / file_name).write_text(
+                content, encoding="utf-8"
+            )
+        path = ExcelReportWriter().write_psg_summary_workbook(
+            SalesforceMetadataParser(source).parse(),
+            tmp_path / "excel" / SUMMARY_WORKBOOK_NAME,
+        )
+        return self._rows(load_workbook(path)["Matrice"])
+
     def test_one_sheet_per_table_of_the_summary_and_details_pages(
         self, tmp_path: Path
     ) -> None:
@@ -394,6 +437,55 @@ class TestPsgSummaryWorkbook:
             "Sales Team - Sharing & Visibility",
         ]
         assert rows[1] == ["Account", "Private", 0, "Oui", "C R U D", "VA MA VAF"]
+
+    def test_matrix_marks_each_right_that_is_not_granted(self, tmp_path: Path) -> None:
+        rows = self._matrix(
+            tmp_path, {"Core_Only.permissionsetgroup-meta.xml": PARTIAL_GROUP}
+        )
+        header = rows[0]
+        account = next(row for row in rows[1:] if row[0] == "Account")
+
+        assert account[header.index("Core Only - CRUD")] == "C R - -"
+        assert account[header.index("Core Only - Sharing & Visibility")] == "- - -"
+
+    def test_matrix_marks_an_object_no_group_grants_anything_on(
+        self, tmp_path: Path
+    ) -> None:
+        source = _build_source(tmp_path)
+        (source / "objects" / "Lead").mkdir(parents=True, exist_ok=True)
+        (source / "objects" / "Lead" / "Lead.object-meta.xml").write_text(
+            ACCOUNT_OBJECT.replace("Account", "Lead"), encoding="utf-8"
+        )
+        path = ExcelReportWriter().write_psg_summary_workbook(
+            SalesforceMetadataParser(source).parse(),
+            tmp_path / "excel" / SUMMARY_WORKBOOK_NAME,
+        )
+        rows = self._rows(load_workbook(path)["Matrice"])
+        lead = next(row for row in rows[1:] if row[0] == "Lead")
+
+        assert lead[rows[0].index("Sales Team - CRUD")] == "- - - -"
+        assert lead[rows[0].index("Sales Team - Sharing & Visibility")] == "- - -"
+
+    def test_matrix_header_says_why_a_group_column_grants_nothing(
+        self, tmp_path: Path
+    ) -> None:
+        header = self._matrix(
+            tmp_path,
+            {
+                "Empty_Group.permissionsetgroup-meta.xml": MEMBERLESS_GROUP,
+                "Unknown_Members.permissionsetgroup-meta.xml": UNRESOLVED_GROUP,
+            },
+        )[0]
+
+        assert "Empty Group (aucun permission set membre) - CRUD" in header
+        assert (
+            "Unknown Members (permission sets membres non analyses) - CRUD" in header
+        )
+
+    def test_matrix_freezes_the_object_column(self, tmp_path: Path) -> None:
+        workbook = self._workbook(tmp_path)
+
+        assert workbook["Matrice"].freeze_panes == "B2"
 
     def test_kpi_sheet_mirrors_the_cards_of_the_sub_tab(self, tmp_path: Path) -> None:
         rows = self._rows(self._workbook(tmp_path)["Synthese"])
@@ -463,6 +555,7 @@ class TestPsgSummaryWorkbook:
             assert values[status] == description
         for title, explanation in COVERAGE_REASONS:
             assert values[title] == explanation
+        assert "Droit non accorde" in values["-"]
 
     def test_workbook_is_listed_in_the_excel_exports_section(self, tmp_path: Path) -> None:
         ExcelReportWriter().write_psg_summary_workbook(
