@@ -9,6 +9,7 @@ from src.analyzer.engine import AnalyzerReport
 from src.analyzer.models import Finding
 from src.core.audit_generator import generate_audit_summary_rtf
 from src.core.data_dictionary_selection import data_dictionary_filename_base
+from src.core.data_model_graph import DATA_MODEL_DIAGRAM_NAME
 from src.core.findings_cache import load_findings_cache, merge_history
 from src.core.findings_qualification import (
     FindingQualification,
@@ -22,6 +23,7 @@ from src.core.orchestrator.result import GenerationResult
 from src.core.pmd_service import PmdService
 from src.core.psg_access import SUMMARY_WORKBOOK_NAME
 from src.core.utils import safe_slug
+from src.reporting.drawio_writer import DrawioDiagramWriter
 from src.reporting.excel_writer import ExcelReportWriter
 from src.reporting.excel_writer_findings import (
     FindingsExcelWriter,
@@ -145,6 +147,41 @@ class _StepsMixin(_OrchestratorState):
                 ),
             )
             or []
+        )
+
+    def _generate_data_model_diagram(
+        self,
+        snapshot: MetadataSnapshot,
+        result: GenerationResult,
+    ) -> None:
+        """Write the draw.io data model diagram of the selected objects.
+
+        The perimeter is the Data Dictionary selection, as the diagram is meant
+        to document the objects the user chose to document, and the relations
+        come from the retrieve like the rest of the documentation.
+        """
+        selection = self.data_dictionary_selection
+        if selection is None or not selection.objects:
+            self.log(
+                "Diagramme du modele de donnees : aucun objet selectionne dans "
+                "l'ecran Data Dictionnary, generation ignoree."
+            )
+            return
+        objects = selection.apply(snapshot.objects)
+        if not objects:
+            self.log(
+                "Diagramme du modele de donnees : les objets selectionnes sont "
+                "absents de la source analysee."
+            )
+            return
+        result.data_model_drawio = self._safe_run(
+            DATA_MODEL_DIAGRAM_NAME,
+            lambda: DrawioDiagramWriter(
+                log_callback=self.log
+            ).write_data_model_diagram(
+                objects,
+                self.output_dir / "diagrams" / DATA_MODEL_DIAGRAM_NAME,
+            ),
         )
 
     def _generate_findings_excel(

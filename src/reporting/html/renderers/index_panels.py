@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from xml.etree import ElementTree
 
 from src.analyzer.models import Finding
 from src.core.models import MetadataSnapshot, PmdViolation, ReviewResult
@@ -166,6 +167,54 @@ def render_excel_exports(root_dir: Path, current_path: Path) -> str:
         "<table><thead><tr><th>Apercu HTML</th><th>Fichier Excel</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
+
+
+def render_diagram_exports(root_dir: Path, current_path: Path) -> str:
+    """Liste les diagrammes ``.drawio`` ecrits dans ``diagrams/``.
+
+    Le contenu d'un ``.drawio`` n'est pas rendu ici : le fichier s'ouvre dans
+    draw.io (ou l'extension VS Code), ce que le tableau annonce en listant les
+    onglets qu'il contient pour eviter d'avoir a l'ouvrir pour le savoir.
+    """
+
+    diagrams_dir = root_dir / "diagrams"
+    files = (
+        sorted(diagrams_dir.glob("*.drawio"), key=lambda path: path.name.lower())
+        if diagrams_dir.exists()
+        else []
+    )
+    if not files:
+        return (
+            "<p class='empty'>Aucun diagramme genere. Le diagramme du modele de "
+            "donnees couvre les objets coches dans l'ecran Data Dictionnary : "
+            "sans selection, il n'est pas produit.</p>"
+        )
+
+    rows: list[str] = []
+    for file_path in files:
+        href = href_relative(current_path, file_path)
+        tabs = ", ".join(_drawio_tab_names(file_path)) or "-"
+        rows.append(
+            f"<tr><td><a href='{href}'>{html_value(file_path.name)}</a></td>"
+            f"<td>{html_value(tabs)}</td></tr>"
+        )
+    return (
+        "<p>Diagrammes ouvrables dans draw.io. Chaque onglet du fichier est une "
+        "vue du modele : vue d'ensemble, domaines d'objets lies, satellites, "
+        "puis objets sans relation.</p>"
+        "<table><thead><tr><th>Fichier</th><th>Onglets</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def _drawio_tab_names(path: Path) -> list[str]:
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError):
+        return []
+    return [
+        diagram.get("name") or "" for diagram in root.iter("diagram")
+    ]
 
 
 def render_index_improvements(
