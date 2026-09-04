@@ -44,6 +44,10 @@ exclusion_PV.xlsx
 /dryrun*.json
 /deploy*.json
 
+# Throwaway scripts kept at the repo root to regenerate a single report page
+# from the last retrieve, without replaying a full analysis.
+/regen_*.py
+
 # Local SFDX projects used to fix or deploy an org from this workspace
 /smatch-org/
 /smatch-fix/
