@@ -10,6 +10,8 @@ the existing absolute scores (``CustomizationMetrics.score`` and
   present in the snapshot (approach A in the design discussion).
 * :class:`AdoptionStats` evaluates the *Adopt vs Adapt posture* across a
   fixed catalogue of nine Salesforce capabilities (approach B).
+* :class:`SelectedUsageStats` measures how much of that footprint the Data
+  Dictionary selection actually covers.
 
 Every public name is re-exported here so existing
 ``from src.core.customization_metrics import X`` imports keep working.
@@ -35,6 +37,12 @@ from src.core.customization_metrics.posture_types import (
     CapabilityDefinition,
     CapabilityLevel,
 )
+from src.core.customization_metrics.selected_usage import (
+    SelectedUsageStats,
+    UsageBucket,
+    UsageTable,
+    compute_selected_usage_stats,
+)
 
 __all__ = [
     "AdoptionStats",
@@ -46,7 +54,11 @@ __all__ = [
     "DataModelCustomisationStats",
     "PostureCapabilityConfig",
     "SNAPSHOT_METRIC_KEYS",
+    "SelectedUsageStats",
+    "UsageBucket",
+    "UsageTable",
     "compute_adoption_stats",
     "compute_data_model_stats",
+    "compute_selected_usage_stats",
     "snapshot_metric_count",
 ]

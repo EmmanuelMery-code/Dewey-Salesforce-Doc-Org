@@ -11,6 +11,7 @@ from src.core.customization_metrics import (
     PostureCapabilityConfig,
     compute_adoption_stats,
     compute_data_model_stats,
+    compute_selected_usage_stats,
 )
 from src.core.data_dictionary_selection import DataDictionarySelection
 from src.core.index_card_visibility import IndexCardVisibility
@@ -265,6 +266,30 @@ class SalesforceDocumentationGenerator(
             f"({dm_stats.percent_custom_fields:.1f} %), "
             f"global custom = {dm_stats.percent_custom_global:.1f} %."
         )
+
+        result.selected_usage_stats = compute_selected_usage_stats(
+            snapshot,
+            self.data_dictionary_selection.objects
+            if self.data_dictionary_selection is not None
+            else None,
+        )
+        usage = result.selected_usage_stats
+        if usage is None or usage.objects is None or usage.fields is None:
+            self.log(
+                "Ce qui est utilise : aucun objet selectionne dans le Data "
+                "Dictionnary, section non generee."
+            )
+        else:
+            custom_objects, standard_objects = usage.objects.buckets[:2]
+            self.log(
+                "Ce qui est utilise : "
+                f"{usage.matched_count} objet(s) selectionne(s), dont "
+                f"{custom_objects.used} custom "
+                f"({(usage.objects.percent(custom_objects) or 0.0):.1f} %) et "
+                f"{standard_objects.used} standard "
+                f"({(usage.objects.percent(standard_objects) or 0.0):.1f} %) ; "
+                f"{usage.fields.base} champ(s) sur objets standard."
+            )
 
         result.adoption_stats = compute_adoption_stats(
             snapshot, self.posture_config or None

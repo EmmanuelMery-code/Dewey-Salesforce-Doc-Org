@@ -7,7 +7,11 @@ from pathlib import Path
 
 from src.analyzer.engine import AnalyzerReport
 from src.core.ai_usage import AIUsageEntry, AIUsageStats
-from src.core.customization_metrics import AdoptionStats, DataModelCustomisationStats
+from src.core.customization_metrics import (
+    AdoptionStats,
+    DataModelCustomisationStats,
+    SelectedUsageStats,
+)
 from src.core.models import MetadataSnapshot
 
 
@@ -43,6 +47,8 @@ class GenerationResult:
     ai_usage_entries: list[AIUsageEntry] = field(default_factory=list)
     ai_usage_stats: AIUsageStats | None = None
     data_model_stats: DataModelCustomisationStats | None = None
+    #: ``None`` when the Data Dictionary screen holds no object selection.
+    selected_usage_stats: SelectedUsageStats | None = None
     adoption_stats: AdoptionStats | None = None
     customisation_page: Path | None = None
     adoption_page: Path | None = None
