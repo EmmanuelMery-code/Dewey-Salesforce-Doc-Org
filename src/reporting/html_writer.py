@@ -18,6 +18,7 @@ from src.core.customization_metrics import (
     AdoptionStats,
     DataModelCustomisationStats,
     PostureCapabilityConfig,
+    SelectedUsageStats,
 )
 from src.core.index_card_visibility import IndexCardVisibility
 from src.core.models import (
@@ -268,6 +269,7 @@ class HtmlReportWriter:
         self,
         snapshot: MetadataSnapshot,
         stats: DataModelCustomisationStats | None,
+        usage_stats: SelectedUsageStats | None = None,
     ) -> Path:
         return customisation_renderer.write_customisation_page(
             snapshot,
@@ -275,6 +277,7 @@ class HtmlReportWriter:
             self.output_dir,
             self.assets_dir,
             self.log,
+            usage_stats=usage_stats,
         )
 
     def write_adoption_page(

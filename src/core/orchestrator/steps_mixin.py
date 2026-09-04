@@ -424,7 +424,9 @@ class _StepsMixin(_OrchestratorState):
             stats=result.ai_usage_stats,
         )
         result.customisation_page = html_writer.write_customisation_page(
-            snapshot, result.data_model_stats
+            snapshot,
+            result.data_model_stats,
+            usage_stats=result.selected_usage_stats,
         )
         result.adoption_page = html_writer.write_adoption_page(
             snapshot, result.adoption_stats
