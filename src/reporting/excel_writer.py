@@ -9,6 +9,7 @@ from openpyxl.utils import get_column_letter
 
 from src.core.models import FieldInfo, ObjectInfo, PmdViolation, SecurityArtifact
 from src.reporting.excel_writer_data_dictionary import _ExcelDataDictionaryMixin
+from src.reporting.excel_writer_debt import _ExcelDebtMixin
 from src.reporting.excel_writer_psg import _ExcelPsgSummaryMixin
 
 LogCallback = Callable[[str], None]
@@ -28,7 +29,7 @@ def _picklist_api_names(item: FieldInfo) -> list[str]:
     ]
 
 
-class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin):
+class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin, _ExcelDebtMixin):
     """Produce ``.xlsx`` documents from the parsed metadata snapshot.
 
     Each ``write_*`` method writes one workbook (security, inventory, data
@@ -36,8 +37,10 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin):
     orchestrator can collect all artefacts in :class:`GenerationResult`.
     Data Dictionary generation itself lives in
     :class:`~src.reporting.excel_writer_data_dictionary._ExcelDataDictionaryMixin`,
-    et la synthese des Permission Set Groups dans
-    :class:`~src.reporting.excel_writer_psg._ExcelPsgSummaryMixin`.
+    la synthese des Permission Set Groups dans
+    :class:`~src.reporting.excel_writer_psg._ExcelPsgSummaryMixin`, et la
+    dette technique dans
+    :class:`~src.reporting.excel_writer_debt._ExcelDebtMixin`.
     """
 
     def __init__(self, log_callback: LogCallback | None = None) -> None:

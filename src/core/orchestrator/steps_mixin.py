@@ -25,6 +25,7 @@ from src.core.psg_access import SUMMARY_WORKBOOK_NAME
 from src.core.utils import safe_slug
 from src.reporting.drawio_writer import DrawioDiagramWriter
 from src.reporting.excel_writer import ExcelReportWriter
+from src.reporting.excel_writer_debt import DEBT_WORKBOOK_NAME
 from src.reporting.excel_writer_findings import (
     FindingsExcelWriter,
     findings_workbook_path,
@@ -106,6 +107,14 @@ class _StepsMixin(_OrchestratorState):
                     if self.data_dictionary_selection is not None
                     else None
                 ),
+            ),
+        )
+        result.debt_excel = self._safe_run(
+            DEBT_WORKBOOK_NAME,
+            lambda: excel_writer.write_debt_workbook(
+                [(self.alias, item) for item in snapshot.technical_debt],
+                [(self.alias, item) for item in snapshot.deviations],
+                excel_dir / DEBT_WORKBOOK_NAME,
             ),
         )
 

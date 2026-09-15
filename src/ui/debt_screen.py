@@ -7,6 +7,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import TYPE_CHECKING, Any, Dict, List
 
 from src.ui import theme
+from src.ui.debt_excel_export import export_debt_workbook
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -103,6 +104,12 @@ class DebtScreen:
             text=self.app._t("debt_save"),
             command=self._save_data,
             style=theme.PRIMARY_BUTTON,
+        ).pack(side="right", padx=(0, theme.SPACE_SM))
+
+        ttk.Button(
+            footer_frame,
+            text=self.app._t("debt_export_excel"),
+            command=self._export_excel,
         ).pack(side="right", padx=(0, theme.SPACE_SM))
 
         # Add/Edit/Delete buttons in the footer
@@ -362,6 +369,29 @@ class DebtScreen:
         ttk.Button(dialog, text=self.app._t("configuration_save"), command=save).grid(row=len(fields), column=1, pady=theme.SPACE_XL)
         # Note: we don't bind <Return> to save here because we have multiline text fields
         dialog.columnconfigure(1, weight=1)
+
+    def _export_excel(self) -> None:
+        """Write the workbook for the rows currently displayed.
+
+        The export follows the alias filter and the unsaved edits of the
+        table rather than the JSON file, so the classeur says the same thing
+        as the screen.
+        """
+        filter_alias = self.filter_alias_var.get()
+        all_aliases = self.app._t("debt_all_aliases")
+
+        def displayed(items: List[tuple[str, Dict[str, str]]]) -> List[tuple[str, Dict[str, str]]]:
+            if filter_alias == all_aliases:
+                return list(items)
+            return [(alias, item) for alias, item in items if alias == filter_alias]
+
+        technical = displayed(self.technical_items)
+        deviations = displayed(self.deviations_items)
+        if not technical and not deviations:
+            messagebox.showinfo(self.app._t("info_title"), self.app._t("debt_excel_none"))
+            return
+
+        export_debt_workbook(self.app, technical, deviations)
 
     def _save_data(self) -> None:
         path = Path(self.current_file.get())
