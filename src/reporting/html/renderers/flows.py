@@ -30,6 +30,7 @@ from src.reporting.html.page_shell import (
     render_page,
     tabbed_sections,
 )
+from src.reporting.i18n import flow_complexity_label, t
 
 
 LogCallback = Callable[[str], None]
@@ -81,7 +82,7 @@ def render_flow_graph(flow: FlowInfo, findings: list[Finding], improvements: lis
             elif element.label and element.label.lower() in imp.lower(): match = True
             
             if match:
-                msgs.append(f"[Amélioration] {imp}")
+                msgs.append(f"[{t('flow_graph_improvement')}] {imp}")
                 is_major = True
         
         if msgs:
@@ -118,7 +119,7 @@ def render_flow_graph(flow: FlowInfo, findings: list[Finding], improvements: lis
 
     # Start node
     if flow.start_node:
-        lines.insert(1, f"START((Début)) --> {flow.start_node}")
+        lines.insert(1, f"START(({t('flow_graph_start')})) --> {flow.start_node}")
         lines.append("class START start")
 
     # Apply classes
@@ -131,22 +132,22 @@ def render_flow_graph(flow: FlowInfo, findings: list[Finding], improvements: lis
     
     return f"""
 <div class="section">
-    <h3>Représentation graphique</h3>
+    <h3>{t('flow_graph_heading')}</h3>
     <div class="mermaid-container">
         <div class="mermaid-toolbar">
-            <button class="mm-btn" data-mermaid-action="zoom-in" title="Zoom avant">+</button>
-            <button class="mm-btn" data-mermaid-action="zoom-out" title="Zoom arrière">-</button>
-            <button class="mm-btn" data-mermaid-action="reset" title="Réinitialiser">Reset</button>
-            <span class="mm-hint">Utilisez la molette pour zoomer, glissez pour déplacer le graphique ou les nœuds. Survolez les éléments colorés pour voir les alertes.</span>
+            <button class="mm-btn" data-mermaid-action="zoom-in" title="{t('mermaid_zoom_in')}">+</button>
+            <button class="mm-btn" data-mermaid-action="zoom-out" title="{t('mermaid_zoom_out')}">-</button>
+            <button class="mm-btn" data-mermaid-action="reset" title="{t('mermaid_reset')}">Reset</button>
+            <span class="mm-hint">{t('flow_graph_hint')}</span>
         </div>
         <div class="mermaid">
 {mermaid_code}
         </div>
     </div>
     <div class="legend" style="margin-top: 10px; font-size: 0.9rem;">
-        <span style="display: inline-block; width: 15px; height: 15px; background: #fee2e2; border: 1px solid #ef4444; margin-right: 5px;"></span> Critique (Analyseur)
-        <span style="display: inline-block; width: 15px; height: 15px; background: #ffedd5; border: 1px solid #f97316; margin-left: 15px; margin-right: 5px;"></span> Majeur / Amélioration (Heuristique)
-        <span style="display: inline-block; width: 15px; height: 15px; background: #f0fdf4; border: 1px solid #22c55e; margin-left: 15px; margin-right: 5px;"></span> Début
+        <span style="display: inline-block; width: 15px; height: 15px; background: #fee2e2; border: 1px solid #ef4444; margin-right: 5px;"></span> {t('flow_graph_legend_critical')}
+        <span style="display: inline-block; width: 15px; height: 15px; background: #ffedd5; border: 1px solid #f97316; margin-left: 15px; margin-right: 5px;"></span> {t('flow_graph_legend_major')}
+        <span style="display: inline-block; width: 15px; height: 15px; background: #f0fdf4; border: 1px solid #22c55e; margin-left: 15px; margin-right: 5px;"></span> {t('flow_graph_legend_start')}
     </div>
 </div>
 """
@@ -175,21 +176,22 @@ def render_flow_page(
             dependencies.append(inc)
             
     metrics_list = list(review.metrics)
+    coverage_metric_label = t("detail_test_coverage")
     if flow.test_coverage is not None:
         covered = flow.test_coverage_elements_covered
         total = flow.test_coverage_elements_covered + flow.test_coverage_elements_uncovered
-        coverage_label = f"{flow.test_coverage:.1f} % ({covered}/{total} blocs API)"
+        coverage_label = t(
+            "flow_coverage_value",
+            percent=f"{flow.test_coverage:.1f}",
+            covered=covered,
+            total=total,
+        )
     else:
         coverage_label = "N/A"
-    metrics_list.append(("Couverture de tests", coverage_label))
+    metrics_list.append((coverage_metric_label, coverage_label))
 
     metric_tooltips = {
-        "Couverture de tests": (
-            "% de blocs testes calcule par l'API Tooling Salesforce (FlowTestCoverage). "
-            "Un 'bloc' est plus granulaire qu'un element du flow : chaque branche de decision, "
-            "chaque sortie de boucle ou chemin de fault est compte separement, d'ou un total "
-            "de blocs generalement superieur au nombre d'elements nommes ci-dessus."
-        ),
+        coverage_metric_label: t("flow_coverage_tooltip"),
     }
     metrics = "".join(
         (
@@ -201,16 +203,19 @@ def render_flow_page(
     )
     has_coverage = flow.test_coverage is not None
     
-    header_extra = "<th>Teste par</th>" if has_coverage else ""
+    header_extra = f"<th>{t('flow_th_tested_by')}</th>" if has_coverage else ""
     
     def render_element_row(element):
         coverage_cell = ""
         if has_coverage:
             if element.covered_by:
                 classes = ", ".join(element.covered_by)
-                coverage_cell = f"<td style='color: #16a34a;' title='Teste par {classes}'>Oui ({len(element.covered_by)})</td>"
+                coverage_cell = (
+                    f"<td style='color: #16a34a;' title='{t('flow_tested_by_title', classes=classes)}'>"
+                    f"{t('flow_tested_yes', count=len(element.covered_by))}</td>"
+                )
             else:
-                coverage_cell = "<td style='color: #dc2626;'>Non</td>"
+                coverage_cell = f"<td style='color: #dc2626;'>{t('value_no')}</td>"
         
         return (
             f"<tr><td>{html_value(element.element_type)}</td><td>{html_value(element.name)}</td>"
@@ -221,12 +226,12 @@ def render_flow_page(
     elements_rows = "".join(
         render_element_row(element)
         for element in flow.elements
-    ) or f"<tr><td colspan='{6 if has_coverage else 5}' class='empty'>Aucun element detecte.</td></tr>"
+    ) or f"<tr><td colspan='{6 if has_coverage else 5}' class='empty'>{t('flow_elements_empty')}</td></tr>"
 
     count_rows = "".join(
         f"<tr><td>{html_value(name)}</td><td>{count}</td></tr>"
         for name, count in sorted(flow.element_counts.items())
-    ) or "<tr><td colspan='2' class='empty'>Aucun bloc detecte.</td></tr>"
+    ) or f"<tr><td colspan='2' class='empty'>{t('flow_blocks_empty')}</td></tr>"
     relation_rows = render_dependency_rows(
         dependencies,
         current_path,
@@ -250,28 +255,28 @@ def render_flow_page(
     summary_html = (
         description_html
         + f"<p>{html_value(review.summary)}</p>"
-        "<div class='section'><h3>Alertes analyseur</h3>"
+        f"<div class='section'><h3>{t('detail_analyzer_alerts')}</h3>"
         + analyzer_inline_summary
         + "</div>"
     )
     tabs = tabbed_sections(
         f"flow-{safe_slug(flow.name)}",
         [
-            ("Resume", summary_html),
-            ("Graphique", flow_graph),
-            ("Metriques", f"<ul>{metrics}</ul>"),
-            ("Repartition", f"<table><thead><tr><th>Type</th><th>Nombre</th></tr></thead><tbody>{count_rows}</tbody></table>"),
-            ("Points forts", list_or_empty(review.positives, "Aucun point fort automatique detecte.")),
-            ("Heuristiques", list_or_empty(improvements_augmented, "Aucun point d'amelioration automatique detecte.")),
-            ("Analyseur", analyzer_tab),
+            (t("tab_summary"), summary_html),
+            (t("tab_chart"), flow_graph),
+            (t("tab_metrics"), f"<ul>{metrics}</ul>"),
+            (t("tab_breakdown"), f"<table><thead><tr><th>Type</th><th>{t('flow_th_count')}</th></tr></thead><tbody>{count_rows}</tbody></table>"),
+            (t("tab_strengths"), list_or_empty(review.positives, t("detail_no_strengths"))),
+            (t("tab_heuristics"), list_or_empty(improvements_augmented, t("detail_no_improvements"))),
+            (t("tab_analyzer"), analyzer_tab),
             (
-                "Relations",
-                f"<table><thead><tr><th>Composant lie</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{relation_rows}</tbody></table>{relation_graph}",
+                t("tab_relationships"),
+                f"<table><thead><tr><th>{t('dependency_th_linked_component')}</th><th>{t('dependency_th_category')}</th><th>{t('dependency_th_subtype')}</th><th>{t('dependency_th_direction')}</th><th>{t('dependency_th_relation')}</th></tr></thead><tbody>{relation_rows}</tbody></table>{relation_graph}",
             ),
             ("One Page", one_page_graph),
             (
-                "Elements",
-                f"<div class='table-scroll'><table><thead><tr><th>Type</th><th>Nom</th><th>Label</th><th>Description</th><th>Cible</th>{header_extra}</tr></thead><tbody>{elements_rows}</tbody></table></div>",
+                t("tab_elements"),
+                f"<div class='table-scroll'><table><thead><tr><th>Type</th><th>{t('object_th_name')}</th><th>{t('flow_th_label')}</th><th>Description</th><th>{t('flow_th_target')}</th>{header_extra}</tr></thead><tbody>{elements_rows}</tbody></table></div>",
             ),
         ],
     )
@@ -279,15 +284,15 @@ def render_flow_page(
 {index_back_link(current_path, output_dir, "flows")}
 <h1>{html_value(flow.name)}</h1>
 <span class="badge">{html_value(flow.process_type or 'Flow')}</span>
-<span class="badge {complexity_badge_class(flow.complexity_level)}">{html_value(flow.complexity_level)}</span>
+<span class="badge {complexity_badge_class(flow.complexity_level)}">{html_value(flow_complexity_label(flow.complexity_level))}</span>
 <div class="cards smallcards">
-  <div class="card"><span>Score complexite</span><span class="value">{flow.complexity_score}</span></div>
-  <div class="card"><span>Elements</span><span class="value">{flow.total_elements}</span></div>
-  <div class="card"><span>Documentes</span><span class="value">{flow.described_elements}</span></div>
-  <div class="card"><span>Variables</span><span class="value">{flow.variable_total}</span></div>
-  <div class="card"><span>Profondeur</span><span class="value">{flow.max_depth}</span></div>
-  <div class="card"><span>Largeur max</span><span class="value">{flow.max_width}</span></div>
-  <div class="card"><span>Hauteur min/max</span><span class="value">{flow.min_height}/{flow.max_height}</span></div>
+  <div class="card"><span>{t('flow_card_complexity_score')}</span><span class="value">{flow.complexity_score}</span></div>
+  <div class="card"><span>{t('flow_card_elements')}</span><span class="value">{flow.total_elements}</span></div>
+  <div class="card"><span>{t('flow_card_documented')}</span><span class="value">{flow.described_elements}</span></div>
+  <div class="card"><span>{t('flow_card_variables')}</span><span class="value">{flow.variable_total}</span></div>
+  <div class="card"><span>{t('flow_card_depth')}</span><span class="value">{flow.max_depth}</span></div>
+  <div class="card"><span>{t('flow_card_max_width')}</span><span class="value">{flow.max_width}</span></div>
+  <div class="card"><span>{t('flow_card_min_max_height')}</span><span class="value">{flow.min_height}/{flow.max_height}</span></div>
 </div>
 {tabs}
 """

@@ -30,6 +30,7 @@ from src.reporting.html.page_shell import (
     render_page,
     tabbed_sections,
 )
+from src.reporting.i18n import t
 
 
 LogCallback = Callable[[str], None]
@@ -71,53 +72,53 @@ def render_object_body(
         f_deps = field_dependencies(field_full_name, all_dependencies)
         usage_badge = ""
         if f_deps:
-            usage_badge = f" <span class='badge' title='Utilise dans {len(f_deps)} composant(s)'>⚠ {len(f_deps)}</span>"
+            usage_badge = f" <span class='badge' title='{t('object_field_used_in', count=len(f_deps))}'>⚠ {len(f_deps)}</span>"
         
         fields_rows_list.append(
             f"<tr><td>{html_value(field.api_name)}{usage_badge}</td><td>{html_value(field.label)}</td>"
             f"<td>{html_value(field.data_type)}</td><td>{html_value(field.description)}</td>"
-            f"<td>{'Oui' if field.required else 'Non'}</td></tr>"
+            f"<td>{t('value_yes') if field.required else t('value_no')}</td></tr>"
         )
-    fields_rows = "".join(fields_rows_list) or "<tr><td colspan='5' class='empty'>Aucun champ detecte.</td></tr>"
+    fields_rows = "".join(fields_rows_list) or f"<tr><td colspan='5' class='empty'>{t('object_fields_empty')}</td></tr>"
 
     record_type_rows = "".join(
         f"<tr><td>{html_value(record_type.full_name)}</td><td>{html_value(record_type.label)}</td>"
-        f"<td>{html_value(record_type.description)}</td><td>{'Oui' if record_type.active else 'Non'}</td></tr>"
+        f"<td>{html_value(record_type.description)}</td><td>{t('value_yes') if record_type.active else t('value_no')}</td></tr>"
         for record_type in item.record_types
-    ) or "<tr><td colspan='4' class='empty'>Aucun record type detecte.</td></tr>"
+    ) or f"<tr><td colspan='4' class='empty'>{t('object_record_types_empty')}</td></tr>"
 
     description_rows = [
-        ("Nom API", item.api_name),
+        (t("object_meta_api_name"), item.api_name),
         ("Label", item.label),
-        ("Label pluriel", item.plural_label),
+        (t("object_meta_plural_label"), item.plural_label),
         ("Description", item.description),
         ("Deployment status", item.deployment_status),
         ("Sharing model", item.sharing_model),
-        ("Visibilite", item.visibility),
+        (t("object_meta_visibility"), item.visibility),
     ]
     if include_comment:
         comment_value = item.dewey_comment_combined if concat_description else (item.dewey_comment or "")
-        description_rows.append(("Commentaire Dewey", comment_value))
+        description_rows.append((t("object_meta_dewey_comment"), comment_value))
     if include_piloted_by:
-        description_rows.append(("Piloté par", item.dewey_piloted_by))
+        description_rows.append((t("object_meta_piloted_by"), item.dewey_piloted_by))
     if include_status:
         description_rows.append(("Status", item.dewey_status))
     if include_squad:
-        description_rows.append(("Squad Responsable", item.dewey_squad))
+        description_rows.append((t("object_meta_squad"), item.dewey_squad))
     if include_squad_consumer:
-        description_rows.append(("Squad Consommatrice", item.dewey_squad_consumer))
+        description_rows.append((t("object_meta_squad_consumer"), item.dewey_squad_consumer))
     description_html = "".join(
-        f"<li><strong>{html_value(label)}:</strong> {html_value(value or 'Non renseigne')}</li>"
+        f"<li><strong>{html_value(label)}:</strong> {html_value(value or t('value_not_set'))}</li>"
         for label, value in description_rows
     )
 
     mermaid = object_mermaid(item)
     validation_rows = "".join(
-        f"<tr><td>{html_value(vr.full_name)}</td><td>{'Oui' if vr.active else 'Non'}</td>"
+        f"<tr><td>{html_value(vr.full_name)}</td><td>{t('value_yes') if vr.active else t('value_no')}</td>"
         f"<td>{html_value(vr.description)}</td><td>{html_value(vr.error_display_field)}</td>"
         f"<td>{html_value(vr.error_message)}</td></tr>"
         for vr in item.validation_rules
-    ) or "<tr><td colspan='5' class='empty'>Aucune regle de validation detectee.</td></tr>"
+    ) or f"<tr><td colspan='5' class='empty'>{t('object_validation_rules_empty')}</td></tr>"
 
     validation_panels = []
     for vr in item.validation_rules:
@@ -125,21 +126,21 @@ def render_object_body(
         mermaid_tree = validation_rule_mermaid(vr)
         validation_panels.append(
             f"<div class='section'><h3>{html_value(vr.full_name)}</h3>"
-            f"<p><strong>Description:</strong> {html_value(vr.description or 'Non renseignee')}</p>"
-            f"<p><strong>Message d'erreur:</strong> {html_value(vr.error_message)}</p>"
-            f"<h4>Arbre de decision (Mermaid)</h4>{mermaid_tree}"
-            f"<h4>Formule</h4>{formula_html}</div>"
+            f"<p><strong>{t('object_vr_description')}</strong> {html_value(vr.description or t('object_vr_description_not_set'))}</p>"
+            f"<p><strong>{t('object_vr_error_message')}</strong> {html_value(vr.error_message)}</p>"
+            f"<h4>{t('object_vr_decision_tree')}</h4>{mermaid_tree}"
+            f"<h4>{t('object_vr_formula')}</h4>{formula_html}</div>"
         )
-    validation_content = "".join(validation_panels) or "<p class='empty'>Aucune regle de validation detaillee.</p>"
+    validation_content = "".join(validation_panels) or f"<p class='empty'>{t('object_validation_details_empty')}</p>"
 
     relation_table = "".join(
         f"<tr><td>{html_value(rel.field_name)}</td><td>{html_value(rel.relationship_type)}</td>"
         f"<td>{html_value(', '.join(rel.targets))}</td></tr>"
         for rel in item.relationships
-    ) or "<tr><td colspan='3' class='empty'>Aucune relation detectee.</td></tr>"
+    ) or f"<tr><td colspan='3' class='empty'>{t('object_relationships_empty')}</td></tr>"
 
-    profile_rows = render_security_rows(profiles, "Aucun profil avec acces detecte.")
-    permset_rows = render_security_rows(permsets, "Aucun permission set avec acces detecte.")
+    profile_rows = render_security_rows(profiles, t("object_profiles_empty"))
+    permset_rows = render_security_rows(permsets, t("object_permission_sets_empty"))
 
     one_page_graph = render_one_page_graph(
         item.api_name, "Objet", all_dependencies, safe_slug(item.api_name)
@@ -151,32 +152,42 @@ def render_object_body(
 
     synthesis_html = (
         "<ul>" + description_html + "</ul>"
-        + "<div class='section'><h3>Alertes analyseur</h3>"
+        + f"<div class='section'><h3>{t('detail_analyzer_alerts')}</h3>"
         + analyzer_summary_inline
         + "</div>"
+    )
+
+    security_headers = (
+        f"<th>{t('security_th_read')}</th><th>{t('security_th_create')}</th>"
+        f"<th>{t('security_th_edit')}</th><th>{t('security_th_delete')}</th>"
+        f"<th>{t('security_th_visible_fields')}</th><th>{t('security_th_editable_fields')}</th>"
+    )
+    dependency_headers = (
+        f"<th>{t('dependency_th_category')}</th><th>{t('dependency_th_subtype')}</th>"
+        f"<th>{t('dependency_th_direction')}</th><th>{t('dependency_th_relation')}</th>"
     )
 
     tabs = tabbed_sections(
         f"object-{safe_slug(item.api_name)}",
         [
-            ("Synthese", synthesis_html),
+            (t("tab_synthesis"), synthesis_html),
             ("Fields", f"<table><thead><tr><th>Name</th><th>Label</th><th>Type</th><th>Description</th><th>Required</th></tr></thead><tbody>{fields_rows}</tbody></table>"),
-            ("Profiles", f"<table><thead><tr><th>Profile</th><th>Lecture</th><th>Creation</th><th>Modification</th><th>Suppression</th><th>Nb champs visibles</th><th>Nb champs modifiables</th></tr></thead><tbody>{profile_rows}</tbody></table>"),
-            ("Permission Sets", f"<table><thead><tr><th>Permission Set</th><th>Lecture</th><th>Creation</th><th>Modification</th><th>Suppression</th><th>Nb champs visibles</th><th>Nb champs modifiables</th></tr></thead><tbody>{permset_rows}</tbody></table>"),
-            ("Record Types", f"<table><thead><tr><th>Nom</th><th>Label</th><th>Description</th><th>Actif</th></tr></thead><tbody>{record_type_rows}</tbody></table>"),
-            ("Validation Rules", f"<table><thead><tr><th>Nom</th><th>Actif</th><th>Description</th><th>Champ d'erreur</th><th>Message d'erreur</th></tr></thead><tbody>{validation_rows}</tbody></table><hr/>{validation_content}"),
-            ("Relations", f"{mermaid}<h4>Relations sortantes (Lookups)</h4><table><thead><tr><th>Champ</th><th>Type</th><th>Cible</th></tr></thead><tbody>{relation_table}</tbody></table><h4>Analyse d'impact (Ou est-il utilise ?)</h4><table><thead><tr><th>Composant</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{impact_table}</tbody></table>"),
+            ("Profiles", f"<table><thead><tr><th>Profile</th>{security_headers}</tr></thead><tbody>{profile_rows}</tbody></table>"),
+            ("Permission Sets", f"<table><thead><tr><th>Permission Set</th>{security_headers}</tr></thead><tbody>{permset_rows}</tbody></table>"),
+            ("Record Types", f"<table><thead><tr><th>{t('object_th_name')}</th><th>Label</th><th>Description</th><th>{t('object_th_active')}</th></tr></thead><tbody>{record_type_rows}</tbody></table>"),
+            ("Validation Rules", f"<table><thead><tr><th>{t('object_th_name')}</th><th>{t('object_th_active')}</th><th>Description</th><th>{t('object_th_error_field')}</th><th>{t('object_th_error_message')}</th></tr></thead><tbody>{validation_rows}</tbody></table><hr/>{validation_content}"),
+            (t("tab_relationships"), f"{mermaid}<h4>{t('object_outgoing_relationships')}</h4><table><thead><tr><th>{t('object_th_relationship_field')}</th><th>Type</th><th>{t('object_th_relationship_target')}</th></tr></thead><tbody>{relation_table}</tbody></table><h4>{t('object_impact_analysis')}</h4><table><thead><tr><th>{t('dependency_th_component')}</th>{dependency_headers}</tr></thead><tbody>{impact_table}</tbody></table>"),
             ("One Page", one_page_graph),
-            ("Analyseur", analyzer_content),
+            (t("tab_analyzer"), analyzer_content),
         ],
     )
     return f"""
 <h1>{html_value(item.api_name)}</h1>
 <div class="cards">
-  <div class="card"><span>Champs</span><span class="value">{len(item.fields)}</span></div>
-  <div class="card"><span>Record types</span><span class="value">{len(item.record_types)}</span></div>
-  <div class="card"><span>Regles de validation</span><span class="value">{len(item.validation_rules)}</span></div>
-  <div class="card"><span>Relations</span><span class="value">{len(item.relationships)}</span></div>
+  <div class="card"><span>{t('object_card_fields')}</span><span class="value">{len(item.fields)}</span></div>
+  <div class="card"><span>{t('object_card_record_types')}</span><span class="value">{len(item.record_types)}</span></div>
+  <div class="card"><span>{t('object_card_validation_rules')}</span><span class="value">{len(item.validation_rules)}</span></div>
+  <div class="card"><span>{t('object_card_relationships')}</span><span class="value">{len(item.relationships)}</span></div>
 </div>
 {tabs}
 """

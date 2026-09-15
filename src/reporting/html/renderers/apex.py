@@ -38,6 +38,7 @@ from src.reporting.html.page_shell import (
     render_page,
     tabbed_sections,
 )
+from src.reporting.i18n import t
 
 
 LogCallback = Callable[[str], None]
@@ -66,15 +67,15 @@ def render_apex_page(
             dependencies.append(inc)
             
     metrics_list = list(review.metrics)
-    metrics_list.append(("Couverture de tests", (f"{artifact.test_coverage:.1f} %") if artifact.test_coverage is not None else "N/A"))
+    metrics_list.append((t("detail_test_coverage"), (f"{artifact.test_coverage:.1f} %") if artifact.test_coverage is not None else "N/A"))
         
     metrics = "".join(
         f"<li><strong>{html_value(label)}:</strong> {html_value(value)}</li>"
         for label, value in metrics_list
     )
     improvements_for_heuristics = list(review.improvements) + findings_to_review_improvements(findings)
-    positives = list_or_empty(review.positives, "Aucun point fort automatique detecte.")
-    improvements = list_or_empty(improvements_for_heuristics, "Aucun point d'amelioration automatique detecte.")
+    positives = list_or_empty(review.positives, t("detail_no_strengths"))
+    improvements = list_or_empty(improvements_for_heuristics, t("detail_no_improvements"))
     analyzer_tab = render_analyzer_tab(findings)
     analyzer_inline_summary = render_findings_summary(findings)
     code_preview = artifact.body
@@ -175,30 +176,30 @@ def render_apex_page(
     pmd_rows = render_pmd_rows(pmd_violations)
     summary_html = (
         f"<p>{html_value(review.summary)}</p>"
-        "<div class='section'><h3>Alertes analyseur</h3>"
+        f"<div class='section'><h3>{t('detail_analyzer_alerts')}</h3>"
         + analyzer_inline_summary
         + "</div>"
     )
     tabs = tabbed_sections(
         f"apex-{safe_slug(artifact.name)}",
         [
-            ("Resume", summary_html),
-            ("Metriques", f"<ul>{metrics}</ul>"),
-            ("Points forts", positives),
-            ("Heuristiques", improvements),
-            ("Analyseur", analyzer_tab),
+            (t("tab_summary"), summary_html),
+            (t("tab_metrics"), f"<ul>{metrics}</ul>"),
+            (t("tab_strengths"), positives),
+            (t("tab_heuristics"), improvements),
+            (t("tab_analyzer"), analyzer_tab),
             (
                 "PMD",
-                f"<table><thead><tr><th>Regle</th><th>Ruleset</th><th>Priorite</th><th>Ligne</th><th>Message</th></tr></thead><tbody>{pmd_rows}</tbody></table>",
+                f"<table><thead><tr><th>{t('apex_th_rule')}</th><th>Ruleset</th><th>{t('apex_th_priority')}</th><th>{t('apex_th_line')}</th><th>{t('apex_th_message')}</th></tr></thead><tbody>{pmd_rows}</tbody></table>",
             ),
             (
-                "Liens",
-                f"<table><thead><tr><th>Composant lie</th><th>Categorie</th><th>Sous-type</th><th>Sens</th><th>Nature du lien</th></tr></thead><tbody>{dependency_rows}</tbody></table>",
+                t("tab_links"),
+                f"<table><thead><tr><th>{t('dependency_th_linked_component')}</th><th>{t('dependency_th_category')}</th><th>{t('dependency_th_subtype')}</th><th>{t('dependency_th_direction')}</th><th>{t('dependency_th_relation')}</th></tr></thead><tbody>{dependency_rows}</tbody></table>",
             ),
-            ("Graphe", dependency_graph),
+            (t("tab_graph"), dependency_graph),
             ("One Page", one_page_graph),
             (
-                "Code source",
+                t("tab_source_code"),
                 code_tab_html,
             ),
         ],

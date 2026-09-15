@@ -9,6 +9,12 @@ from src.core.models import ApexArtifact
 from src.core.utils import html_value, safe_slug
 
 from src.reporting.html.page_shell import href_relative
+from src.reporting.i18n import (
+    dependency_category_label,
+    dependency_direction_label,
+    dependency_relation_label,
+    t,
+)
 
 
 def dependency_node_color(category: str) -> dict[str, str]:
@@ -31,7 +37,7 @@ def render_dependency_rows(
     """Render dependency ``rows`` as ``<tr>`` cells, linking known components."""
 
     if not rows:
-        return "<tr><td colspan='5' class='empty'>Aucun lien detecte.</td></tr>"
+        return f"<tr><td colspan='5' class='empty'>{t('dependency_empty')}</td></tr>"
 
     rendered_rows: list[str] = []
     for row in rows:
@@ -43,8 +49,10 @@ def render_dependency_rows(
         else:
             name_html = html_value(row["name"])
         rendered_rows.append(
-            f"<tr><td>{name_html}</td><td>{html_value(row['category'])}</td><td>{html_value(row['subtype'])}</td>"
-            f"<td>{html_value(row['direction'])}</td><td>{html_value(row['relation'])}</td></tr>"
+            f"<tr><td>{name_html}</td><td>{html_value(dependency_category_label(row['category']))}</td>"
+            f"<td>{html_value(row['subtype'])}</td>"
+            f"<td>{html_value(dependency_direction_label(row['direction']))}</td>"
+            f"<td>{html_value(dependency_relation_label(row['relation']))}</td></tr>"
         )
     return "".join(rendered_rows)
 
@@ -79,13 +87,13 @@ def render_component_dependency_graph(
     """Render the interactive vis-network dependency graph for any component."""
 
     if not rows:
-        return "<p class='empty'>Aucun graphe a afficher, aucun lien n'a ete detecte.</p>"
+        return f"<p class='empty'>{t('dependency_graph_empty')}</p>"
 
     nodes: dict[str, dict[str, object]] = {
         center_name: {
             "id": center_name,
             "label": center_name,
-            "title": f"{center_category}: {center_name}",
+            "title": f"{dependency_category_label(center_category)}: {center_name}",
             "color": {"background": "#bfdbfe", "border": "#2563eb"},
             "shape": "box",
             "componentKind": center_category,
@@ -100,7 +108,10 @@ def render_component_dependency_graph(
             nodes[target_name] = {
                 "id": target_name,
                 "label": target_name,
-                "title": f"{row['category']} - {row['subtype']}: {target_name}",
+                "title": (
+                    f"{dependency_category_label(row['category'])} - "
+                    f"{row['subtype']}: {target_name}"
+                ),
                 "shape": "box",
                 "componentKind": row["subtype"],
                 "category": row["category"],
@@ -120,8 +131,9 @@ def render_component_dependency_graph(
             {
                 "from": source,
                 "to": destination,
-                "label": row["relation"],
+                "label": dependency_relation_label(row["relation"]),
                 "arrows": "to",
+                # Valeur de domaine brute : les filtres JavaScript la comparent.
                 "direction": row["direction"],
             }
         )
@@ -141,23 +153,23 @@ def render_component_dependency_graph(
 <div class="graph-toolbar">
   <button id="{zoom_in_id}" type="button">Zoom +</button>
   <button id="{zoom_out_id}" type="button">Zoom -</button>
-  <button id="{fit_id}" type="button">Centrer</button>
+  <button id="{fit_id}" type="button">{t('dependency_graph_fit')}</button>
 </div>
 <div class="graph-filters">
-  <label><input id="{incoming_id}" type="checkbox" checked>Afficher entrants</label>
-  <label><input id="{outgoing_id}" type="checkbox" checked>Afficher sortants</label>
-  <label><input id="{class_id}" type="checkbox" checked>Afficher classes</label>
-  <label><input id="{trigger_id}" type="checkbox" checked>Afficher triggers</label>
-  <label><input id="{object_id}" type="checkbox" checked>Afficher objets</label>
-  <label><input id="{flow_id}" type="checkbox" checked>Afficher flows</label>
-  <label><input id="{metadata_id}" type="checkbox" checked>Afficher metadata</label>
+  <label><input id="{incoming_id}" type="checkbox" checked>{t('dependency_show_incoming')}</label>
+  <label><input id="{outgoing_id}" type="checkbox" checked>{t('dependency_show_outgoing')}</label>
+  <label><input id="{class_id}" type="checkbox" checked>{t('dependency_show_classes')}</label>
+  <label><input id="{trigger_id}" type="checkbox" checked>{t('dependency_show_triggers')}</label>
+  <label><input id="{object_id}" type="checkbox" checked>{t('dependency_show_objects')}</label>
+  <label><input id="{flow_id}" type="checkbox" checked>{t('dependency_show_flows')}</label>
+  <label><input id="{metadata_id}" type="checkbox" checked>{t('dependency_show_metadata')}</label>
 </div>
 <div class="graph-legend">
-  <span class="item"><span class="dot" style="background:#bfdbfe"></span>Apex/Trigger central</span>
-  <span class="item"><span class="dot" style="background:#dbeafe"></span>Autres Apex/Trigger</span>
-  <span class="item"><span class="dot" style="background:#dcfce7"></span>Objets</span>
-  <span class="item"><span class="dot" style="background:#ffedd5"></span>Flows</span>
-  <span class="item"><span class="dot" style="background:#f3e8ff"></span>Metadata</span>
+  <span class="item"><span class="dot" style="background:#bfdbfe"></span>{t('dependency_legend_center')}</span>
+  <span class="item"><span class="dot" style="background:#dbeafe"></span>{t('dependency_legend_other_apex')}</span>
+  <span class="item"><span class="dot" style="background:#dcfce7"></span>{t('dependency_legend_objects')}</span>
+  <span class="item"><span class="dot" style="background:#ffedd5"></span>{t('dependency_legend_flows')}</span>
+  <span class="item"><span class="dot" style="background:#f3e8ff"></span>{t('dependency_legend_metadata')}</span>
 </div>
 <div id="{network_id}" class="dependency-graph"></div>
 <script src="https://unpkg.com/vis-network@9.1.9/dist/vis-network.min.js"></script>

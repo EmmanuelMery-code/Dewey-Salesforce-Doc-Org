@@ -13,6 +13,7 @@ from pathlib import Path
 from src.core.utils import html_value, safe_slug
 
 from src.reporting.html.assets import MERMAID_RUNTIME_SCRIPT, TABS_SCRIPT, SEARCH_SCRIPT
+from src.reporting.i18n import report_language, t
 
 
 def href_relative(from_path: Path, to_path: Path) -> str:
@@ -44,7 +45,7 @@ def index_back_link(
     """Render the standard "back to index" navigation link."""
 
     href = index_href(from_path, output_dir, tab_slug, group_id)
-    return f"<div class=\"topnav\"><a href=\"{href}\">Retour a l'index</a></div>"
+    return f"<div class=\"topnav\"><a href=\"{href}\">{t('back_to_index')}</a></div>"
 
 
 def tab_panel_id(group_id: str, label: str) -> str:
@@ -140,7 +141,7 @@ def render_page(
     else:
         prism_html = ""
     return f"""<!DOCTYPE html>
-<html lang="fr">
+<html lang="{report_language()}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -153,7 +154,7 @@ def render_page(
     <header class="no-print" style="display: flex; align-items: center; gap: 20px; padding: 10px 24px; background: #1e293b; color: white;">
       <div style="font-weight: bold; font-size: 1.2rem;">Dewey</div>
       <div style="flex: 1;">
-        <input type="text" id="global-search" placeholder="Recherche globale..." style="width: 100%; max-width: 400px; padding: 6px 12px; border-radius: 4px; border: none;">
+        <input type="text" id="global-search" placeholder="{t('global_search_placeholder')}" style="width: 100%; max-width: 400px; padding: 6px 12px; border-radius: 4px; border: none;">
       </div>
     </header>
     <div class="page">
