@@ -36,6 +36,18 @@ class ApexArtifact:
     test_coverage_lines_uncovered: int = 0  # Nombre de lignes non couvertes
 
 
+# Elements exposant un <faultConnector> dans la Metadata API : ce sont les seuls
+# pour lesquels l'absence de chemin d'erreur constitue un defaut.
+FAULT_CAPABLE_ELEMENTS: dict[str, str] = {
+    "actionCalls": "Action",
+    "recordCreates": "Create Records",
+    "recordDeletes": "Delete Records",
+    "recordLookups": "Get Records",
+    "recordUpdates": "Update Records",
+    "waits": "Pause",
+}
+
+
 @dataclass(slots=True)
 class FlowConnector:
     target: str
@@ -106,6 +118,22 @@ class FlowInfo:
             + max(0, self.max_width - 1) * 2
             + self.undocumented_elements
         )
+
+    @property
+    def fault_capable_elements(self) -> list[FlowElementInfo]:
+        return [
+            element
+            for element in self.elements
+            if element.element_type in FAULT_CAPABLE_ELEMENTS
+        ]
+
+    @property
+    def unprotected_fault_elements(self) -> list[FlowElementInfo]:
+        return [
+            element
+            for element in self.fault_capable_elements
+            if not any(connector.label == "Fault" for connector in element.connectors)
+        ]
 
     @property
     def complexity_level(self) -> str:

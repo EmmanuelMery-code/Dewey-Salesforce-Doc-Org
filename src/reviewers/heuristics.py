@@ -156,6 +156,17 @@ def review_flow(flow: FlowInfo) -> ReviewResult:
     else:
         improvements.append("Un appel d'action External Service apparait potentiellement dans une boucle.")
 
+    unprotected_fault_elements = flow.unprotected_fault_elements
+    if not flow.fault_capable_elements:
+        positives.append("Le flow ne comporte aucun element susceptible d'echouer a l'execution.")
+    elif not unprotected_fault_elements:
+        positives.append("Chaque element pouvant echouer declare un chemin d'erreur (fault path).")
+    else:
+        improvements.append(
+            f"{len(unprotected_fault_elements)} element(s) pouvant echouer ne declarent pas de chemin d'erreur "
+            "(fault path); une exception non geree interromprait la transaction."
+        )
+
     if flow.variable_total == 0:
         positives.append("Aucune variable de flow n'a ete detectee.")
     elif flow.variable_input + flow.variable_output > max(1, flow.variable_total // 2):

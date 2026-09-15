@@ -349,6 +349,19 @@
     <remediation>Sortir l'appel externe de la boucle en bulkifiant la requete (endpoint batch cote systeme externe) ou en accumulant les entrees pour un seul appel groupe a la sortie de la boucle.</remediation>
   </rule>
 
+  <rule id="FLOW-REL-001" enabled="true" scope="flow" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Salesforce Flow Fault Paths + Well-Architected Reliable"
+        reference="https://help.salesforce.com/s/articleView?id=sf.flow_ref_elements_faultconnectors.htm" min_api_version="10.0" max_api_version="100.0">
+    <title>Element de Flow sans chemin d'erreur (fault path)</title>
+    <description>Detecte les elements susceptibles d'echouer a l'execution (Get/Create/Update/Delete Records, Action, Pause) qui ne declarent pas de faultConnector.</description>
+    <rationale>
+      Sans chemin d'erreur, une exception non geree interrompt la transaction : l'utilisateur d'un screen flow
+      recoit un message technique illisible et, en mode autolaunched, l'erreur n'est visible que dans l'e-mail
+      d'echec adresse a l'auteur du flow. Le pilier Trusted / Reliable impose une gestion explicite des erreurs.
+    </rationale>
+    <remediation>Ajouter un chemin d'erreur sur chaque element concerne : afficher un ecran d'erreur explicite (screen flow), journaliser l'incident dans un objet de log et/ou notifier l'equipe support via $Flow.FaultMessage.</remediation>
+  </rule>
+
   <!-- ==================== LIGHTNING COMPONENTS ==================== -->
 
   <rule id="LWC-MAINT-001" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"

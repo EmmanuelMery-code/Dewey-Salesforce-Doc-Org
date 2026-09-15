@@ -8,6 +8,7 @@ Every public name is re-exported here so that existing
 from __future__ import annotations
 
 from src.core.models.automation import (
+    FAULT_CAPABLE_ELEMENTS,
     ApexArtifact,
     FlowConnector,
     FlowElementInfo,
@@ -73,6 +74,7 @@ __all__ = [
     "Dependency",
     "DeviationItem",
     "DuplicateRuleInfo",
+    "FAULT_CAPABLE_ELEMENTS",
     "FieldInfo",
     "FieldPermission",
     "FlowConnector",

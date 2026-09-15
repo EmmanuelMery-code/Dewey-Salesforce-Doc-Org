@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from src.analyzer.models import Finding
 from src.analyzer.rule_catalog import RuleCatalog
-from src.core.models import FlowInfo
+from src.core.models import FAULT_CAPABLE_ELEMENTS, FlowInfo
+
+_MAX_FAULT_DETAILS = 20
 
 
 def analyze_flow(flow: FlowInfo, catalog: RuleCatalog) -> list[Finding]:
@@ -126,6 +128,34 @@ def analyze_flow(flow: FlowInfo, catalog: RuleCatalog) -> list[Finding]:
                 source_path=flow.source_path,
             )
         )
+
+    # FLOW-REL-001 : elements faillibles sans fault path
+    rule = catalog.get("FLOW-REL-001")
+    if rule and rule.enabled:
+        eligible = flow.fault_capable_elements
+        unprotected = flow.unprotected_fault_elements
+        if unprotected:
+            details = [
+                f"{FAULT_CAPABLE_ELEMENTS[element.element_type]} "
+                f"'{element.label or element.name}' : aucun chemin d'erreur."
+                for element in unprotected[:_MAX_FAULT_DETAILS]
+            ]
+            remaining = len(unprotected) - len(details)
+            if remaining > 0:
+                details.append(f"... et {remaining} autre(s) element(s) non protege(s).")
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="Flow",
+                    target_name=flow.name,
+                    message=(
+                        f"{len(unprotected)} element(s) sur {len(eligible)} pouvant echouer "
+                        "ne declarent pas de chemin d'erreur (fault path)."
+                    ),
+                    details=details,
+                    source_path=flow.source_path,
+                )
+            )
 
     rule = catalog.get("FLOW-MAINT-003")
     if rule and rule.enabled and flow.max_depth > 4:
