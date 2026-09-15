@@ -26,13 +26,6 @@ SEVERITY_CSS_CLASS: dict[str, str] = {
     "Info": "sev-info",
 }
 
-SEVERITY_LABEL: dict[str, str] = {
-    "Critical": "Critique",
-    "Major": "Majeur",
-    "Minor": "Mineur",
-    "Info": "Info",
-}
-
 
 def write_assets(assets_dir: Path) -> None:
     """Write the static stylesheets to ``assets_dir``."""
@@ -47,7 +40,6 @@ __all__ = [
     "MERMAID_RUNTIME_SCRIPT",
     "SEARCH_SCRIPT",
     "SEVERITY_CSS_CLASS",
-    "SEVERITY_LABEL",
     "TABS_SCRIPT",
     "write_assets",
 ]

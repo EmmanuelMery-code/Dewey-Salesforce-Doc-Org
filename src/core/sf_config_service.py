@@ -44,8 +44,9 @@ class SfConfig:
 class SfConfigService:
     """Loads Dewey configuration from a Salesforce org via the SF CLI."""
 
-    def __init__(self, org_alias: str) -> None:
+    def __init__(self, org_alias: str, language: str = "fr") -> None:
         self.org_alias = org_alias
+        self.language = language
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
@@ -58,7 +59,7 @@ class SfConfigService:
         from src.analyzer.rule_catalog import RuleCatalog
         from src.analyzer.models import Rule
 
-        base_catalog = RuleCatalog.load()
+        base_catalog = RuleCatalog.load(language=self.language)
         sf_rules = self._query_rules()
 
         if not sf_rules:
@@ -106,7 +107,7 @@ class SfConfigService:
                     remediation=(sf.get("Remediation__c") or ""),
                 )
 
-        return RuleCatalog(list(merged.values()))
+        return RuleCatalog(list(merged.values()), self.language)
 
     def load_config(self) -> SfConfig:
         """Returns a SfConfig populated from DeweyConfig__c."""

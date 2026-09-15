@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 def _load_rules_for_editor(app: Application) -> list[Rule]:
     try:
-        catalog = RuleCatalog.load(app._analyzer_rules_file)
+        catalog = RuleCatalog.load(app._analyzer_rules_file, app.language)
     except OSError as exc:
         app._append_log(app._t("configuration_rules_load_error", error=str(exc)))
         return []

@@ -10,6 +10,7 @@ from src.core.models import MetadataSnapshot, PmdViolation, ReviewResult
 from src.core.utils import html_value
 from src.reporting.html.findings import render_findings_summary
 from src.reporting.html.page_shell import href_relative, tabbed_sections
+from src.reporting.i18n import severity_label, t
 
 
 def render_index_omni_panel(
@@ -60,12 +61,12 @@ def render_index_analyzer_panel(
     prompt_pages: dict[str, Path] | None = None,
 ) -> str:
     if analyzer_report is None:
-        return "<p class='empty'>Analyseur non execute.</p>"
+        return f"<p class='empty'>{t('index_analyzer_not_run')}</p>"
 
     findings = analyzer_report.all_findings()
     summary = render_findings_summary(findings)
     if not findings:
-        return summary + "<p class='empty'>Aucun finding : le projet respecte toutes les regles activees.</p>"
+        return summary + f"<p class='empty'>{t('index_analyzer_all_clear')}</p>"
 
     findings_by_sev: dict[str, list[Finding]] = {
         "Critical": [],
@@ -79,7 +80,7 @@ def render_index_analyzer_panel(
 
     def _render_severity_table(sev_findings: list[Finding]) -> str:
         if not sev_findings:
-            return "<p class='empty'>Aucun finding pour cette severite.</p>"
+            return f"<p class='empty'>{t('index_analyzer_severity_empty')}</p>"
 
         comp_findings: dict[tuple[str, str, str], list[Finding]] = {}
         for finding in sev_findings:
@@ -118,22 +119,18 @@ def render_index_analyzer_panel(
                 f"<tr><td>{html_value(kind)}</td><td>{name_cell}</td><td>{rules_list}</td></tr>"
             )
 
-        return f"<table><thead><tr><th>Type</th><th>Composant</th><th>Regles impactees</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
+        return (
+            f"<table><thead><tr><th>{t('index_analyzer_column_kind')}</th>"
+            f"<th>{t('index_analyzer_column_component')}</th>"
+            f"<th>{t('index_analyzer_column_rules')}</th></tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody></table>"
+        )
 
     sections = [
-        ("Critique", _render_severity_table(findings_by_sev["Critical"])),
-        ("Majeur", _render_severity_table(findings_by_sev["Major"])),
-        ("Mineur", _render_severity_table(findings_by_sev["Minor"])),
-        ("Info", _render_severity_table(findings_by_sev["Info"])),
+        (severity_label(severity), _render_severity_table(findings_by_sev[severity]))
+        for severity in ("Critical", "Major", "Minor", "Info")
     ]
-    note = (
-        "<p class='empty'>Analyseur inspire de "
-        "<a href='https://docs.pmd-code.org/latest/pmd_rules_apex.html' target='_blank' rel='noopener'>PMD Apex</a>, du "
-        "<a href='https://architect.salesforce.com/docs/architect/well-architected/guide/overview.html' target='_blank' rel='noopener'>Salesforce Well-Architected Framework</a>, "
-        "des <a href='https://architect.salesforce.com/decision-guides' target='_blank' rel='noopener'>Decision Guides Salesforce</a> et des bonnes pratiques "
-        "<a href='https://admin.salesforce.com/' target='_blank' rel='noopener'>Salesforce Admins</a>. "
-        "Les regles sont declarees dans <code>src/analyzer/rules.xml</code> et peuvent etre activees / desactivees via l'attribut <code>enabled</code>.</p>"
-    )
+    note = f"<p class='empty'>{t('index_analyzer_note')}</p>"
 
     return summary + tabbed_sections("index-analyzer", sections) + note
 

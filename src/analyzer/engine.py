@@ -118,7 +118,7 @@ class AnalyzerEngine(RuleExclusionMixin):
                         rule=rule,
                         target_kind="Agent",
                         target_name=agent.name,
-                        message="L'agent ne dispose d'aucune description.",
+                        message=self.catalog.t("agent.no_description.message"),
                         source_path=agent.source_path,
                     )
                 )
@@ -136,7 +136,7 @@ class AnalyzerEngine(RuleExclusionMixin):
                         rule=rule,
                         target_kind="GenAiPromptTemplate",
                         target_name=prompt.name,
-                        message="Le prompt template ne dispose d'aucune description.",
+                        message=self.catalog.t("prompt.no_description.message"),
                         source_path=prompt.source_path,
                     )
                 )

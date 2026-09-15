@@ -27,6 +27,7 @@ from src.core.models import (
     ReviewResult,
 )
 
+from src.reporting.i18n import normalize_language, set_report_language
 from src.reporting.html import assets
 from src.reporting.html.renderers import (
     adoption as adoption_renderer,
@@ -71,7 +72,12 @@ class HtmlReportWriter:
         self,
         output_dir: str | Path,
         log_callback: LogCallback | None = None,
+        language: str = "fr",
     ) -> None:
+        # The renderers read the language from the shared reporting state, the
+        # same way they read the One Page graph configuration.
+        self.language = normalize_language(language)
+        set_report_language(self.language)
         self.root_output_dir = Path(output_dir)
         self.output_dir = self.root_output_dir / "html"
         self.log: LogCallback = log_callback or (lambda message: None)

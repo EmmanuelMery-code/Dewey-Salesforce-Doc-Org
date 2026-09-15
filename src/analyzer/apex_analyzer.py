@@ -35,10 +35,8 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message="Aucune declaration 'with sharing' / 'without sharing' / 'inherited sharing' detectee.",
-                    details=[
-                        "Par defaut la classe herite du contexte appelant, ce qui peut contourner les partages.",
-                    ],
+                    message=catalog.t("apex.sharing.message"),
+                    details=[catalog.t("apex.sharing.detail")],
                     source_path=artifact.source_path,
                 )
             )
@@ -54,8 +52,8 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message=f"{len(hardcoded)} identifiant(s) Salesforce ecrit(s) en dur detecte(s).",
-                    details=[f"Exemples: {sample}"],
+                    message=catalog.t("apex.hardcoded_id.message", count=len(hardcoded)),
+                    details=[catalog.t("apex.hardcoded_id.detail", sample=sample)],
                     source_path=artifact.source_path,
                 )
             )
@@ -70,10 +68,8 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message="Risque d'injection SOQL detecte dans une requete dynamique.",
-                    details=[
-                        "L'utilisation de Database.query() avec des variables concatenees sans echappement est risquee.",
-                    ],
+                    message=catalog.t("apex.soql_injection.message"),
+                    details=[catalog.t("apex.soql_injection.detail")],
                     source_path=artifact.source_path,
                     line=injection_lines[0],
                 )
@@ -88,10 +84,8 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message="Absence de controle CRUD/FLS explicite detectee.",
-                    details=[
-                        "La classe effectue des operations de donnees sans utiliser WITH USER_MODE, Security.stripInaccessible() ou WITH SECURITY_ENFORCED.",
-                    ],
+                    message=catalog.t("apex.crud_fls.message"),
+                    details=[catalog.t("apex.crud_fls.detail")],
                     source_path=artifact.source_path,
                 )
             )
@@ -105,9 +99,13 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message="Acces aux donnees sans gestion d'exception (aucun bloc try/catch).",
+                    message=catalog.t("apex.no_try_catch.message"),
                     details=[
-                        f"SOQL = {artifact.soql_count}, DML = {artifact.dml_count}.",
+                        catalog.t(
+                            "apex.soql_dml_counts.detail",
+                            soql=artifact.soql_count,
+                            dml=artifact.dml_count,
+                        ),
                     ],
                     source_path=artifact.source_path,
                 )
@@ -121,7 +119,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 rule=rule,
                 target_kind="ApexClass",
                 target_name=artifact.name,
-                message="Une requete SOQL apparait potentiellement dans une boucle.",
+                message=catalog.t("apex.soql_in_loop.message"),
                 source_path=artifact.source_path,
                 line=artifact.query_in_loop_line,
             )
@@ -135,7 +133,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 rule=rule,
                 target_kind="ApexClass",
                 target_name=artifact.name,
-                message="Un DML apparait potentiellement dans une boucle.",
+                message=catalog.t("apex.dml_in_loop.message"),
                 source_path=artifact.source_path,
                 line=artifact.dml_in_loop_line,
             )
@@ -149,7 +147,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 rule=rule,
                 target_kind="ApexClass",
                 target_name=artifact.name,
-                message="Un callout HTTP (Http/HttpRequest) apparait potentiellement dans une boucle.",
+                message=catalog.t("apex.callout_in_loop.message"),
                 source_path=artifact.source_path,
                 line=artifact.callout_in_loop_line,
             )
@@ -161,22 +159,22 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
         recursive_methods = _detect_self_recursive_methods(artifact.body)
         if recursive_methods:
             sample = ", ".join(sorted(recursive_methods)[:5])
-            details = [f"Methode(s) concernee(s) : {sample}."]
+            details = [catalog.t("apex.recursion.detail_methods", sample=sample)]
             if len(recursive_methods) > 5:
                 details.append(
-                    f"+ {len(recursive_methods) - 5} autre(s) methode(s) avec auto-appel."
+                    catalog.t(
+                        "apex.recursion.detail_more",
+                        count=len(recursive_methods) - 5,
+                    )
                 )
-            details.append(
-                "Aucune garde de reentrance evidente (Set<Id>/flag static) detectee dans la classe."
-            )
+            details.append(catalog.t("apex.recursion.detail_no_guard"))
             findings.append(
                 Finding(
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message=(
-                        f"{len(recursive_methods)} methode(s) s'invoquent elles-memes "
-                        "sans mecanisme visible de garde d'arret."
+                    message=catalog.t(
+                        "apex.recursion.message", count=len(recursive_methods)
                     ),
                     details=details,
                     source_path=artifact.source_path,
@@ -191,7 +189,7 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 rule=rule,
                 target_kind="ApexClass",
                 target_name=artifact.name,
-                message=f"Classe de {artifact.line_count} lignes (seuil recommande : 500).",
+                message=catalog.t("apex.class_length.message", lines=artifact.line_count),
                 source_path=artifact.source_path,
             )
         )
@@ -206,9 +204,15 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                     rule=rule,
                     target_kind="ApexClass",
                     target_name=artifact.name,
-                    message=f"Densite de commentaires = {ratio:.1%} (recommande >= 5%).",
+                    message=catalog.t(
+                        "apex.comment_density.message", ratio=f"{ratio:.1%}"
+                    ),
                     details=[
-                        f"{artifact.comment_line_count} lignes commentees sur {artifact.line_count}."
+                        catalog.t(
+                            "apex.comment_density.detail",
+                            commented=artifact.comment_line_count,
+                            total=artifact.line_count,
+                        )
                     ],
                     source_path=artifact.source_path,
                 )
@@ -222,7 +226,9 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
                 rule=rule,
                 target_kind="ApexClass",
                 target_name=artifact.name,
-                message=f"{artifact.system_debug_count} appels 'System.debug' presents dans la classe.",
+                message=catalog.t(
+                    "apex.system_debug.message", count=artifact.system_debug_count
+                ),
                 source_path=artifact.source_path,
             )
         )
@@ -242,15 +248,23 @@ def _analyze_trigger(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Findi
         code_lines = _count_code_lines(artifact.body)
         has_dml_or_soql = artifact.dml_count > 0 or artifact.soql_count > 0
         if code_lines > 10 or has_dml_or_soql:
-            details = [f"Lignes de code detectees : {code_lines}."]
+            details = [
+                catalog.t("trigger.business_logic.detail_lines", count=code_lines)
+            ]
             if has_dml_or_soql:
-                details.append(f"SOQL = {artifact.soql_count}, DML = {artifact.dml_count}.")
+                details.append(
+                    catalog.t(
+                        "apex.soql_dml_counts.detail",
+                        soql=artifact.soql_count,
+                        dml=artifact.dml_count,
+                    )
+                )
             findings.append(
                 Finding(
                     rule=rule,
                     target_kind="ApexTrigger",
                     target_name=artifact.name,
-                    message="Le trigger porte de la logique metier (code substantiel ou operations de donnees).",
+                    message=catalog.t("trigger.business_logic.message"),
                     details=details,
                     source_path=artifact.source_path,
                 )
@@ -263,19 +277,22 @@ def _analyze_trigger(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Findi
         if detection is not None:
             events, dml_sample = detection
             details = [
-                "Evenements declares : " + ", ".join(sorted(events)) + ".",
-                "Operation detectee : " + dml_sample + ".",
-                "Aucune garde de reentrance (Set<Id> static / classe TriggerHandler) trouvee dans le trigger.",
+                catalog.t(
+                    "trigger.after_save_recursion.detail_events",
+                    events=", ".join(sorted(events)),
+                ),
+                catalog.t(
+                    "trigger.after_save_recursion.detail_operation",
+                    operation=dml_sample,
+                ),
+                catalog.t("trigger.after_save_recursion.detail_no_guard"),
             ]
             findings.append(
                 Finding(
                     rule=rule,
                     target_kind="ApexTrigger",
                     target_name=artifact.name,
-                    message=(
-                        "Le trigger modifie ses propres enregistrements declencheurs "
-                        "dans un contexte after-save : risque de boucle infinie."
-                    ),
+                    message=catalog.t("trigger.after_save_recursion.message"),
                     details=details,
                     source_path=artifact.source_path,
                 )
@@ -287,11 +304,11 @@ def _analyze_trigger(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Findi
         parts = []
         candidate_lines = []
         if artifact.query_in_loop:
-            parts.append("SOQL dans une boucle")
+            parts.append(catalog.t("trigger.part.soql_in_loop"))
             if artifact.query_in_loop_line is not None:
                 candidate_lines.append(artifact.query_in_loop_line)
         if artifact.dml_in_loop:
-            parts.append("DML dans une boucle")
+            parts.append(catalog.t("trigger.part.dml_in_loop"))
             if artifact.dml_in_loop_line is not None:
                 candidate_lines.append(artifact.dml_in_loop_line)
         findings.append(
@@ -299,7 +316,9 @@ def _analyze_trigger(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Findi
                 rule=rule,
                 target_kind="ApexTrigger",
                 target_name=artifact.name,
-                message="Operations de donnees potentiellement dans une boucle : " + ", ".join(parts) + ".",
+                message=catalog.t(
+                    "trigger.data_ops_in_loop.message", parts=", ".join(parts)
+                ),
                 source_path=artifact.source_path,
                 line=min(candidate_lines) if candidate_lines else None,
             )

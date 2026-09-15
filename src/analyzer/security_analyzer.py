@@ -36,7 +36,7 @@ def analyze_profile(artifact: SecurityArtifact, catalog: RuleCatalog) -> list[Fi
                 rule=rule,
                 target_kind="Profile",
                 target_name=artifact.name,
-                message=f"Le profil '{artifact.name}' dispose de la permission ModifyAllData.",
+                message=catalog.t("security.modify_all_data.message", name=artifact.name),
                 source_path=artifact.source_path,
             ))
 
@@ -52,7 +52,7 @@ def analyze_profile(artifact: SecurityArtifact, catalog: RuleCatalog) -> list[Fi
                 rule=rule,
                 target_kind="Profile",
                 target_name=artifact.name,
-                message=f"Le profil '{artifact.name}' dispose de la permission ManageUsers.",
+                message=catalog.t("security.manage_users.message", name=artifact.name),
                 source_path=artifact.source_path,
             ))
 
@@ -66,14 +66,18 @@ def analyze_profile(artifact: SecurityArtifact, catalog: RuleCatalog) -> list[Fi
         if mar_objects:
             objects_str = ", ".join(sorted(mar_objects)[:5])
             if len(mar_objects) > 5:
-                objects_str += f" (+ {len(mar_objects) - 5} autres)"
+                objects_str += catalog.t(
+                    "security.modify_all_records.more", count=len(mar_objects) - 5
+                )
             findings.append(Finding(
                 rule=rule,
                 target_kind="Profile",
                 target_name=artifact.name,
-                message=(
-                    f"Le profil '{artifact.name}' a ModifyAllRecords sur {len(mar_objects)} "
-                    f"objet(s) : {objects_str}."
+                message=catalog.t(
+                    "security.modify_all_records.message",
+                    name=artifact.name,
+                    count=len(mar_objects),
+                    objects=objects_str,
                 ),
                 source_path=artifact.source_path,
             ))
@@ -97,9 +101,10 @@ def analyze_permission_set(artifact: SecurityArtifact, catalog: RuleCatalog) -> 
                 rule=rule,
                 target_kind="PermissionSet",
                 target_name=artifact.name,
-                message=(
-                    f"Le Permission Set '{artifact.name}' a ModifyAllRecords sur "
-                    f"{', '.join(sorted(sensitive_mar))}."
+                message=catalog.t(
+                    "security.permission_set_modify_all_records.message",
+                    name=artifact.name,
+                    objects=", ".join(sorted(sensitive_mar)),
                 ),
                 source_path=artifact.source_path,
             ))
@@ -133,10 +138,12 @@ def analyze_org_security(
             rule=rule,
             target_kind="Org",
             target_name="_org_",
-            message=(
-                f"Ratio profils custom / Permission Sets = {ratio}% "
-                f"({cp_count} profils custom, {ps_count} Permission Sets). "
-                f"Seuil recommande : < {ratio_threshold}%."
+            message=catalog.t(
+                "security.profile_ratio.message",
+                ratio=ratio,
+                profiles=cp_count,
+                permission_sets=ps_count,
+                threshold=ratio_threshold,
             ),
             source_path=None,
         ))

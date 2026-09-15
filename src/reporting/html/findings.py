@@ -11,7 +11,8 @@ from src.analyzer.models import Finding
 from src.core.models import PmdViolation, SecurityArtifact
 from src.core.utils import html_value
 
-from src.reporting.html.assets import SEVERITY_CSS_CLASS, SEVERITY_LABEL
+from src.reporting.html.assets import SEVERITY_CSS_CLASS
+from src.reporting.i18n import severity_label as _severity_label, t
 
 
 def security_rows(
@@ -73,7 +74,7 @@ def render_pmd_rows(violations: list[PmdViolation]) -> str:
     """Render PMD ``violations`` as a per-rule ``<tr>`` list."""
 
     if not violations:
-        return "<tr><td colspan='5' class='empty'>Aucune violation PMD detectee.</td></tr>"
+        return f"<tr><td colspan='5' class='empty'>{t('pmd_empty')}</td></tr>"
     rows = []
     for violation in violations:
         line_display = (
@@ -93,7 +94,7 @@ def render_findings_summary(findings: list[Finding]) -> str:
     """Render the per-severity chip summary above each "Analyseur" tab."""
 
     if not findings:
-        return "<p class='empty'>Aucun point d'alerte detecte par l'analyseur.</p>"
+        return f"<p class='empty'>{t('analyzer_empty')}</p>"
     counts: dict[str, int] = {}
     for finding in findings:
         counts[finding.rule.severity] = counts.get(finding.rule.severity, 0) + 1
@@ -101,7 +102,7 @@ def render_findings_summary(findings: list[Finding]) -> str:
     for severity in ("Critical", "Major", "Minor", "Info"):
         if counts.get(severity):
             css = SEVERITY_CSS_CLASS.get(severity, "")
-            label = SEVERITY_LABEL.get(severity, severity)
+            label = _severity_label(severity)
             chips.append(
                 f"<span class='chip {css}'><strong>{counts[severity]}</strong> {html_value(label)}</span>"
             )
@@ -112,16 +113,16 @@ def render_findings_list(findings: list[Finding]) -> str:
     """Render the long-form ``<ul>`` of findings used inside "Analyseur" tabs."""
 
     if not findings:
-        return "<p class='empty'>Aucun point d'alerte detecte par l'analyseur.</p>"
+        return f"<p class='empty'>{t('analyzer_empty')}</p>"
     items: list[str] = []
     for finding in findings:
         rule = finding.rule
         severity_css = SEVERITY_CSS_CLASS.get(rule.severity, "sev-info")
-        severity_label = SEVERITY_LABEL.get(rule.severity, rule.severity)
+        severity_label = _severity_label(rule.severity)
         reference = ""
         if rule.reference:
             reference = (
-                f"<dt>Reference:</dt><dd><a href='{html_value(rule.reference)}' target='_blank' rel='noopener'>{html_value(rule.reference)}</a></dd>"
+                f"<dt>{t('finding_reference')}</dt><dd><a href='{html_value(rule.reference)}' target='_blank' rel='noopener'>{html_value(rule.reference)}</a></dd>"
             )
         details_html = ""
         if finding.details:
@@ -140,9 +141,9 @@ def render_findings_list(findings: list[Finding]) -> str:
             "</div>"
             f"<div class='message'>{html_value(finding.message or rule.description)}</div>"
             "<dl class='metadata'>"
-            f"<dt>Justification:</dt><dd>{html_value(rule.rationale)}</dd>"
-            f"<dt>Remediation:</dt><dd>{html_value(rule.remediation)}</dd>"
-            f"<dt>Source:</dt><dd>{html_value(rule.source)}</dd>"
+            f"<dt>{t('finding_rationale')}</dt><dd>{html_value(rule.rationale)}</dd>"
+            f"<dt>{t('finding_remediation')}</dt><dd>{html_value(rule.remediation)}</dd>"
+            f"<dt>{t('finding_source')}</dt><dd>{html_value(rule.source)}</dd>"
             f"{reference}"
             "</dl>"
             f"{details_html}"
@@ -156,7 +157,7 @@ def findings_to_review_improvements(findings: list[Finding]) -> list[str]:
 
     lines: list[str] = []
     for finding in findings:
-        severity_label = SEVERITY_LABEL.get(finding.rule.severity, finding.rule.severity)
+        severity_label = _severity_label(finding.rule.severity)
         lines.append(
             f"[{severity_label}] {finding.rule.id} - {finding.rule.title} : {finding.message or finding.rule.description}"
         )
@@ -168,9 +169,5 @@ def render_analyzer_tab(findings: list[Finding]) -> str:
 
     summary = render_findings_summary(findings)
     body = render_findings_list(findings)
-    note = (
-        "<p class='empty'>Regles inspirees de PMD Apex, du Salesforce Well-Architected Framework et des guides "
-        "Salesforce Architects / Admins. Chaque regle peut etre activee ou desactivee dans "
-        "<code>src/analyzer/rules.xml</code>.</p>"
-    )
+    note = f"<p class='empty'>{t('analyzer_note')}</p>"
     return summary + body + note

@@ -17,7 +17,7 @@ def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
                 rule=rule,
                 target_kind="Object",
                 target_name=obj.api_name,
-                message="Objet personnalise sans description metadata.",
+                message=catalog.t("object.no_description.message"),
                 source_path=obj.source_path,
             )
         )
@@ -31,7 +31,9 @@ def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
                     rule=rule,
                     target_kind="Object",
                     target_name=obj.api_name,
-                    message=f"{len(custom_fields)} champs personnalises sur l'objet (seuil recommande : 50).",
+                    message=catalog.t(
+                        "object.too_many_fields.message", count=len(custom_fields)
+                    ),
                     source_path=obj.source_path,
                 )
             )
@@ -45,7 +47,10 @@ def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
                     rule=rule,
                     target_kind="Object",
                     target_name=obj.api_name,
-                    message=f"{len(active_vrs)} validation rules actives sur l'objet (seuil recommande : 10).",
+                    message=catalog.t(
+                        "object.too_many_validation_rules.message",
+                        count=len(active_vrs),
+                    ),
                     source_path=obj.source_path,
                 )
             )
@@ -59,7 +64,9 @@ def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
                     rule=rule,
                     target_kind="Object",
                     target_name=obj.api_name,
-                    message=f"{len(active_rts)} record types actifs (seuil recommande : 3).",
+                    message=catalog.t(
+                        "object.too_many_record_types.message", count=len(active_rts)
+                    ),
                     source_path=obj.source_path,
                 )
             )
@@ -77,13 +84,15 @@ def analyze_object(obj: ObjectInfo, catalog: RuleCatalog) -> list[Finding]:
             preview = ", ".join(undocumented[:10])
             if len(undocumented) > 10:
                 preview += f", ... (+{len(undocumented) - 10})"
-            details.append(f"Champs concernes : {preview}.")
+            details.append(catalog.t("field.no_description.detail", preview=preview))
             findings.append(
                 Finding(
                     rule=rule,
                     target_kind="Field",
                     target_name=obj.api_name,
-                    message=f"{len(undocumented)} champ(s) personnalise(s) sans description.",
+                    message=catalog.t(
+                        "field.no_description.message", count=len(undocumented)
+                    ),
                     details=details,
                     source_path=obj.source_path,
                 )
@@ -105,7 +114,7 @@ def analyze_validation_rule(
                 rule=rule,
                 target_kind="ValidationRule",
                 target_name=target_name,
-                message="La validation rule ne fournit pas de description.",
+                message=catalog.t("validation_rule.no_description.message"),
             )
         )
 
@@ -118,10 +127,15 @@ def analyze_validation_rule(
                     rule=rule,
                     target_kind="ValidationRule",
                     target_name=target_name,
-                    message=f"Formule complexe (score={score}).",
+                    message=catalog.t(
+                        "validation_rule.complexity.message", score=score
+                    ),
                     details=[
-                        f"Longueur: {len(vr.error_condition_formula or '')} caracteres.",
-                        "Considerez une simplification ou un passage en Apex si la logique devient trop lourde."
+                        catalog.t(
+                            "validation_rule.complexity.detail_length",
+                            length=len(vr.error_condition_formula or ""),
+                        ),
+                        catalog.t("validation_rule.complexity.detail_advice"),
                     ]
                 )
             )
@@ -142,7 +156,7 @@ def analyze_duplicate_rule(
                 rule=rule,
                 target_kind="DuplicateRule",
                 target_name=target_name,
-                message="La duplicate rule ne fournit pas de description.",
+                message=catalog.t("duplicate_rule.no_description.message"),
             )
         )
 
@@ -153,8 +167,8 @@ def analyze_duplicate_rule(
                 rule=rule,
                 target_kind="DuplicateRule",
                 target_name=target_name,
-                message="La duplicate rule applique les regles de partage (Sharing Rules).",
-                details=["Cela peut limiter la detection de doublons si l'utilisateur n'a pas acces aux enregistrements existants."],
+                message=catalog.t("duplicate_rule.sharing.message"),
+                details=[catalog.t("duplicate_rule.sharing.detail")],
             )
         )
 

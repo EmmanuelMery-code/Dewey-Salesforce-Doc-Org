@@ -49,16 +49,17 @@ def _detect_apex_call_cycles(
         cycle_sorted = sorted(cycle)
         cycle_label = " -> ".join(cycle_sorted + [cycle_sorted[0]])
         details = [
-            f"Classes participant au cycle : {', '.join(cycle_sorted)}.",
-            f"Chaine simplifiee : {cycle_label}.",
+            catalog.t(
+                "apex.cycle.detail_classes", classes=", ".join(cycle_sorted)
+            ),
+            catalog.t("apex.cycle.detail_chain", chain=cycle_label),
         ]
         for cls in cycle_sorted:
             artifact = next((a for a in classes if a.name == cls), None)
             others = [c for c in cycle_sorted if c != cls]
-            message = (
-                "Classe impliquee dans un cycle d'appels avec "
-                + (", ".join(others) if others else "elle-meme")
-                + "."
+            message = catalog.t(
+                "apex.cycle.message",
+                others=", ".join(others) if others else catalog.t("apex.cycle.self"),
             )
             finding = Finding(
                 rule=rule,

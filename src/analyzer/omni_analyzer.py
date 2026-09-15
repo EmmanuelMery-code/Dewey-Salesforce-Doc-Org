@@ -30,7 +30,7 @@ def analyze_data_transform(
                 rule=rule,
                 target_kind="OmniDataTransform",
                 target_name=name,
-                message="Data Transform sans description metadata.",
+                message=catalog.t("omni.no_description.message"),
             )
         )
 
@@ -41,14 +41,20 @@ def analyze_data_transform(
                 rule=rule,
                 target_kind="OmniDataTransform",
                 target_name=name,
-                message=f"{len(disabled)} item(s) desactive(s) subsistent dans la definition.",
+                message=catalog.t("omni.disabled_items.message", count=len(disabled)),
                 details=[
-                    f"Exemples : "
-                    + ", ".join(
-                        filter(
-                            None,
-                            [child_text(item, "name") or child_text(item, "globalKey") for item in disabled[:5]],
-                        )
+                    catalog.t(
+                        "omni.disabled_items.detail",
+                        sample=", ".join(
+                            filter(
+                                None,
+                                [
+                                    child_text(item, "name")
+                                    or child_text(item, "globalKey")
+                                    for item in disabled[:5]
+                                ],
+                            )
+                        ),
                     )
                 ],
             )
@@ -61,7 +67,7 @@ def analyze_data_transform(
                 rule=rule,
                 target_kind="OmniDataTransform",
                 target_name=name,
-                message=f"Data Transform volumineux : {len(items)} items (seuil recommande : 40).",
+                message=catalog.t("omni.size.message", count=len(items)),
             )
         )
 

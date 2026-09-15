@@ -16,10 +16,14 @@ def analyze_aura(aura: AuraInfo, catalog: RuleCatalog) -> list[Finding]:
                 rule=rule,
                 target_kind="Aura",
                 target_name=aura.name,
-                message="Composant Aura volumineux.",
+                message=catalog.t("aura.size.message"),
                 details=[
-                    f"CMP: {aura.line_count_cmp} lignes, JS: {aura.line_count_js} lignes.",
-                    "Considerez une migration vers LWC pour de meilleures performances et maintenabilite."
+                    catalog.t(
+                        "aura.size.detail_lines",
+                        cmp_lines=aura.line_count_cmp,
+                        js_lines=aura.line_count_js,
+                    ),
+                    catalog.t("aura.size.detail_migrate"),
                 ],
                 source_path=aura.source_path,
             )

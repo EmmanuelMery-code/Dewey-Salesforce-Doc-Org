@@ -8,7 +8,8 @@ from typing import Callable
 from src.analyzer.engine import AnalyzerReport
 from src.analyzer.models import Finding
 from src.core.utils import html_value, write_text
-from src.reporting.html.assets import SEVERITY_CSS_CLASS, SEVERITY_LABEL
+from src.reporting.html.assets import SEVERITY_CSS_CLASS
+from src.reporting.i18n import severity_label as _severity_label, t
 from src.reporting.html.page_shell import (
     href_relative,
     index_back_link,
@@ -57,7 +58,7 @@ def render_findings_report_page(
     for finding in all_findings:
         rule = finding.rule
         severity_css = SEVERITY_CSS_CLASS.get(rule.severity, "sev-info")
-        severity_label = SEVERITY_LABEL.get(rule.severity, rule.severity)
+        severity_label = _severity_label(rule.severity)
         
         # Link to the impacted item if possible
         target_href = ""
@@ -105,7 +106,7 @@ def render_findings_report_page(
         reference = ""
         if rule.reference:
             reference = (
-                f"<dt>Reference:</dt><dd><a href='{html_value(rule.reference)}' target='_blank' rel='noopener'>{html_value(rule.reference)}</a></dd>"
+                f"<dt>{t('finding_reference')}</dt><dd><a href='{html_value(rule.reference)}' target='_blank' rel='noopener'>{html_value(rule.reference)}</a></dd>"
             )
         
         details_html = ""
@@ -126,28 +127,38 @@ def render_findings_report_page(
             f"<span class='title'>{html_value(rule.title)}</span>"
             "</div>"
             f"<div class='target-info' style='margin-bottom: 8px; font-size: 0.9rem; color: #475569;'>"
-            f"<strong>Item impacté :</strong> {html_value(finding.target_kind)} - {target_display}</div>"
+            f"<strong>{t('finding_impacted_item')}</strong> {html_value(finding.target_kind)} - {target_display}</div>"
             f"<div class='message'>{html_value(finding.message or rule.description)}</div>"
             "<dl class='metadata'>"
-            f"<dt>Justification:</dt><dd>{html_value(rule.rationale)}</dd>"
-            f"<dt>Remediation:</dt><dd>{html_value(rule.remediation)}</dd>"
-            f"<dt>Source:</dt><dd>{html_value(rule.source)}</dd>"
+            f"<dt>{t('finding_rationale')}</dt><dd>{html_value(rule.rationale)}</dd>"
+            f"<dt>{t('finding_remediation')}</dt><dd>{html_value(rule.remediation)}</dd>"
+            f"<dt>{t('finding_source')}</dt><dd>{html_value(rule.source)}</dd>"
             f"{reference}"
             "</dl>"
             f"{details_html}"
             "</li>"
         )
 
-    findings_list = "<ul class='findings-list'>" + "".join(items) + "</ul>" if items else "<p class='empty'>Aucun finding détecté.</p>"
+    findings_list = (
+        "<ul class='findings-list'>" + "".join(items) + "</ul>"
+        if items
+        else f"<p class='empty'>{t('findings_empty')}</p>"
+    )
 
     body = f"""
     {back_link}
-    <h1>Rapport global des findings</h1>
-    <p>Cette page regroupe l'ensemble des alertes détectées par l'analyseur statique sur l'organisation, triées par sévérité.</p>
+    <h1>{t('findings_page_heading')}</h1>
+    <p>{t('findings_page_intro')}</p>
     {findings_list}
     """
 
-    return render_page("Rapport des findings", body, current_path, assets_dir, include_mermaid=False)
+    return render_page(
+        t("findings_page_title"),
+        body,
+        current_path,
+        assets_dir,
+        include_mermaid=False,
+    )
 
 
 def write_findings_report_page(
@@ -171,5 +182,5 @@ def write_findings_report_page(
         prompt_pages=prompt_pages,
         omni_pages=omni_pages
     ))
-    log(f"Rapport global des findings généré : {path}")
+    log(t("findings_written_log", path=path))
     return path

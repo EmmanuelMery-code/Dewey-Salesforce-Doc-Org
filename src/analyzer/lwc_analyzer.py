@@ -16,8 +16,8 @@ def analyze_lwc(lwc: LwcInfo, catalog: RuleCatalog) -> list[Finding]:
                 rule=rule,
                 target_kind="LWC",
                 target_name=lwc.name,
-                message=f"Composant JS volumineux ({lwc.line_count_js} lignes).",
-                details=["Considerez un decoupage en sous-composants ou l'utilisation de modules de service."],
+                message=catalog.t("lwc.js_size.message", lines=lwc.line_count_js),
+                details=[catalog.t("lwc.js_size.detail")],
                 source_path=lwc.source_path,
             )
         )
@@ -30,7 +30,7 @@ def analyze_lwc(lwc: LwcInfo, catalog: RuleCatalog) -> list[Finding]:
                 rule=rule,
                 target_kind="LWC",
                 target_name=lwc.name,
-                message=f"Template HTML volumineux ({lwc.line_count_html} lignes).",
+                message=catalog.t("lwc.html_size.message", lines=lwc.line_count_html),
                 source_path=lwc.source_path,
             )
         )
@@ -43,8 +43,8 @@ def analyze_lwc(lwc: LwcInfo, catalog: RuleCatalog) -> list[Finding]:
                 rule=rule,
                 target_kind="LWC",
                 target_name=lwc.name,
-                message="Le composant utilise @AuraEnabled pour appeler de l'Apex.",
-                details=["Verifiez que les classes Apex appelees respectent les regles de securite (CRUD/FLS)."],
+                message=catalog.t("lwc.aura_enabled.message"),
+                details=[catalog.t("lwc.aura_enabled.detail")],
                 source_path=lwc.source_path,
             )
         )
@@ -62,7 +62,7 @@ def analyze_lwc(lwc: LwcInfo, catalog: RuleCatalog) -> list[Finding]:
                             rule=rule,
                             target_kind="LWC",
                             target_name=lwc.name,
-                            message="Presence de console.log ou console.error detectee.",
+                            message=catalog.t("lwc.console.message"),
                             source_path=lwc.source_path,
                         )
                     )
@@ -77,7 +77,7 @@ def analyze_lwc(lwc: LwcInfo, catalog: RuleCatalog) -> list[Finding]:
                 rule=rule,
                 target_kind="LWC",
                 target_name=lwc.name,
-                message="Label ou description manquant dans les metadonnees.",
+                message=catalog.t("lwc.metadata.message"),
                 source_path=lwc.source_path,
             )
         )

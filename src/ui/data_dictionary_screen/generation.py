@@ -172,7 +172,11 @@ class _DataDictionaryGenerationMixin:
         if self.html_var.get():
             html_dir = output_dir / "html"
             html_dir.mkdir(parents=True, exist_ok=True)
-            writer = HtmlReportWriter(output_dir, log_callback=self.app.task_manager.queue_log)
+            writer = HtmlReportWriter(
+                output_dir,
+                log_callback=self.app.task_manager.queue_log,
+                language=self.app.language,
+            )
             # Generate individual pages
             writer.write_object_pages(
                 snapshot,

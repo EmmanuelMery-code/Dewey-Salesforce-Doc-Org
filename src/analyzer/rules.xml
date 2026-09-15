@@ -37,6 +37,17 @@
       Framework recommande un controle d'acces explicite aux donnees.
     </rationale>
     <remediation>Ajouter 'with sharing' (ou 'inherited sharing' quand le contexte appelant doit etre respecte) sur la declaration de la classe.</remediation>
+
+    <translation lang="en">
+      <title>Apex class without an explicit sharing declaration</title>
+      <description>Detects a class (test classes and interfaces excluded) that declares neither 'with sharing', nor 'without sharing', nor 'inherited sharing'.</description>
+      <rationale>
+          A class without a sharing declaration inherits the caller's rules by default, which
+      introduces a data exposure risk. The Trusted pillar of the Well-Architected Framework
+      recommends explicit access control over data.
+      </rationale>
+      <remediation>Add 'with sharing' (or 'inherited sharing' when the calling context must be honoured) to the class declaration.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-SEC-002" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
@@ -49,6 +60,16 @@
       des deploiements Sandbox -> Production et nuit a la portabilite du code.
     </rationale>
     <remediation>Externaliser l'identifiant dans une Custom Metadata, un Custom Setting ou un label, et le resoudre a l'execution.</remediation>
+
+    <translation lang="en">
+      <title>Hardcoded Salesforce ID</title>
+      <description>Detects a 15/18 character Salesforce ID written directly in the code.</description>
+      <rationale>
+          IDs differ between environments. A hardcoded ID causes regressions during
+      Sandbox -> Production deployments and hurts code portability.
+      </rationale>
+      <remediation>Move the identifier into Custom Metadata, a Custom Setting or a label, and resolve it at runtime.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-SEC-003" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
@@ -61,6 +82,16 @@
       L'utilisation de variables de liaison (:var) ou de String.escapeSingleQuotes() est indispensable pour les requetes dynamiques.
     </rationale>
     <remediation>Utiliser des variables de liaison (bind variables) ou appliquer String.escapeSingleQuotes() sur les variables concatenees dans la requete.</remediation>
+
+    <translation lang="en">
+      <title>SOQL injection risk detected</title>
+      <description>Detects the use of Database.query() with a dynamically built string and no visible escaping.</description>
+      <rationale>
+          SOQL injection lets an attacker manipulate queries to reach unauthorised data.
+      Bind variables (:var) or String.escapeSingleQuotes() are mandatory for dynamic queries.
+      </rationale>
+      <remediation>Use bind variables, or apply String.escapeSingleQuotes() to the variables concatenated into the query.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-SEC-004" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
@@ -73,6 +104,17 @@
       Le Well-Architected Framework (Trusted > Secure) recommande d'appliquer les permissions de l'utilisateur.
     </rationale>
     <remediation>Ajouter 'WITH USER_MODE' aux requetes SOQL ou utiliser 'Security.stripInaccessible()' pour les operations DML, ou encore verifier explicitement les droits via Schema.SObjectType.</remediation>
+
+    <translation lang="en">
+      <title>No explicit CRUD/FLS enforcement</title>
+      <description>Detects DML or SOQL operations without an explicit security clause (WITH USER_MODE, Security.stripInaccessible, etc.).</description>
+      <rationale>
+          Apex runs in system mode by default. Without explicit enforcement a user can read or update
+      fields they are not entitled to through the standard UI. The Well-Architected Framework
+      (Trusted &gt; Secure) recommends applying the running user's permissions.
+      </rationale>
+      <remediation>Add 'WITH USER_MODE' to SOQL queries, use 'Security.stripInaccessible()' for DML operations, or check the rights explicitly through Schema.SObjectType.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-REL-001" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
@@ -86,6 +128,17 @@
       transaction incoherente pour l'utilisateur final.
     </rationale>
     <remediation>Encadrer les acces aux donnees avec try/catch, logger l'erreur via un service de logs et renvoyer un message lisible a l'appelant.</remediation>
+
+    <translation lang="en">
+      <title>No try/catch around DML or SOQL processing</title>
+      <description>The class contains at least one DML or SOQL statement but no try/catch block was detected.</description>
+      <rationale>
+          A reliable component shields users from technical errors. Without exception handling a
+      DMLException or QueryException surfaces as a raw stack trace and can leave the transaction
+      inconsistent for the end user.
+      </rationale>
+      <remediation>Wrap data access in try/catch, log the error through a logging service and return a readable message to the caller.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-PERF-001" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
@@ -98,6 +151,16 @@
       atteint la limite en quelques iterations et fait echouer la transaction.
     </rationale>
     <remediation>Extraire la requete de la boucle et bulkifier le traitement (SOQL unique qui retourne une collection, traitee ensuite en memoire).</remediation>
+
+    <translation lang="en">
+      <title>SOQL potentially executed inside a loop</title>
+      <description>A SOQL query appears inside a 'for' or 'while' loop, which quickly exhausts governor limits.</description>
+      <rationale>
+          Apex limits (100 SOQL per transaction) are a hard ceiling. A SOQL inside a loop reaches
+      the limit within a few iterations and fails the transaction.
+      </rationale>
+      <remediation>Move the query out of the loop and bulkify the processing (a single SOQL returning a collection, then processed in memory).</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-PERF-002" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
@@ -110,6 +173,16 @@
       anti-pattern reconnu du Well-Architected Framework (pilier Easy > Efficiency).
     </rationale>
     <remediation>Accumuler les enregistrements dans une List puis executer un seul DML apres la boucle.</remediation>
+
+    <translation lang="en">
+      <title>DML potentially executed inside a loop</title>
+      <description>A DML statement (insert, update, upsert, delete) appears inside a loop.</description>
+      <rationale>
+          DML limits (150 statements per transaction) cap the number of iterations. This is a
+      well-known anti-pattern of the Well-Architected Framework (Easy &gt; Efficiency pillar).
+      </rationale>
+      <remediation>Collect the records into a List, then run a single DML statement after the loop.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-PERF-003" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
@@ -123,6 +196,17 @@
       echouer la transaction (CalloutException), en plus de degrader fortement la latence percue.
     </rationale>
     <remediation>Sortir le callout de la boucle en le bulkifiant (endpoint batch cote service externe), ou differer les appels via des Queueable/Batch Apex distincts qui respectent les limites par job.</remediation>
+
+    <translation lang="en">
+      <title>HTTP callout potentially executed inside a loop</title>
+      <description>An Http/HttpRequest instance is built inside a 'for' or 'while' loop, a sign of a repeated synchronous callout.</description>
+      <rationale>
+          Apex limits cap callouts at 100 per transaction, with a cumulative maximum of 120 seconds.
+      A callout issued on every iteration reaches those ceilings quickly and fails the transaction
+      (CalloutException), on top of badly degrading perceived latency.
+      </rationale>
+      <remediation>Move the callout out of the loop by bulkifying it (batch endpoint on the external service side), or defer the calls to separate Queueable/Batch Apex jobs that honour the per-job limits.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-REL-002" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
@@ -137,6 +221,18 @@
       d'origine. Le pilier Trusted > Reliable impose des garde-fous explicites.
     </rationale>
     <remediation>Supprimer la recursion si elle est involontaire, ou ajouter une garde (Set&lt;Id&gt; ou compteur static) qui empeche une seconde reentree pour le meme scope.</remediation>
+
+    <translation lang="en">
+      <title>Apex method suspected of unguarded recursion</title>
+      <description>A method (or one of its overloads) is invoked from its own body, with no visible reentrancy guard (static variable, counter, Set of already processed IDs).</description>
+      <rationale>
+          Poorly bounded recursion quickly exhausts governor limits (CPU time, heap, DML/SOQL) and
+      raises a LimitException or a StackOverflow. In Salesforce, recursion is often unintentional,
+      for instance through a helper called from a trigger that rewrites the original data.
+      The Trusted &gt; Reliable pillar mandates explicit safeguards.
+      </rationale>
+      <remediation>Remove the recursion if it is unintentional, or add a guard (Set&lt;Id&gt; or static counter) preventing a second entry for the same scope.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-REL-003" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
@@ -152,6 +248,18 @@
       des graphes d'appels acycliques.
     </rationale>
     <remediation>Casser le cycle en introduisant une interface ou un service intermediaire, ou en deplacant la responsabilite commune dans une classe "socle" qui ne rappelle pas ses appelants.</remediation>
+
+    <translation lang="en">
+      <title>Call cycle detected between several Apex classes</title>
+      <description>The class takes part in an invocation cycle with other Apex classes (A calls B, B calls A, or a longer cycle). Such a call graph can loop without control.</description>
+      <rationale>
+          A call cycle between classes makes execution hard to bound: every pass can re-trigger the
+      chain through a trigger, a handler or a service. It also complicates maintenance (a class
+      cannot be tested without simulating its partner) and contradicts the Trusted &gt; Reliable and
+      Adaptable &gt; Composable pillars, which recommend acyclic call graphs.
+      </rationale>
+      <remediation>Break the cycle by introducing an interface or an intermediate service, or by moving the shared responsibility into a foundation class that never calls its callers back.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-MAINT-001" enabled="true" scope="apex_class" category="Easy" subcategory="Maintainability"
@@ -164,6 +272,16 @@
       les tests et les evolutions (Easy > Readability + Adaptable > Separation of Concerns).
     </rationale>
     <remediation>Scinder la classe en composants specialises (service, selector, domain, helper) selon le pattern Separation of Concerns.</remediation>
+
+    <translation lang="en">
+      <title>Apex class too long</title>
+      <description>Class longer than 500 lines, the threshold suggested by PMD for Apex components.</description>
+      <rationale>
+          A long class often mixes several responsibilities and makes reading, testing and evolving
+      harder (Easy &gt; Readability and Adaptable &gt; Separation of Concerns).
+      </rationale>
+      <remediation>Split the class into specialised components (service, selector, domain, helper) following the Separation of Concerns pattern.</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-MAINT-002" enabled="true" scope="apex_class" category="Easy" subcategory="Readability"
@@ -176,6 +294,16 @@
       les intentions (pourquoi) plus que la mecanique (comment).
     </rationale>
     <remediation>Ajouter un en-tete de classe (but, inputs, side effects) et commenter les passages non triviaux (algorithmes, regles metier).</remediation>
+
+    <translation lang="en">
+      <title>Low comment density</title>
+      <description>Fewer than 5% commented lines in a class longer than 80 lines.</description>
+      <rationale>
+          Readability is a key attribute of the Easy pillar. An average business class should convey
+      intent (why) more than mechanics (how).
+      </rationale>
+      <remediation>Add a class header (purpose, inputs, side effects) and comment the non-trivial parts (algorithms, business rules).</remediation>
+    </translation>
   </rule>
 
   <rule id="APEX-MAINT-003" enabled="true" scope="apex_class" category="Easy" subcategory="Readability"
@@ -188,6 +316,16 @@
       Well-Architected pilier Trusted > Reliable recommande un dispositif de logs maitrise.
     </rationale>
     <remediation>Remplacer par un logger centralise activable via Custom Setting ou Custom Metadata; supprimer les traces residuelles.</remediation>
+
+    <translation lang="en">
+      <title>Too many leftover System.debug calls</title>
+      <description>More than 10 'System.debug' calls in the class.</description>
+      <rationale>
+          System.debug traces degrade performance and pollute production logs. The Well-Architected
+      Trusted &gt; Reliable pillar recommends a controlled logging mechanism.
+      </rationale>
+      <remediation>Replace them with a central logger that can be toggled through a Custom Setting or Custom Metadata; remove the leftover traces.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== APEX TRIGGERS ==================== -->
@@ -202,6 +340,16 @@
       Un trigger qui porte la logique devient impossible a re-orchestrer ou tester unitairement.
     </rationale>
     <remediation>Appliquer un framework Trigger Handler (fflib, TriggerHandler, ou maison) et deplacer toute la logique dans la classe handler.</remediation>
+
+    <translation lang="en">
+      <title>Business logic directly inside the trigger</title>
+      <description>The trigger contains more than 10 non-comment lines, or inline DML/SOQL.</description>
+      <rationale>
+          The Separation of Concerns pattern (Adaptable pillar) recommends a dedicated Trigger Handler.
+      A trigger that carries the logic becomes impossible to re-orchestrate or unit test.
+      </rationale>
+      <remediation>Apply a Trigger Handler framework (fflib, TriggerHandler, or in-house) and move all the logic into the handler class.</remediation>
+    </translation>
   </rule>
 
   <rule id="TRIG-REL-001" enabled="true" scope="apex_trigger" category="Trusted" subcategory="Reliable"
@@ -217,6 +365,19 @@
       pilier Trusted > Reliable.
     </rationale>
     <remediation>Effectuer la mise a jour des champs de l'enregistrement dans un "before insert" / "before update" (pas besoin de DML), ou introduire un TriggerHandler avec un Set&lt;Id&gt; statique qui empeche la reentrance.</remediation>
+
+    <translation lang="en">
+      <title>After insert/update trigger rewriting its triggering records</title>
+      <description>An 'after insert' or 'after update' trigger runs a DML (update / upsert / Database.update) on Trigger.new, Trigger.newMap or a copy of those collections, which immediately re-fires the same trigger.</description>
+      <rationale>
+          In an after-save trigger, any update of the triggering records is intercepted again by Apex
+      and restarts the whole trigger chain. Without a guard (static class, Set&lt;Id&gt; flag) the
+      transaction burns governor limits (CPU, DML, SOQL) or raises a LimitException. This is one of
+      the most frequent Salesforce trigger pitfalls and an explicit anti-pattern of the
+      Trusted &gt; Reliable pillar.
+      </rationale>
+      <remediation>Set the record fields in a 'before insert' / 'before update' context instead (no DML needed), or introduce a TriggerHandler with a static Set&lt;Id&gt; that prevents reentrancy.</remediation>
+    </translation>
   </rule>
 
   <rule id="TRIG-PERF-001" enabled="true" scope="apex_trigger" category="Easy" subcategory="Efficiency"
@@ -229,6 +390,16 @@
       une boucle epuise les limites des la premiere chaine de creation massive.
     </rationale>
     <remediation>Bulkifier : collecter les Ids / enregistrements dans des Maps et effectuer une requete ou un DML unique.</remediation>
+
+    <translation lang="en">
+      <title>SOQL or DML inside a trigger loop</title>
+      <description>The trigger performs data operations inside a loop.</description>
+      <rationale>
+          Triggers are invoked in bulk mode (up to 200 records). An operation inside a loop exhausts
+      the limits as soon as the first mass creation chain runs.
+      </rationale>
+      <remediation>Bulkify: collect the IDs / records into Maps and run a single query or DML statement.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== FLOW ==================== -->
@@ -243,6 +414,16 @@
       sur la documentation immediate des automatisations (intention, declencheur, perimetre).
     </rationale>
     <remediation>Renseigner la description du flow : intention, declencheur, consequences sur les donnees, proprietaire.</remediation>
+
+    <translation lang="en">
+      <title>Flow without a global description</title>
+      <description>The flow provides no description at the metadata level.</description>
+      <rationale>
+          A flow without a description is hard to pick up. The Salesforce Admins guides insist on
+      documenting automations immediately (intent, trigger, scope).
+      </rationale>
+      <remediation>Fill in the flow description: intent, trigger, impact on data, owner.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-READ-002" enabled="true" scope="flow" category="Easy" subcategory="Readability"
@@ -254,6 +435,15 @@
       Un flow lisible garde chaque element auto-descriptif. C'est un pattern explicite du pilier Easy.
     </rationale>
     <remediation>Ajouter une description sur les elements cles (decisions, actions, subflows) pour expliciter le 'pourquoi'.</remediation>
+
+    <translation lang="en">
+      <title>Fewer than 50% of elements described</title>
+      <description>Fewer than one flow element in two carries a description.</description>
+      <rationale>
+          A readable flow keeps every element self-describing. This is an explicit pattern of the Easy pillar.
+      </rationale>
+      <remediation>Add a description to the key elements (decisions, actions, subflows) to make the 'why' explicit.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-MAINT-001" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
@@ -266,6 +456,16 @@
       un decoupage en sous-flows reutilisables (Adaptable > Composable).
     </rationale>
     <remediation>Extraire les sequences cohesives dans des sous-flows nommes; documenter chaque sous-flow individuellement.</remediation>
+
+    <translation lang="en">
+      <title>Oversized flow</title>
+      <description>Flow with more than 40 elements.</description>
+      <rationale>
+          An oversized flow becomes a single, fragile maintenance point. The recommended pattern is to
+      split it into reusable subflows (Adaptable &gt; Composable).
+      </rationale>
+      <remediation>Extract the cohesive sequences into named subflows; document each subflow individually.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-MAINT-002" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
@@ -278,6 +478,16 @@
       recommande de factoriser les regles en Decision Tables ou Custom Metadata-driven.
     </rationale>
     <remediation>Remplacer certaines cascades de decisions par des Decision Tables / Custom Metadata, ou scinder le flow.</remediation>
+
+    <translation lang="en">
+      <title>Too many decisions in the flow</title>
+      <description>More than 8 decisions in a single flow.</description>
+      <rationale>
+          Heavy branching complicates functional coverage and testing. Well-Architected recommends
+      factoring the rules into Decision Tables or Custom Metadata-driven configuration.
+      </rationale>
+      <remediation>Replace some decision cascades with Decision Tables / Custom Metadata, or split the flow.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-PERF-001" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
@@ -290,6 +500,16 @@
       d'echec en transaction et degrade l'experience utilisateur.
     </rationale>
     <remediation>Regrouper les operations (Collections + Update Records), ou deleguer a de l'Apex bulkifie pour les traitements complexes.</remediation>
+
+    <translation lang="en">
+      <title>Heavy data footprint</title>
+      <description>More than 6 recordCreate/recordUpdate/recordDelete/recordLookup operations.</description>
+      <rationale>
+          Every data operation consumes limits. A flow chaining DML statements risks transaction
+      failures and degrades the user experience.
+      </rationale>
+      <remediation>Group the operations (Collections + Update Records), or delegate to bulkified Apex for complex processing.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-MAINT-003" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
@@ -301,6 +521,15 @@
       Au-dela de 4 niveaux d'imbrication, le suivi visuel et la maintenance deviennent difficiles.
     </rationale>
     <remediation>Aplatir la structure en scindant les branches profondes en sous-flows nommes.</remediation>
+
+    <translation lang="en">
+      <title>Excessive nesting depth</title>
+      <description>The flow has a depth greater than 4.</description>
+      <rationale>
+          Beyond 4 nesting levels, visual tracking and maintenance become difficult.
+      </rationale>
+      <remediation>Flatten the structure by splitting the deep branches into named subflows.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-ADAPT-001" enabled="true" scope="flow" category="Adaptable" subcategory="Resilient"
@@ -312,6 +541,15 @@
       Les flows inactifs alourdissent le package et peuvent reveler une migration inachevee.
     </rationale>
     <remediation>Activer le flow s'il est utilise, ou le supprimer / archiver s'il ne sert plus.</remediation>
+
+    <translation lang="en">
+      <title>Inactive flow present in the package</title>
+      <description>The flow is not in the 'Active' state.</description>
+      <rationale>
+          Inactive flows bloat the package and may reveal an unfinished migration.
+      </rationale>
+      <remediation>Activate the flow if it is used, or delete / archive it if it is no longer needed.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-PERF-002" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
@@ -323,6 +561,16 @@
       Comme en Apex, les operations de base de donnees dans les boucles de Flow sont couteuses et risquent de depasser les limites (100 requetes par transaction).
     </rationale>
     <remediation>Extraire le 'Get Records' avant la boucle ou utiliser des collections pour traiter les donnees en masse.</remediation>
+
+    <translation lang="en">
+      <title>SOQL (Get Records) inside a Flow loop</title>
+      <description>A data read operation appears inside a loop, which risks hitting governor limits.</description>
+      <rationale>
+          As in Apex, database operations inside Flow loops are expensive and risk exceeding the limits
+      (100 queries per transaction).
+      </rationale>
+      <remediation>Move the 'Get Records' before the loop, or use collections to process the data in bulk.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-PERF-003" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
@@ -334,6 +582,16 @@
       Les operations DML dans les boucles de Flow sont un anti-pattern majeur. Elles provoquent des echecs de transaction des que le volume d'enregistrements augmente.
     </rationale>
     <remediation>Accumuler les changements dans une variable de collection et effectuer un seul 'Update Records' ou 'Create Records' a la sortie de la boucle.</remediation>
+
+    <translation lang="en">
+      <title>DML (Create/Update/Delete) inside a Flow loop</title>
+      <description>A data write operation appears inside a loop.</description>
+      <rationale>
+          DML operations inside Flow loops are a major anti-pattern. They cause transaction failures as
+      soon as the record volume grows.
+      </rationale>
+      <remediation>Accumulate the changes in a collection variable and run a single 'Update Records' or 'Create Records' after the loop.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-PERF-004" enabled="true" scope="flow" category="Easy" subcategory="Efficiency"
@@ -347,6 +605,17 @@
       iteration atteint rapidement ces plafonds et degrade fortement la latence percue.
     </rationale>
     <remediation>Sortir l'appel externe de la boucle en bulkifiant la requete (endpoint batch cote systeme externe) ou en accumulant les entrees pour un seul appel groupe a la sortie de la boucle.</remediation>
+
+    <translation lang="en">
+      <title>External Service action call inside a Flow loop</title>
+      <description>An External Service action (HTTP call to an external system) appears inside a loop.</description>
+      <rationale>
+          Every iteration fires a synchronous HTTP call to an external system. Apex/Flow limits cap
+      callouts at 100 per transaction (120 cumulative seconds); a call repeated on each iteration
+      reaches those ceilings quickly and badly degrades perceived latency.
+      </rationale>
+      <remediation>Move the external call out of the loop by bulkifying the request (batch endpoint on the external system side) or by accumulating the inputs for a single grouped call after the loop.</remediation>
+    </translation>
   </rule>
 
   <rule id="FLOW-REL-001" enabled="true" scope="flow" category="Trusted" subcategory="Reliable"
@@ -360,6 +629,18 @@
       d'echec adresse a l'auteur du flow. Le pilier Trusted / Reliable impose une gestion explicite des erreurs.
     </rationale>
     <remediation>Ajouter un chemin d'erreur sur chaque element concerne : afficher un ecran d'erreur explicite (screen flow), journaliser l'incident dans un objet de log et/ou notifier l'equipe support via $Flow.FaultMessage.</remediation>
+
+    <translation lang="en">
+      <title>Flow element without a fault path</title>
+      <description>Detects the elements that can fail at runtime (Get/Create/Update/Delete Records, Action, Pause) and declare no faultConnector.</description>
+      <rationale>
+          Without a fault path, an unhandled exception aborts the transaction: a screen flow user gets
+      an unreadable technical message and, in autolaunched mode, the error is only visible in the
+      failure e-mail sent to the flow author. The Trusted / Reliable pillar mandates explicit error
+      handling.
+      </rationale>
+      <remediation>Add a fault path on each affected element: show an explicit error screen (screen flow), log the incident into a logging object and/or notify the support team through $Flow.FaultMessage.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== LIGHTNING COMPONENTS ==================== -->
@@ -373,6 +654,16 @@
       Un fichier JS trop long devient difficile a maintenir et a tester. Il est preferable de decouper la logique en modules de service ou en sous-composants.
     </rationale>
     <remediation>Extraire la logique metier dans des fichiers JS partages ou scinder le composant en plus petites unites.</remediation>
+
+    <translation lang="en">
+      <title>LWC JavaScript component too large</title>
+      <description>The component JavaScript file exceeds 300 lines.</description>
+      <rationale>
+          An overly long JS file becomes hard to maintain and test. Splitting the logic into service
+      modules or sub-components is preferable.
+      </rationale>
+      <remediation>Extract the business logic into shared JS files, or split the component into smaller units.</remediation>
+    </translation>
   </rule>
 
   <rule id="LWC-MAINT-002" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
@@ -384,6 +675,15 @@
       Un template HTML trop long nuit a la lisibilite et a la reutilisation de l'UI.
     </rationale>
     <remediation>Decouper l'interface en sous-composants fonctionnels.</remediation>
+
+    <translation lang="en">
+      <title>LWC HTML template too large</title>
+      <description>The component HTML file exceeds 200 lines.</description>
+      <rationale>
+          An overly long HTML template hurts readability and UI reuse.
+      </rationale>
+      <remediation>Split the interface into functional sub-components.</remediation>
+    </translation>
   </rule>
 
   <rule id="LWC-SEC-001" enabled="true" scope="lwc" category="Trusted" subcategory="Secure"
@@ -395,6 +695,16 @@
       Les appels Apex depuis le frontend sont des points d'entree critiques. Ils doivent etre audites pour s'assurer que les controles de securite (with sharing, CRUD/FLS) sont bien en place.
     </rationale>
     <remediation>Verifier que la classe Apex appelee respecte les regles de securite et n'expose pas de donnees sensibles.</remediation>
+
+    <translation lang="en">
+      <title>Use of @AuraEnabled in an LWC</title>
+      <description>The component calls Apex methods through @AuraEnabled.</description>
+      <rationale>
+          Apex calls from the frontend are critical entry points. They must be audited to make sure the
+      security controls (with sharing, CRUD/FLS) are in place.
+      </rationale>
+      <remediation>Check that the Apex class being called enforces the security rules and does not expose sensitive data.</remediation>
+    </translation>
   </rule>
 
   <rule id="LWC-MAINT-003" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
@@ -406,6 +716,16 @@
       Les logs console doivent etre reserves au developpement et ne pas etre presents dans le code de production pour des raisons de performance et de proprete des logs.
     </rationale>
     <remediation>Supprimer les appels console.log ou utiliser un service de logging dedie.</remediation>
+
+    <translation lang="en">
+      <title>console.log present in the LWC code</title>
+      <description>The JS code contains calls to console.log or console.error.</description>
+      <rationale>
+          Console logs should be limited to development and must not ship in production code, for both
+      performance and log cleanliness reasons.
+      </rationale>
+      <remediation>Remove the console.log calls or use a dedicated logging service.</remediation>
+    </translation>
   </rule>
 
   <rule id="LWC-READ-001" enabled="true" scope="lwc" category="Easy" subcategory="Readability"
@@ -417,6 +737,15 @@
       Un composant sans description est plus difficile a identifier et a reutiliser dans l'App Builder.
     </rationale>
     <remediation>Renseigner le masterLabel et la description dans le fichier .js-meta.xml.</remediation>
+
+    <translation lang="en">
+      <title>LWC component without a label or description</title>
+      <description>The component has no masterLabel or description in its configuration file.</description>
+      <rationale>
+          A component without a description is harder to identify and reuse in App Builder.
+      </rationale>
+      <remediation>Fill in the masterLabel and the description in the .js-meta.xml file.</remediation>
+    </translation>
   </rule>
 
   <rule id="AURA-MAINT-001" enabled="true" scope="aura" category="Easy" subcategory="Maintainability"
@@ -428,6 +757,16 @@
       Les composants Aura sont plus difficiles a optimiser et a maintenir que les LWC. Un composant Aura complexe est un candidat prioritaire pour une migration vers LWC.
     </rationale>
     <remediation>Envisager une reecriture en Lightning Web Components (LWC) pour de meilleures performances et une maintenance simplifiee.</remediation>
+
+    <translation lang="en">
+      <title>Oversized Aura component</title>
+      <description>The Aura component exceeds the recommended size thresholds (200 CMP lines / 300 JS lines).</description>
+      <rationale>
+          Aura components are harder to optimise and maintain than LWC. A complex Aura component is a
+      priority candidate for migration to LWC.
+      </rationale>
+      <remediation>Consider rewriting it as a Lightning Web Component (LWC) for better performance and simpler maintenance.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== OBJECTS ==================== -->
@@ -442,6 +781,16 @@
       et admins n'ont aucun point d'entree pour comprendre leur role.
     </rationale>
     <remediation>Renseigner la description de l'objet : role fonctionnel, granularite, relations principales.</remediation>
+
+    <translation lang="en">
+      <title>Custom object without a description</title>
+      <description>A custom object has no description at the metadata level.</description>
+      <rationale>
+          Business objects are the backbone of the model. Without a description, developers and admins
+      have no entry point to understand their role.
+      </rationale>
+      <remediation>Fill in the object description: functional role, granularity, main relationships.</remediation>
+    </translation>
   </rule>
 
   <rule id="OBJ-ADAPT-001" enabled="true" scope="object" category="Adaptable" subcategory="Resilient"
@@ -454,6 +803,16 @@
       recommande d'envisager un eclatement (sous-objet, objet referentiel) pour garder l'agilite.
     </rationale>
     <remediation>Evaluer un decoupage en objets satellites ou l'utilisation de Custom Metadata pour les donnees de reference.</remediation>
+
+    <translation lang="en">
+      <title>Object with a large number of custom fields</title>
+      <description>More than 50 custom fields on a single object.</description>
+      <rationale>
+          An overloaded object often signals a lack of normalisation. The Salesforce Decision Guide
+      recommends considering a split (child object, reference object) to stay agile.
+      </rationale>
+      <remediation>Assess a split into satellite objects, or the use of Custom Metadata for reference data.</remediation>
+    </translation>
   </rule>
 
   <rule id="OBJ-MAINT-001" enabled="true" scope="object" category="Easy" subcategory="Maintainability"
@@ -466,6 +825,16 @@
       le debogage. Considerer Regles Duplication + Custom Metadata + Flows ecran.
     </rationale>
     <remediation>Consolider les regles similaires, factoriser via Custom Metadata ou Flows avant sauvegarde quand pertinent.</remediation>
+
+    <translation lang="en">
+      <title>Many validation rules on the object</title>
+      <description>More than 10 active validation rules on the same object.</description>
+      <rationale>
+          An object saturated with validation rules complicates user error diagnosis and debugging.
+      Consider Duplicate Rules + Custom Metadata + screen Flows.
+      </rationale>
+      <remediation>Consolidate similar rules, factor them through Custom Metadata or before-save Flows where relevant.</remediation>
+    </translation>
   </rule>
 
   <rule id="OBJ-MAINT-002" enabled="true" scope="object" category="Easy" subcategory="Maintainability"
@@ -478,6 +847,16 @@
       (layouts, picklists, permissions). Surveiller le ROI de chacun.
     </rationale>
     <remediation>Documenter le role de chaque record type; fusionner ceux qui convergent.</remediation>
+
+    <translation lang="en">
+      <title>Several active record types</title>
+      <description>More than 3 active record types on the same object.</description>
+      <rationale>
+          Multiple record types help segmentation but multiply the configuration (layouts, picklists,
+      permissions). Keep an eye on the return on investment of each one.
+      </rationale>
+      <remediation>Document the role of each record type; merge the ones that converge.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== FIELDS ==================== -->
@@ -492,6 +871,16 @@
       Salesforce Admins recommande systematiquement description + help text pour chaque champ custom.
     </rationale>
     <remediation>Ajouter une description technique et un help text fonctionnel pour chaque champ custom.</remediation>
+
+    <translation lang="en">
+      <title>Custom field without a description</title>
+      <description>A custom field (__c) carries neither a description nor help text.</description>
+      <rationale>
+          Fields without textual metadata hinder governance and user adoption. Salesforce Admins
+      systematically recommends a description plus help text for every custom field.
+      </rationale>
+      <remediation>Add a technical description and a functional help text to every custom field.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== VALIDATION RULES ==================== -->
@@ -505,6 +894,15 @@
       Sans description, il est impossible de comprendre la regle metier que la validation protege.
     </rationale>
     <remediation>Decrire en une phrase la regle metier et l'erreur utilisateur correspondante.</remediation>
+
+    <translation lang="en">
+      <title>Validation rule without a description</title>
+      <description>The validation rule provides no description.</description>
+      <rationale>
+          Without a description it is impossible to understand the business rule the validation protects.
+      </rationale>
+      <remediation>Describe the business rule and the matching user-facing error in one sentence.</remediation>
+    </translation>
   </rule>
 
   <rule id="VR-MAINT-001" enabled="true" scope="validation_rule" category="Easy" subcategory="Maintainability"
@@ -517,6 +915,16 @@
       factorisee dans des formules intermediaires ou Custom Metadata.
     </rationale>
     <remediation>Decomposer en champs formules intermediaires, en Custom Metadata ou deplacer la regle dans un Flow / Apex si elle porte de la logique complexe.</remediation>
+
+    <translation lang="en">
+      <title>Very long validation formula</title>
+      <description>The formula is longer than 500 characters or uses more than 8 logical operators (AND/OR/NOT/IF).</description>
+      <rationale>
+          A sprawling formula becomes hard to test and evolve. It benefits from being factored into
+      intermediate formulas or Custom Metadata.
+      </rationale>
+      <remediation>Break it into intermediate formula fields or Custom Metadata, or move the rule into a Flow / Apex if it carries complex logic.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== DUPLICATE RULES ==================== -->
@@ -530,6 +938,16 @@
       Une duplicate rule sans description est difficile a maintenir, surtout quand plusieurs regles s'appliquent au meme objet.
     </rationale>
     <remediation>Ajouter une description expliquant le cas d'usage et la strategie de deduplication.</remediation>
+
+    <translation lang="en">
+      <title>Duplicate rule without a description</title>
+      <description>The duplicate rule provides no description.</description>
+      <rationale>
+          A duplicate rule without a description is hard to maintain, especially when several rules
+      apply to the same object.
+      </rationale>
+      <remediation>Add a description explaining the use case and the deduplication strategy.</remediation>
+    </translation>
   </rule>
 
   <rule id="DR-SEC-001" enabled="true" scope="duplicate_rule" category="Trusted" subcategory="Secure"
@@ -541,6 +959,16 @@
       Si une duplicate rule respecte les sharing rules, elle ne detectera que les doublons parmi les enregistrements auxquels l'utilisateur a acces. Cela peut laisser passer des doublons reels presents dans l'org mais invisibles pour l'utilisateur.
     </rationale>
     <remediation>Evaluer si 'BypassSharingRules' est plus approprie pour garantir l'unicite globale des donnees.</remediation>
+
+    <translation lang="en">
+      <title>Duplicate rule enforcing sharing rules</title>
+      <description>The rule is configured to honour the sharing rules (EnforceSharingRules).</description>
+      <rationale>
+          When a duplicate rule honours sharing rules, it only detects duplicates among the records the
+      user can access. Real duplicates that exist in the org but are invisible to the user can slip through.
+      </rationale>
+      <remediation>Assess whether 'BypassSharingRules' is more appropriate to guarantee global data uniqueness.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== OMNISTUDIO ==================== -->
@@ -555,6 +983,16 @@
       de saisir leur role dans une chaine OmniScript / Integration Procedure.
     </rationale>
     <remediation>Ajouter une description : finalite metier, inputs attendus, outputs produits.</remediation>
+
+    <translation lang="en">
+      <title>Data Transform without a description</title>
+      <description>The OmniStudio Data Transform component carries no description.</description>
+      <rationale>
+          Data Transforms chain Extract / Transform / Load steps. Without a description, their role in
+      an OmniScript / Integration Procedure chain cannot be grasped.
+      </rationale>
+      <remediation>Add a description: business purpose, expected inputs, produced outputs.</remediation>
+    </translation>
   </rule>
 
   <rule id="OMNI-MAINT-001" enabled="true" scope="omni_data_transform" category="Easy" subcategory="Maintainability"
@@ -567,6 +1005,15 @@
       supprimes ou documentes.
     </rationale>
     <remediation>Supprimer les items devenus inutiles, ou documenter la raison de leur conservation.</remediation>
+
+    <translation lang="en">
+      <title>Disabled Data Transform items left behind</title>
+      <description>More than 3 disabled omniDataTransformItem entries remain in the definition.</description>
+      <rationale>
+          Disabled items bloat the definition and mislead the reader. They should be removed or documented.
+      </rationale>
+      <remediation>Delete the items that are no longer needed, or document why they are kept.</remediation>
+    </translation>
   </rule>
 
   <rule id="OMNI-ADAPT-001" enabled="true" scope="omni_data_transform" category="Adaptable" subcategory="Resilient"
@@ -579,6 +1026,16 @@
       Composable suggere un decoupage par domaine ou sous-flux.
     </rationale>
     <remediation>Decouper en plusieurs Data Transforms enchaines par une Integration Procedure; reutiliser des blocs par objet cible.</remediation>
+
+    <translation lang="en">
+      <title>Oversized Data Transform</title>
+      <description>More than 40 omniDataTransformItem entries in a single Data Transform.</description>
+      <rationale>
+          A monolithic Data Transform becomes hard to test and evolve. The Composable pattern suggests
+      splitting it by domain or sub-flow.
+      </rationale>
+      <remediation>Split it into several Data Transforms chained by an Integration Procedure; reuse blocks per target object.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== AGENTS ==================== -->
@@ -593,6 +1050,16 @@
       de comprendre leur role, leur public cible et les capacites qu'ils exposent.
     </rationale>
     <remediation>Renseigner la description de l'agent : role, objectifs et perimetre d'action.</remediation>
+
+    <translation lang="en">
+      <title>Agent without a description</title>
+      <description>The agent has no description at the metadata level.</description>
+      <rationale>
+          Agents (Agentforce) are complex components. Without a description it is hard to understand
+      their role, their target audience and the capabilities they expose.
+      </rationale>
+      <remediation>Fill in the agent description: role, goals and scope of action.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== PROMPTS ==================== -->
@@ -607,6 +1074,16 @@
       des modeles generatifs, chaque template doit expliciter son intention et son contexte.
     </rationale>
     <remediation>Ajouter une description au prompt template expliquant le cas d'usage et le resultat attendu.</remediation>
+
+    <translation lang="en">
+      <title>Prompt Template without a description</title>
+      <description>The prompt template has no description at the metadata level.</description>
+      <rationale>
+          A prompt without a description is a black box. To keep generative models maintainable and
+      evolvable, every template must state its intent and its context.
+      </rationale>
+      <remediation>Add a description to the prompt template explaining the use case and the expected result.</remediation>
+    </translation>
   </rule>
 
   <!-- ==================== SECURITE (PROFILS / PERMISSION SETS) ==================== -->
@@ -622,6 +1099,17 @@
       Le principe du moindre privilege exige que cette permission soit reservee aux seuls administrateurs systeme.
     </rationale>
     <remediation>Retirer la permission ModifyAllData du profil. Evaluer si un Permission Set dedie aux super-admins peut la porter a la place, avec une assignation nominative et auditee.</remediation>
+
+    <translation lang="en">
+      <title>Profile with the ModifyAllData permission</title>
+      <description>Detects a custom profile holding the 'ModifyAllData' user permission, which grants full write access to every record in the org.</description>
+      <rationale>
+          ModifyAllData is the highest data permission. Its presence in a custom profile bypasses every
+      sharing rule and FLS, exposing all data to modification. The least privilege principle requires
+      this permission to be reserved for system administrators only.
+      </rationale>
+      <remediation>Remove the ModifyAllData permission from the profile. Assess whether a dedicated super-admin Permission Set can carry it instead, with named and audited assignment.</remediation>
+    </translation>
   </rule>
 
   <rule id="SEC-002" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
@@ -635,6 +1123,17 @@
       assignes aux seuls responsables RH/Salesforce, pas embarquee dans un profil large.
     </rationale>
     <remediation>Migrer la permission ManageUsers vers un Permission Set nomme et audite. Retirer la permission du profil.</remediation>
+
+    <translation lang="en">
+      <title>Profile with the ManageUsers permission</title>
+      <description>Detects a custom profile holding the 'ManageUsers' user permission, which allows creating, editing and deactivating users as well as assigning any profile.</description>
+      <rationale>
+          ManageUsers is a high-risk permission: a user holding it can self-escalate by assigning an
+      administrator profile. It should be carried by specific Permission Sets assigned to HR /
+      Salesforce owners only, not embedded in a broad profile.
+      </rationale>
+      <remediation>Move the ManageUsers permission to a named and audited Permission Set. Remove the permission from the profile.</remediation>
+    </translation>
   </rule>
 
   <rule id="SEC-003" enabled="true" scope="profile" category="Trusted" subcategory="Secure"
@@ -648,6 +1147,17 @@
       le principe du moindre privilege et complexifie les audits de securite.
     </rationale>
     <remediation>Evaluer si ModifyAllRecords est necessaire pour tous les utilisateurs du profil. Si non, migrer ce droit vers un Permission Set assigne aux seuls utilisateurs qui en ont besoin.</remediation>
+
+    <translation lang="en">
+      <title>Profile with ModifyAllRecords on an object</title>
+      <description>Detects a custom profile granting 'ModifyAllRecords' on at least one object, bypassing the sharing rules for that object.</description>
+      <rationale>
+          ModifyAllRecords bypasses sharing rules and allows editing every record of an object regardless
+      of ownership. This excessive privilege at profile level violates the least privilege principle
+      and complicates security audits.
+      </rationale>
+      <remediation>Assess whether ModifyAllRecords is needed by every user of the profile. If not, move that right to a Permission Set assigned only to the users who need it.</remediation>
+    </translation>
   </rule>
 
   <rule id="SEC-004" enabled="true" scope="permission_set" category="Trusted" subcategory="Secure"
@@ -661,6 +1171,17 @@
       des droits excessifs restent risques si le perimetre d'assignation n'est pas controle.
     </rationale>
     <remediation>Verifier la liste des utilisateurs ayant ce Permission Set. Limiter l'assignation aux utilisateurs ayant un besoin metier justifie. Envisager de fractionner le PS si certains utilisateurs n'ont pas besoin de ce niveau d'acces.</remediation>
+
+    <translation lang="en">
+      <title>Permission Set with ModifyAllRecords on a sensitive object</title>
+      <description>Detects a Permission Set granting 'ModifyAllRecords' on a sensitive standard object (Account, Contact, Opportunity, Lead, Order, Case, Contract, User).</description>
+      <rationale>
+          A Permission Set with ModifyAllRecords on a core CRM object can be assigned broadly, bypassing
+      the sharing rules. Although Permission Sets are a better practice than profiles, excessive
+      rights remain risky when the assignment scope is not controlled.
+      </rationale>
+      <remediation>Review the list of users holding this Permission Set. Restrict the assignment to users with a justified business need. Consider splitting the Permission Set if some users do not need this level of access.</remediation>
+    </translation>
   </rule>
 
   <rule id="SEC-005" enabled="true" scope="org" category="Trusted" subcategory="Secure"
@@ -675,6 +1196,17 @@
       les audits laborieux.
     </rationale>
     <remediation>Consolider les profils similaires, migrer les droits specifiques vers des Permission Sets ou des Permission Set Groups, et adopter une strategie de gouvernance des acces documentee.</remediation>
+
+    <translation lang="en">
+      <title>High ratio of custom profiles to Permission Sets</title>
+      <description>The number of custom profiles is disproportionate to the number of Permission Sets, indicating a security architecture that is not optimised.</description>
+      <rationale>
+          Salesforce recommends a 'Permission Sets first' approach: a minimum of very generic profiles
+      complemented by specific Permission Sets assigned granularly. A high profile-to-Permission-Set
+      ratio means rights are managed in silos, making governance complex and audits laborious.
+      </rationale>
+      <remediation>Consolidate similar profiles, migrate specific rights to Permission Sets or Permission Set Groups, and adopt a documented access governance strategy.</remediation>
+    </translation>
   </rule>
 
 </rules>

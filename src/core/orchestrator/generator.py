@@ -210,7 +210,7 @@ class SalesforceDocumentationGenerator(
             )
 
         self.log("Chargement du catalogue de regles analyzer.")
-        analyzer_catalog = RuleCatalog.load(self.analyzer_rules_path)
+        analyzer_catalog = RuleCatalog.load(self.analyzer_rules_path, self.language)
         enabled_count = len(analyzer_catalog.enabled)
         total_count = len(analyzer_catalog.all)
         self.log(

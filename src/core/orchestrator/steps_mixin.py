@@ -375,7 +375,9 @@ class _StepsMixin(_OrchestratorState):
             if name and description:
                 node_descriptions[name] = description
         set_one_page_node_descriptions(node_descriptions)
-        html_writer = HtmlReportWriter(self.output_dir, log_callback=self.log)
+        html_writer = HtmlReportWriter(
+            self.output_dir, log_callback=self.log, language=self.language
+        )
         html_writer.write_assets()
 
         # Pre-calculate predictable paths for circular linking
