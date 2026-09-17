@@ -213,7 +213,7 @@
         severity="Major" source="Apex recursion anti-pattern + Well-Architected Reliable"
         reference="https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_triggers_bestpractices.htm" min_api_version="10.0" max_api_version="100.0">
     <title>Methode Apex suspectee de recursion sans garde</title>
-    <description>Une methode (ou l'une de ses surcharges) est invoquee depuis son propre corps, sans mecanisme visible de garde de reentrance (variable statique, compteur, Set d'Ids deja traites).</description>
+    <description>Une methode est invoquee depuis son propre corps avec la meme signature (nom, nombre et types des arguments), sans mecanisme visible de garde de reentrance (variable statique, compteur, Set d'Ids deja traites). Une delegation vers une surcharge de meme nom mais de signature differente n'est pas signalee.</description>
     <rationale>
       Une recursion mal bornee epuise rapidement les limites gouverneurs (CPU time, heap, DML/SOQL)
       et provoque une LimitException ou un StackOverflow. Dans Salesforce la recursion est souvent
@@ -224,7 +224,7 @@
 
     <translation lang="en">
       <title>Apex method suspected of unguarded recursion</title>
-      <description>A method (or one of its overloads) is invoked from its own body, with no visible reentrancy guard (static variable, counter, Set of already processed IDs).</description>
+      <description>A method is invoked from its own body with the same signature (name, argument count and types), with no visible reentrancy guard (static variable, counter, Set of already processed IDs). Delegation to a same-named overload with a different signature is not reported.</description>
       <rationale>
           Poorly bounded recursion quickly exhausts governor limits (CPU time, heap, DML/SOQL) and
       raises a LimitException or a StackOverflow. In Salesforce, recursion is often unintentional,

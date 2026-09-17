@@ -55,8 +55,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "apex.recursion.detail_methods": "Methode(s) concernee(s) : {sample}.",
         "apex.recursion.detail_more": "+ {count} autre(s) methode(s) avec auto-appel.",
         "apex.recursion.detail_no_guard": (
-            "Aucune garde de reentrance evidente (Set<Id>/flag static) detectee "
-            "dans la classe."
+            "Aucune garde de reentrance evidente (Set<Id>/flag static) consultee "
+            "dans la methode."
         ),
         "apex.class_length.message": "Classe de {lines} lignes (seuil recommande : 500).",
         "apex.comment_density.message": "Densite de commentaires = {ratio} (recommande >= 5%).",
@@ -213,7 +213,7 @@ MESSAGES: dict[str, dict[str, str]] = {
         "apex.recursion.detail_methods": "Method(s) involved: {sample}.",
         "apex.recursion.detail_more": "+ {count} more self-calling method(s).",
         "apex.recursion.detail_no_guard": (
-            "No obvious reentrancy guard (Set<Id>/static flag) detected in the class."
+            "No obvious reentrancy guard (Set<Id>/static flag) read inside the method."
         ),
         "apex.class_length.message": "Class of {lines} lines (recommended threshold: 500).",
         "apex.comment_density.message": "Comment density = {ratio} (recommended >= 5%).",
