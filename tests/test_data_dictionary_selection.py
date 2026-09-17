@@ -9,6 +9,7 @@ from src.core.data_dictionary_selection import (
     data_dictionary_filename_base,
 )
 from src.core.models import FieldInfo, ObjectInfo
+from src.ui.data_dictionary_screen.field_info import _DataDictionaryFieldInfoMixin
 
 
 def _object(api_name: str, *field_names: str) -> ObjectInfo:
@@ -40,6 +41,7 @@ class TestApply:
             object_squad_consumer={"Account": "Beta"},
             field_comments={"Account": {"Name": "Raison sociale"}},
             field_piloted_by={"Account": {"Name": "Squad CRM"}},
+            field_status={"Account": {"Name": "en dév."}},
         )
 
         account = selection.apply([_object("Account", "Name", "Industry")])[0]
@@ -51,11 +53,23 @@ class TestApply:
         assert account.dewey_squad_consumer == "Beta"
         assert account.dewey_comment_combined == "Description de Account Objet pivot"
         name, industry = account.fields
-        assert (name.dewey_comment, name.dewey_piloted_by) == (
+        assert (name.dewey_comment, name.dewey_piloted_by, name.dewey_status) == (
             "Raison sociale",
             "Squad CRM",
+            "en dév.",
         )
-        assert (industry.dewey_comment, industry.dewey_piloted_by) == ("", "")
+        assert (
+            industry.dewey_comment,
+            industry.dewey_piloted_by,
+            industry.dewey_status,
+        ) == ("", "", "")
+
+    def test_the_new_object_status_value_is_accepted(self) -> None:
+        selection = DataDictionarySelection(
+            objects={"Account"}, object_status={"Account": "En conception"}
+        )
+
+        assert selection.apply([_object("Account")])[0].dewey_status == "En conception"
 
     def test_source_objects_are_left_untouched(self) -> None:
         """The same snapshot also feeds the HTML pages and the full
@@ -98,7 +112,9 @@ class TestFromSettings:
                 "dd_selected_objects": ["Account", "Lead"],
                 "dd_object_comments": {"Account": "Objet pivot"},
                 "dd_field_piloted_by": {"Account": {"Name": "Squad CRM"}},
+                "dd_field_status": {"Account": {"Name": "En conception"}},
                 "dd_include_status": False,
+                "dd_include_field_status": False,
                 "dd_include_field_automation": False,
                 "dd_concat_description_in_comment": False,
             }
@@ -107,7 +123,9 @@ class TestFromSettings:
         assert selection.objects == {"Account", "Lead"}
         assert selection.object_comments == {"Account": "Objet pivot"}
         assert selection.field_piloted_by == {"Account": {"Name": "Squad CRM"}}
+        assert selection.field_status == {"Account": {"Name": "En conception"}}
         assert selection.include_status is False
+        assert selection.include_field_status is False
         assert selection.include_field_automation is False
         assert selection.concat_description is False
         # Unset toggles keep the screen's own defaults.
@@ -130,7 +148,7 @@ class TestFromSettings:
 
 
 class TestWorkbookOptions:
-    def test_exposes_the_nine_writer_toggles(self) -> None:
+    def test_exposes_the_ten_writer_toggles(self) -> None:
         options = DataDictionarySelection(
             include_squad=False, include_field_automation=False
         ).workbook_options()
@@ -138,7 +156,91 @@ class TestWorkbookOptions:
         assert options["include_squad"] is False
         assert options["include_field_automation"] is False
         assert options["include_comment"] is True
-        assert len(options) == 9
+        assert options["include_field_status"] is True
+        assert len(options) == 10
+
+
+class _Var:
+    def __init__(self, value: str = "") -> None:
+        self._value = value
+
+    def get(self) -> str:
+        return self._value
+
+    def set(self, value: str) -> None:
+        self._value = value
+
+
+class _Widget:
+    def configure(self, **_kwargs: object) -> None:
+        pass
+
+
+class _App:
+    def __init__(self) -> None:
+        self.settings: dict[str, object] = {}
+
+    def _save_settings(self) -> None:
+        pass
+
+    def _t(self, key: str, **kwargs: object) -> str:
+        return key
+
+
+class _FieldPanel(_DataDictionaryFieldInfoMixin):
+    """Minimal stand-in for the screen, enough to drive the panel's
+    save/delete logic without a Tk display."""
+
+    STATUS_OPTIONS = ["-", "en dév.", "Livré", "En conception"]
+
+    def __init__(self) -> None:
+        self.app = _App()
+        self.current_comment_object = "Account"
+        self.current_comment_field = "Name"
+        self.field_comments: dict[str, dict[str, str]] = {}
+        self.field_piloted_by: dict[str, dict[str, str]] = {}
+        self.field_status: dict[str, dict[str, str]] = {}
+        self.field_comment_var = _Var()
+        self.field_piloted_by_var = _Var()
+        self.field_status_var = _Var(self.STATUS_OPTIONS[0])
+        self.delete_field_comment_btn = _Widget()
+
+    def _refresh_selected_list(self) -> None:
+        pass
+
+
+class TestFieldStatusPanel:
+    def test_a_chosen_status_is_stored_and_persisted(self) -> None:
+        panel = _FieldPanel()
+        panel.field_status_var.set("En conception")
+
+        panel._save_field_comment()
+
+        assert panel.field_status == {"Account": {"Name": "En conception"}}
+        assert panel.app.settings["dd_field_status"] == {
+            "Account": {"Name": "En conception"}
+        }
+
+    def test_the_unset_sentinel_is_never_stored(self) -> None:
+        panel = _FieldPanel()
+        panel.field_status_var.set("Livré")
+        panel._save_field_comment()
+
+        panel.field_status_var.set("-")
+        panel._save_field_comment()
+
+        assert panel.field_status == {"Account": {}}
+        assert panel.app.settings["dd_field_status"] == {"Account": {}}
+
+    def test_deleting_the_field_info_clears_the_status(self) -> None:
+        panel = _FieldPanel()
+        panel.field_status_var.set("Livré")
+        panel._save_field_comment()
+
+        panel._delete_field_comment()
+
+        assert panel.field_status == {"Account": {}}
+        assert panel.field_status_var.get() == "-"
 
 
 def test_filename_base_is_dated() -> None:

@@ -80,6 +80,10 @@ class _DataDictionaryUiBuilderMixin:
                 self.include_field_piloted_by_var,
             ),
             (
+                "data_dictionary_field_status_label",
+                self.include_field_status_var,
+            ),
+            (
                 "data_dictionary_field_automation_label",
                 self.include_field_automation_var,
             ),
@@ -413,6 +417,18 @@ class _DataDictionaryUiBuilderMixin:
             field_piloted_by_entry_frame, textvariable=self.field_piloted_by_var, state="disabled"
         )
         self.field_piloted_by_entry.pack(fill="x")
+
+        field_status_frame = ttk.Frame(field_extra_row)
+        field_status_frame.pack(side="left", fill="x", expand=True, padx=(theme.SPACE_MD, 0))
+        ttk.Label(field_status_frame, text=self.app._t("data_dictionary_status_label")).pack(anchor="w")
+        self.field_status_var = tk.StringVar(value=self.STATUS_OPTIONS[0])
+        self.field_status_combo = ttk.Combobox(
+            field_status_frame,
+            textvariable=self.field_status_var,
+            values=self.STATUS_OPTIONS,
+            state="disabled",
+        )
+        self.field_status_combo.pack(fill="x")
 
         field_comment_buttons_row = ttk.Frame(fields_comment_frame)
         field_comment_buttons_row.pack(fill="x", pady=(theme.SPACE_SM, 0))

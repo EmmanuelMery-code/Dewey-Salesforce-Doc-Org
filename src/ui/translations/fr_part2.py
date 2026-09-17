@@ -282,6 +282,7 @@ FR_PART2: dict[str, str] = {
     "data_dictionary_squad_consumer_label": "Squad Consommatrice",
     "data_dictionary_field_comment_label": "Commentaire Dewey (champs)",
     "data_dictionary_field_piloted_by_label": "Piloté par (champs)",
+    "data_dictionary_field_status_label": "Status (champs)",
     "data_dictionary_field_automation_label": "Utilisé dans une automatisation ? (champs)",
     "data_dictionary_concat_section_title": "Commentaire Dewey - Option de concaténation",
     "data_dictionary_concat_description_label": "Concaténer la Description de la métadonnée dans le Commentaire Dewey",

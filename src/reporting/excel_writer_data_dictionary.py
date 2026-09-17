@@ -43,6 +43,7 @@ class _ExcelDataDictionaryMixin:
         include_squad_consumer: bool = True,
         include_field_comment: bool = True,
         include_field_piloted_by: bool = True,
+        include_field_status: bool = True,
         include_field_automation: bool = True,
         concat_description: bool = True,
     ) -> list[Path]:
@@ -58,10 +59,11 @@ class _ExcelDataDictionaryMixin:
         ``include_squad`` and ``include_squad_consumer`` control whether the
         "Commentaire Dewey", "Piloté par", "Status", "Squad Responsable" and
         "Squad Consommatrice" columns (and matching per-object notes) are
-        rendered at all. ``include_field_comment`` and
-        ``include_field_piloted_by`` control whether the per-field
-        "Commentaire Dewey" and "Piloté par" columns are rendered on each
-        object's fields sheet. ``concat_description`` controls whether the
+        rendered at all. ``include_field_comment``,
+        ``include_field_piloted_by`` and ``include_field_status`` control
+        whether the per-field "Commentaire Dewey", "Piloté par" and
+        "Status" columns are rendered on each object's fields sheet.
+        ``concat_description`` controls whether the
         "Commentaire Dewey" value concatenates the metadata Description or
         only shows the raw user-entered comment; it applies to both the
         object-level (Synthese sheet) and field-level columns, each using
@@ -131,6 +133,7 @@ class _ExcelDataDictionaryMixin:
                 include_squad_consumer=include_squad_consumer,
                 include_field_comment=include_field_comment,
                 include_field_piloted_by=include_field_piloted_by,
+                include_field_status=include_field_status,
                 include_field_automation=include_field_automation,
                 concat_description=concat_description,
             )
@@ -199,6 +202,7 @@ class _ExcelDataDictionaryMixin:
         include_squad_consumer: bool = True,
         include_field_comment: bool = True,
         include_field_piloted_by: bool = True,
+        include_field_status: bool = True,
         include_field_automation: bool = True,
         concat_description: bool = True,
     ) -> None:
@@ -283,6 +287,7 @@ class _ExcelDataDictionaryMixin:
                 include_squad_consumer=include_squad_consumer,
                 include_field_comment=include_field_comment,
                 include_field_piloted_by=include_field_piloted_by,
+                include_field_status=include_field_status,
                 include_field_automation=include_field_automation,
                 concat_description=concat_description,
             )
@@ -302,6 +307,7 @@ class _ExcelDataDictionaryMixin:
         include_squad_consumer: bool = True,
         include_field_comment: bool = True,
         include_field_piloted_by: bool = True,
+        include_field_status: bool = True,
         include_field_automation: bool = True,
         concat_description: bool = True,
     ) -> None:
@@ -325,6 +331,8 @@ class _ExcelDataDictionaryMixin:
             headers.append("Commentaire Dewey")
         if include_field_piloted_by:
             headers.append("Piloté par")
+        if include_field_status:
+            headers.append("Status")
 
         rows = []
         for field in obj.fields:
@@ -348,6 +356,8 @@ class _ExcelDataDictionaryMixin:
                 )
             if include_field_piloted_by:
                 row.append(field.dewey_piloted_by)
+            if include_field_status:
+                row.append(field.dewey_status)
             rows.append(row)
         self._write_sheet(worksheet, headers, rows)
 

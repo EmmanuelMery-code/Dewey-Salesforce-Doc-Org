@@ -36,7 +36,7 @@ class DataDictionaryScreen(
     _DataDictionaryFieldInfoMixin,
     _DataDictionaryGenerationMixin,
 ):
-    STATUS_OPTIONS = ["-", "en dév.", "Livré"]
+    STATUS_OPTIONS = ["-", "en dév.", "Livré", "En conception"]
     SQUAD_MAX_LENGTH = 50
 
     def __init__(self, app: Application) -> None:
@@ -65,6 +65,9 @@ class DataDictionaryScreen(
         self.field_piloted_by: dict[str, dict[str, str]] = {
             obj: dict(fields) for obj, fields in app.settings.get("dd_field_piloted_by", {}).items()
         }
+        self.field_status: dict[str, dict[str, str]] = {
+            obj: dict(fields) for obj, fields in app.settings.get("dd_field_status", {}).items()
+        }
         self.include_comment_var = tk.BooleanVar(value=app.settings.get("dd_include_comment", True))
         self.include_piloted_by_var = tk.BooleanVar(value=app.settings.get("dd_include_piloted_by", True))
         self.include_status_var = tk.BooleanVar(value=app.settings.get("dd_include_status", True))
@@ -77,6 +80,9 @@ class DataDictionaryScreen(
         )
         self.include_field_piloted_by_var = tk.BooleanVar(
             value=app.settings.get("dd_include_field_piloted_by", True)
+        )
+        self.include_field_status_var = tk.BooleanVar(
+            value=app.settings.get("dd_include_field_status", True)
         )
         self.include_field_automation_var = tk.BooleanVar(
             value=app.settings.get("dd_include_field_automation", True)

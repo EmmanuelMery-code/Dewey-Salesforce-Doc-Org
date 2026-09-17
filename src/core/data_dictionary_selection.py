@@ -37,6 +37,7 @@ class DataDictionarySelection:
     object_squad_consumer: dict[str, str] = field(default_factory=dict)
     field_comments: dict[str, dict[str, str]] = field(default_factory=dict)
     field_piloted_by: dict[str, dict[str, str]] = field(default_factory=dict)
+    field_status: dict[str, dict[str, str]] = field(default_factory=dict)
     include_comment: bool = True
     include_piloted_by: bool = True
     include_status: bool = True
@@ -44,6 +45,7 @@ class DataDictionarySelection:
     include_squad_consumer: bool = True
     include_field_comment: bool = True
     include_field_piloted_by: bool = True
+    include_field_status: bool = True
     include_field_automation: bool = True
     concat_description: bool = True
 
@@ -61,6 +63,7 @@ class DataDictionarySelection:
             object_squad_consumer=_str_map(settings.get("dd_object_squad_consumer")),
             field_comments=_nested_str_map(settings.get("dd_field_comments")),
             field_piloted_by=_nested_str_map(settings.get("dd_field_piloted_by")),
+            field_status=_nested_str_map(settings.get("dd_field_status")),
             include_comment=_flag(settings, "dd_include_comment"),
             include_piloted_by=_flag(settings, "dd_include_piloted_by"),
             include_status=_flag(settings, "dd_include_status"),
@@ -68,6 +71,7 @@ class DataDictionarySelection:
             include_squad_consumer=_flag(settings, "dd_include_squad_consumer"),
             include_field_comment=_flag(settings, "dd_include_field_comment"),
             include_field_piloted_by=_flag(settings, "dd_include_field_piloted_by"),
+            include_field_status=_flag(settings, "dd_include_field_status"),
             include_field_automation=_flag(settings, "dd_include_field_automation"),
             concat_description=_flag(settings, "dd_concat_description_in_comment"),
         )
@@ -85,6 +89,7 @@ class DataDictionarySelection:
                 continue
             comments = self.field_comments.get(obj.api_name, {})
             piloted_by = self.field_piloted_by.get(obj.api_name, {})
+            status = self.field_status.get(obj.api_name, {})
             selected.append(
                 replace(
                     obj,
@@ -93,6 +98,7 @@ class DataDictionarySelection:
                             field_info,
                             dewey_comment=comments.get(field_info.api_name, ""),
                             dewey_piloted_by=piloted_by.get(field_info.api_name, ""),
+                            dewey_status=status.get(field_info.api_name, ""),
                         )
                         for field_info in obj.fields
                     ],
@@ -117,6 +123,7 @@ class DataDictionarySelection:
             "include_squad_consumer": self.include_squad_consumer,
             "include_field_comment": self.include_field_comment,
             "include_field_piloted_by": self.include_field_piloted_by,
+            "include_field_status": self.include_field_status,
             "include_field_automation": self.include_field_automation,
             "concat_description": self.concat_description,
         }

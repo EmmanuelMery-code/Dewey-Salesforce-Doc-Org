@@ -25,6 +25,7 @@ class FieldInfo:
     formula: str = ""
     dewey_comment: str = ""
     dewey_piloted_by: str = ""
+    dewey_status: str = ""
     #: Automation/code types referencing this field, filled from the impact
     #: analysis — see :mod:`src.core.field_automation_usage`.
     automation_usages: list[str] = field(default_factory=list)

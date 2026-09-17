@@ -141,6 +141,7 @@ class AppSettingsMixin:
             "dd_object_squad_consumer": self.settings.get("dd_object_squad_consumer", {}),
             "dd_field_comments": self.settings.get("dd_field_comments", {}),
             "dd_field_piloted_by": self.settings.get("dd_field_piloted_by", {}),
+            "dd_field_status": self.settings.get("dd_field_status", {}),
             "dd_include_comment": self.settings.get("dd_include_comment", True),
             "dd_include_piloted_by": self.settings.get("dd_include_piloted_by", True),
             "dd_include_status": self.settings.get("dd_include_status", True),
@@ -148,6 +149,7 @@ class AppSettingsMixin:
             "dd_include_squad_consumer": self.settings.get("dd_include_squad_consumer", True),
             "dd_include_field_comment": self.settings.get("dd_include_field_comment", True),
             "dd_include_field_piloted_by": self.settings.get("dd_include_field_piloted_by", True),
+            "dd_include_field_status": self.settings.get("dd_include_field_status", True),
             "dd_concat_description_in_comment": self.settings.get("dd_concat_description_in_comment", True),
         }
         payload.update(self._current_index_card_visibility().to_settings())

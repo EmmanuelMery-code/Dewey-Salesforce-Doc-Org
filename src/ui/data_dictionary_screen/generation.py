@@ -35,6 +35,9 @@ class _DataDictionaryGenerationMixin:
             field_piloted_by={
                 obj: dict(fields) for obj, fields in self.field_piloted_by.items()
             },
+            field_status={
+                obj: dict(fields) for obj, fields in self.field_status.items()
+            },
             include_comment=self.include_comment_var.get(),
             include_piloted_by=self.include_piloted_by_var.get(),
             include_status=self.include_status_var.get(),
@@ -42,6 +45,7 @@ class _DataDictionaryGenerationMixin:
             include_squad_consumer=self.include_squad_consumer_var.get(),
             include_field_comment=self.include_field_comment_var.get(),
             include_field_piloted_by=self.include_field_piloted_by_var.get(),
+            include_field_status=self.include_field_status_var.get(),
             include_field_automation=self.include_field_automation_var.get(),
             concat_description=self.concat_description_var.get(),
         )
@@ -91,6 +95,7 @@ class _DataDictionaryGenerationMixin:
         self.app.settings["dd_include_squad_consumer"] = self.include_squad_consumer_var.get()
         self.app.settings["dd_include_field_comment"] = self.include_field_comment_var.get()
         self.app.settings["dd_include_field_piloted_by"] = self.include_field_piloted_by_var.get()
+        self.app.settings["dd_include_field_status"] = self.include_field_status_var.get()
         self.app.settings["dd_include_field_automation"] = self.include_field_automation_var.get()
         self.app.settings["dd_concat_description_in_comment"] = self.concat_description_var.get()
         self.app._save_settings()

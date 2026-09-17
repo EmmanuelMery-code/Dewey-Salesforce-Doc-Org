@@ -2,7 +2,7 @@
 
 Owns the "Informations complementaires sur les champs" panel: the field
 list of the currently targeted object and the Commentaire Dewey / Piloté
-par values attached to each of its fields.
+par / Status values attached to each of its fields.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from src.core.utils import child_text, parse_xml
 
 
 class _DataDictionaryFieldInfoMixin:
-    """Read an object's fields and edit their Commentaire Dewey / Piloté par."""
+    """Read an object's fields and edit their Commentaire Dewey / Piloté par / Status."""
 
     def _list_object_fields(self, obj: str) -> list[tuple[str, str]]:
         """Return ``[(api_name, label), ...]`` sorted by API name for
@@ -65,20 +65,27 @@ class _DataDictionaryFieldInfoMixin:
             self.field_piloted_by_var.set(
                 self.field_piloted_by.get(obj, {}).get(field_api_name, "")
             )
+            self.field_status_var.set(
+                self.field_status.get(obj, {}).get(field_api_name, self.STATUS_OPTIONS[0])
+            )
             self.field_comment_entry.configure(state="normal")
             self.field_piloted_by_entry.configure(state="normal")
+            self.field_status_combo.configure(state="readonly")
             self.save_field_comment_btn.configure(state="normal")
             has_extra_info = (
                 field_api_name in self.field_comments.get(obj, {})
                 or field_api_name in self.field_piloted_by.get(obj, {})
+                or field_api_name in self.field_status.get(obj, {})
             )
             self.delete_field_comment_btn.configure(state="normal" if has_extra_info else "disabled")
         else:
             self.fields_comment_label_var.set(self.app._t("data_dictionary_fields_comment_placeholder"))
             self.field_comment_var.set("")
             self.field_piloted_by_var.set("")
+            self.field_status_var.set(self.STATUS_OPTIONS[0])
             self.field_comment_entry.configure(state="disabled")
             self.field_piloted_by_entry.configure(state="disabled")
+            self.field_status_combo.configure(state="disabled")
             self.save_field_comment_btn.configure(state="disabled")
             self.delete_field_comment_btn.configure(state="disabled")
 
@@ -90,6 +97,7 @@ class _DataDictionaryFieldInfoMixin:
 
         comment = self.field_comment_var.get().strip()
         piloted_by = self.field_piloted_by_var.get().strip()
+        status = self.field_status_var.get().strip() or self.STATUS_OPTIONS[0]
 
         if comment:
             self.field_comments.setdefault(obj, {})[field_api_name] = comment
@@ -101,9 +109,15 @@ class _DataDictionaryFieldInfoMixin:
         elif obj in self.field_piloted_by and field_api_name in self.field_piloted_by[obj]:
             del self.field_piloted_by[obj][field_api_name]
 
+        if status != self.STATUS_OPTIONS[0]:
+            self.field_status.setdefault(obj, {})[field_api_name] = status
+        elif obj in self.field_status and field_api_name in self.field_status[obj]:
+            del self.field_status[obj][field_api_name]
+
         has_extra_info = (
             field_api_name in self.field_comments.get(obj, {})
             or field_api_name in self.field_piloted_by.get(obj, {})
+            or field_api_name in self.field_status.get(obj, {})
         )
         self.delete_field_comment_btn.configure(state="normal" if has_extra_info else "disabled")
 
@@ -123,6 +137,9 @@ class _DataDictionaryFieldInfoMixin:
         if field_api_name in self.field_piloted_by.get(obj, {}):
             del self.field_piloted_by[obj][field_api_name]
             changed = True
+        if field_api_name in self.field_status.get(obj, {}):
+            del self.field_status[obj][field_api_name]
+            changed = True
 
         if changed:
             self._persist_field_comments()
@@ -130,6 +147,7 @@ class _DataDictionaryFieldInfoMixin:
 
         self.field_comment_var.set("")
         self.field_piloted_by_var.set("")
+        self.field_status_var.set(self.STATUS_OPTIONS[0])
         self.delete_field_comment_btn.configure(state="disabled")
 
     def _persist_field_comments(self) -> None:
@@ -138,6 +156,9 @@ class _DataDictionaryFieldInfoMixin:
         }
         self.app.settings["dd_field_piloted_by"] = {
             obj: dict(fields) for obj, fields in self.field_piloted_by.items()
+        }
+        self.app.settings["dd_field_status"] = {
+            obj: dict(fields) for obj, fields in self.field_status.items()
         }
         self.app._save_settings()
 

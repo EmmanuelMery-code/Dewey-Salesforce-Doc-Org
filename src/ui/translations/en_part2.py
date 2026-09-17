@@ -282,6 +282,7 @@ EN_PART2: dict[str, str] = {
     "data_dictionary_squad_consumer_label": "Consumer Squad",
     "data_dictionary_field_comment_label": "Dewey comment (fields)",
     "data_dictionary_field_piloted_by_label": "Piloted by (fields)",
+    "data_dictionary_field_status_label": "Status (fields)",
     "data_dictionary_field_automation_label": "Used in an automation? (fields)",
     "data_dictionary_concat_section_title": "Dewey comment - Concatenation option",
     "data_dictionary_concat_description_label": "Concatenate the metadata Description into the Dewey comment",

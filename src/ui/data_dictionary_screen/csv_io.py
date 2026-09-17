@@ -31,8 +31,15 @@ class _DataDictionaryCsvMixin:
     _CSV_SQUAD_CONSUMER_HEADER_ALIASES = {"squad consommatrice", "squad consumer"}
 
     # Export/import of the per-field extra info (Commentaire Dewey, Piloté
-    # par), one row per field of every currently selected object.
-    FIELDS_CSV_HEADERS = ["Objet", "API Name Champ", "Label Champ", "Commentaire Dewey", "Piloté par"]
+    # par, Status), one row per field of every currently selected object.
+    FIELDS_CSV_HEADERS = [
+        "Objet",
+        "API Name Champ",
+        "Label Champ",
+        "Commentaire Dewey",
+        "Piloté par",
+        "Status Champ",
+    ]
     _FIELDS_CSV_OBJECT_HEADER_ALIASES = {"objet", "object", "api name objet", "nom api objet"}
     _FIELDS_CSV_FIELD_API_NAME_HEADER_ALIASES = {
         "api name champ",
@@ -42,6 +49,7 @@ class _DataDictionaryCsvMixin:
     }
     _FIELDS_CSV_COMMENT_HEADER_ALIASES = {"commentaire dewey"}
     _FIELDS_CSV_PILOTED_BY_HEADER_ALIASES = {"pilote par"}
+    _FIELDS_CSV_STATUS_HEADER_ALIASES = {"status champ", "statut champ"}
 
     def _export_csv(self) -> None:
         """Export the object name plus the 5 custom fields (Commentaire
@@ -216,8 +224,8 @@ class _DataDictionaryCsvMixin:
 
     def _export_fields_csv(self) -> None:
         """Export, for every currently selected object, one row per field
-        with its "Commentaire Dewey" and "Piloté par" values (blank when
-        not yet filled in) to a CSV file chosen by the user."""
+        with its "Commentaire Dewey", "Piloté par" and "Status" values
+        (blank when not yet filled in) to a CSV file chosen by the user."""
         if not self.selected_objects:
             messagebox.showwarning(
                 self.app._t("info_title"), self.app._t("data_dictionary_fields_csv_export_no_objects")
@@ -248,6 +256,9 @@ class _DataDictionaryCsvMixin:
                                 label,
                                 self.field_comments.get(obj, {}).get(api_name, ""),
                                 self.field_piloted_by.get(obj, {}).get(api_name, ""),
+                                self.field_status.get(obj, {}).get(
+                                    api_name, self.STATUS_OPTIONS[0]
+                                ),
                             ]
                         )
                         exported_count += 1
@@ -266,10 +277,11 @@ class _DataDictionaryCsvMixin:
         )
 
     def _import_fields_csv(self) -> None:
-        """Import per-field "Commentaire Dewey" / "Piloté par" values from a
-        CSV file chosen by the user. Rows referencing an unknown object or a
-        field that does not belong to that object are skipped; objects that
-        are known but not yet selected get added to the selection."""
+        """Import per-field "Commentaire Dewey" / "Piloté par" / "Status"
+        values from a CSV file chosen by the user. Rows referencing an
+        unknown object or a field that does not belong to that object are
+        skipped; objects that are known but not yet selected get added to
+        the selection."""
         file_path = filedialog.askopenfilename(
             title=self.app._t("data_dictionary_fields_csv_import_title"),
             filetypes=[("CSV", "*.csv"), ("All files", "*.*")],
@@ -303,6 +315,8 @@ class _DataDictionaryCsvMixin:
                 column_by_role["comment"] = header
             elif normalized in self._FIELDS_CSV_PILOTED_BY_HEADER_ALIASES:
                 column_by_role["piloted_by"] = header
+            elif normalized in self._FIELDS_CSV_STATUS_HEADER_ALIASES:
+                column_by_role["status"] = header
 
         if "object" not in column_by_role or "field_api_name" not in column_by_role:
             messagebox.showerror(
@@ -335,6 +349,9 @@ class _DataDictionaryCsvMixin:
 
             comment = (row.get(column_by_role.get("comment", ""), "") or "").strip()
             piloted_by = (row.get(column_by_role.get("piloted_by", ""), "") or "").strip()
+            status = (
+                row.get(column_by_role.get("status", ""), "") or ""
+            ).strip() or self.STATUS_OPTIONS[0]
 
             if "comment" in column_by_role:
                 if comment:
@@ -346,6 +363,11 @@ class _DataDictionaryCsvMixin:
                     self.field_piloted_by.setdefault(obj, {})[field_api_name] = piloted_by
                 elif field_api_name in self.field_piloted_by.get(obj, {}):
                     del self.field_piloted_by[obj][field_api_name]
+            if "status" in column_by_role:
+                if status != self.STATUS_OPTIONS[0]:
+                    self.field_status.setdefault(obj, {})[field_api_name] = status
+                elif field_api_name in self.field_status.get(obj, {}):
+                    del self.field_status[obj][field_api_name]
 
             if obj not in self.selected_objects:
                 self.selected_objects.add(obj)
