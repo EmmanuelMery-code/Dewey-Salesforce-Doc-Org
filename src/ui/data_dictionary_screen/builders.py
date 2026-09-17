@@ -233,11 +233,22 @@ class _DataDictionaryUiBuilderMixin:
         selected_scroll.grid(row=0, column=1, sticky="ns")
         selected_hscroll.grid(row=1, column=0, sticky="ew")
 
+        virtual_object_buttons_row = ttk.Frame(selected_frame)
+        virtual_object_buttons_row.pack(fill="x", pady=(theme.SPACE_SM, 0))
+
         ttk.Button(
-            selected_frame,
+            virtual_object_buttons_row,
             text=self.app._t("data_dictionary_virtual_object_button"),
             command=self._add_virtual_object,
-        ).pack(anchor="w", pady=(theme.SPACE_SM, 0))
+        ).pack(side="left")
+
+        self.edit_virtual_object_btn = ttk.Button(
+            virtual_object_buttons_row,
+            text=self.app._t("data_dictionary_virtual_object_edit_button"),
+            command=self._edit_virtual_object,
+            state="disabled",
+        )
+        self.edit_virtual_object_btn.pack(side="left", padx=(theme.SPACE_SM, 0))
 
         self.available_listbox.bind("<<ListboxSelect>>", self._on_object_select)
         self.selected_listbox.bind("<<TreeviewSelect>>", self._on_selected_tree_select)
@@ -397,11 +408,22 @@ class _DataDictionaryUiBuilderMixin:
         fields_tree_scroll.pack(side="right", fill="y")
         self.fields_tree.bind("<<TreeviewSelect>>", self._on_field_select)
 
+        virtual_field_buttons_row = ttk.Frame(fields_comment_frame)
+        virtual_field_buttons_row.pack(fill="x", pady=(0, theme.SPACE_SM))
+
         ttk.Button(
-            fields_comment_frame,
+            virtual_field_buttons_row,
             text=self.app._t("data_dictionary_virtual_field_button"),
             command=self._add_virtual_field,
-        ).pack(anchor="w", pady=(0, theme.SPACE_SM))
+        ).pack(side="left")
+
+        self.edit_virtual_field_btn = ttk.Button(
+            virtual_field_buttons_row,
+            text=self.app._t("data_dictionary_virtual_field_edit_button"),
+            command=self._edit_virtual_field,
+            state="disabled",
+        )
+        self.edit_virtual_field_btn.pack(side="left", padx=(theme.SPACE_SM, 0))
 
         ttk.Label(
             fields_comment_frame,

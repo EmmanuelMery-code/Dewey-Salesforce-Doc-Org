@@ -71,11 +71,21 @@ class _Screen(_DataDictionaryFieldInfoMixin, _DataDictionaryVirtualEntriesMixin)
 
     def _persist_comments(self) -> None:
         self.app.settings["dd_object_status"] = dict(self.object_status)
+        self.app.settings["dd_object_comments"] = dict(self.object_comments)
+        self.app.settings["dd_object_piloted_by"] = dict(self.object_piloted_by)
+        self.app.settings["dd_object_squad"] = dict(self.object_squad)
+        self.app.settings["dd_object_squad_consumer"] = dict(self.object_squad_consumer)
         self.app._save_settings()
 
     def _persist_field_comments(self) -> None:
         self.app.settings["dd_field_status"] = {
             obj: dict(fields) for obj, fields in self.field_status.items()
+        }
+        self.app.settings["dd_field_comments"] = {
+            obj: dict(fields) for obj, fields in self.field_comments.items()
+        }
+        self.app.settings["dd_field_piloted_by"] = {
+            obj: dict(fields) for obj, fields in self.field_piloted_by.items()
         }
         self.app._save_settings()
 
@@ -133,6 +143,175 @@ class TestCreation:
 
         assert screen.object_comments == {}
         assert screen.field_comments == {}
+
+
+class TestEdition:
+    def test_a_field_is_edited_in_place_when_the_name_does_not_change(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency", "Initial")
+
+        screen._update_virtual_field(
+            "Account", "Budget__c", "Budget__c", "Budget annuel", "Number", "Revu"
+        )
+
+        assert screen.virtual_fields["Account"] == {
+            "Budget__c": {"label": "Budget annuel", "type": "Number"}
+        }
+        assert screen.field_comments["Account"] == {"Budget__c": "Revu"}
+        assert screen.field_status["Account"]["Budget__c"] == IN_DESIGN_STATUS
+
+    def test_an_emptied_comment_is_dropped_on_edit(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency", "Initial")
+
+        screen._update_virtual_field(
+            "Account", "Budget__c", "Budget__c", "Budget", "Currency", ""
+        )
+
+        assert screen.field_comments["Account"] == {}
+
+    def test_renaming_a_field_carries_every_field_level_mapping(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency", "Montant")
+        screen.field_piloted_by.setdefault("Account", {})["Budget__c"] = "Squad Finance"
+
+        screen._update_virtual_field(
+            "Account", "Budget__c", "BudgetAnnuel__c", "Budget", "Currency", "Montant"
+        )
+
+        assert screen.virtual_fields["Account"] == {
+            "BudgetAnnuel__c": {"label": "Budget", "type": "Currency"}
+        }
+        assert screen.field_comments["Account"] == {"BudgetAnnuel__c": "Montant"}
+        assert screen.field_piloted_by["Account"] == {"BudgetAnnuel__c": "Squad Finance"}
+        assert screen.field_status["Account"] == {"BudgetAnnuel__c": IN_DESIGN_STATUS}
+        assert screen.app.settings["dd_virtual_fields"] == {
+            "Account": {"BudgetAnnuel__c": {"label": "Budget", "type": "Currency"}}
+        }
+
+    def test_a_field_status_set_by_hand_survives_a_rename(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency")
+        screen.field_status["Account"]["Budget__c"] = "en dév."
+
+        screen._update_virtual_field(
+            "Account", "Budget__c", "BudgetAnnuel__c", "Budget", "Currency"
+        )
+
+        assert screen.field_status["Account"] == {"BudgetAnnuel__c": "en dév."}
+
+    def test_an_object_is_edited_in_place_when_the_name_does_not_change(self) -> None:
+        screen = _Screen()
+        screen._create_virtual_object("Projet__c", "Projet", "Chantier")
+
+        screen._update_virtual_object("Projet__c", "Projet__c", "Projet 2027", "Chantier revu")
+
+        assert screen.virtual_objects == {"Projet__c": {"label": "Projet 2027"}}
+        assert screen.object_comments == {"Projet__c": "Chantier revu"}
+        assert screen.object_status["Projet__c"] == IN_DESIGN_STATUS
+        assert screen.selected_objects == {"Projet__c"}
+
+    def test_renaming_an_object_carries_every_mapping_and_the_selection(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_object("Projet__c", "Projet", "Chantier")
+        screen._create_virtual_field("Projet__c", "Budget__c", "Budget", "Currency", "Montant")
+        screen.object_piloted_by["Projet__c"] = "Squad Delivery"
+        screen.object_squad["Projet__c"] = "Squad A"
+        screen.object_squad_consumer["Projet__c"] = "Squad B"
+        screen.field_piloted_by.setdefault("Projet__c", {})["Budget__c"] = "Squad Finance"
+
+        screen._update_virtual_object("Projet__c", "Chantier__c", "Chantier", "Chantier")
+
+        assert screen.virtual_objects == {"Chantier__c": {"label": "Chantier"}}
+        assert screen.virtual_fields == {
+            "Chantier__c": {"Budget__c": {"label": "Budget", "type": "Currency"}}
+        }
+        assert screen.object_comments == {"Chantier__c": "Chantier"}
+        assert screen.object_piloted_by == {"Chantier__c": "Squad Delivery"}
+        assert screen.object_status == {"Chantier__c": IN_DESIGN_STATUS}
+        assert screen.object_squad == {"Chantier__c": "Squad A"}
+        assert screen.object_squad_consumer == {"Chantier__c": "Squad B"}
+        assert screen.field_comments == {"Chantier__c": {"Budget__c": "Montant"}}
+        assert screen.field_piloted_by == {"Chantier__c": {"Budget__c": "Squad Finance"}}
+        assert screen.field_status == {"Chantier__c": {"Budget__c": IN_DESIGN_STATUS}}
+        assert screen.selected_objects == {"Chantier__c"}
+        assert screen.all_objects == ["Account", "Chantier__c"]
+        assert screen.app.settings["dd_selected_objects"] == ["Chantier__c"]
+
+    def test_an_object_status_set_by_hand_survives_a_rename(self) -> None:
+        screen = _Screen()
+        screen._create_virtual_object("Projet__c", "Projet")
+        screen.object_status["Projet__c"] = "en dév."
+
+        screen._update_virtual_object("Projet__c", "Chantier__c", "Chantier")
+
+        assert screen.object_status == {"Chantier__c": "en dév."}
+
+
+class TestEditionValidation:
+    def test_an_unchanged_object_name_is_accepted(self) -> None:
+        screen = _Screen()
+        screen._create_virtual_object("Projet__c", "Projet")
+
+        assert (
+            screen._virtual_object_error("Projet__c", "Projet", current_name="Projet__c")
+            is None
+        )
+
+    def test_an_object_name_taken_by_another_entry_is_rejected(self) -> None:
+        screen = _Screen()
+        screen._create_virtual_object("Projet__c", "Projet")
+        screen._create_virtual_object("Chantier__c", "Chantier")
+
+        assert screen._virtual_object_error(
+            "Chantier__c", "Chantier", current_name="Projet__c"
+        ) == ("data_dictionary_virtual_error_object_duplicate[name=Chantier__c]")
+
+    def test_an_unchanged_field_name_is_accepted(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency")
+
+        assert (
+            screen._virtual_field_error(
+                "Account", "Budget__c", "Budget", "Currency", current_name="Budget__c"
+            )
+            is None
+        )
+
+    def test_a_field_name_taken_by_another_entry_is_rejected(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency")
+        screen._create_virtual_field("Account", "Marge__c", "Marge", "Currency")
+
+        assert screen._virtual_field_error(
+            "Account", "Marge__c", "Marge", "Currency", current_name="Budget__c"
+        ) == ("data_dictionary_virtual_error_field_duplicate[name=Marge__c]")
+
+    def test_edition_still_rejects_the_empty_and_colliding_cases(self) -> None:
+        screen = _Screen(
+            metadata_objects={"Account"}, metadata_fields={"Account": ["Name"]}
+        )
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency")
+
+        assert (
+            screen._virtual_field_error("Account", "", "Budget", "Currency", "Budget__c")
+            == "data_dictionary_virtual_error_api_name_required"
+        )
+        assert (
+            screen._virtual_field_error("Account", "Budget__c", "", "Currency", "Budget__c")
+            == "data_dictionary_virtual_error_label_required"
+        )
+        assert (
+            screen._virtual_field_error("Account", "Budget__c", "Budget", "", "Budget__c")
+            == "data_dictionary_virtual_error_type_required"
+        )
+        assert (
+            screen._virtual_field_error("Account", "Budget c", "Budget", "Text", "Budget__c")
+            == "data_dictionary_virtual_error_api_name_whitespace"
+        )
+        assert screen._virtual_field_error(
+            "Account", "Name", "Nom", "Text", "Budget__c"
+        ) == ("data_dictionary_virtual_error_field_exists[name=Name]")
 
 
 class TestPersistence:

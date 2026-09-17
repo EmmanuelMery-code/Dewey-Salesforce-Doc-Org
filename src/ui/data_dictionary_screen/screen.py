@@ -328,6 +328,9 @@ class DataDictionaryScreen(
                 or obj in self.object_squad_consumer
             )
             self.delete_comment_btn.configure(state="normal" if has_extra_info else "disabled")
+            self.edit_virtual_object_btn.configure(
+                state="normal" if self._is_virtual_object(obj) else "disabled"
+            )
         else:
             self.comment_label_var.set(self.app._t("data_dictionary_comment_placeholder"))
             self.comment_text.configure(state="disabled")
@@ -341,6 +344,7 @@ class DataDictionaryScreen(
             self.squad_consumer_entry.configure(state="disabled")
             self.save_comment_btn.configure(state="disabled")
             self.delete_comment_btn.configure(state="disabled")
+            self.edit_virtual_object_btn.configure(state="disabled")
 
         self._refresh_fields_list(obj)
 

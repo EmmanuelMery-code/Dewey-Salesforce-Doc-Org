@@ -49,19 +49,34 @@ def _promotion_recap(app, promoted_objects: list[str], promoted_fields: dict[str
     return app._t("data_dictionary_virtual_promoted_message", details="\n".join(lines))
 
 
+def _move_key(mapping: dict, old_name: str, new_name: str) -> None:
+    """Re-key ``old_name`` to ``new_name`` in ``mapping``, if present."""
+    if old_name != new_name and old_name in mapping:
+        mapping[new_name] = mapping.pop(old_name)
+
+
 class _VirtualEntryDialog:
     """Modal capture of a virtual object/field, re-prompting on invalid input.
 
-    ``specs`` is a list of ``(key, label, values)``; a non-empty ``values``
-    turns the row into an editable combobox. ``validate`` returns an error
-    message to display, or ``None`` to accept.
+    ``specs`` is a list of ``(key, label, values[, initial])``; a non-empty
+    ``values`` turns the row into an editable combobox and ``initial``
+    pre-fills it, which is what the "Modifier" entry points rely on.
+    ``validate`` returns an error message to display, or ``None`` to accept.
     """
 
     #: Wide enough for the free-text "Commentaire Dewey" row; the grid makes
     #: every row share it, so the whole dialog widens with it.
     ENTRY_WIDTH = 46
 
-    def __init__(self, parent: tk.Misc, app, title: str, specs, validate) -> None:
+    def __init__(
+        self,
+        parent: tk.Misc,
+        app,
+        title: str,
+        specs,
+        validate,
+        confirm_label: str | None = None,
+    ) -> None:
         self.app = app
         self.validate = validate
         self.result: dict[str, str] | None = None
@@ -76,9 +91,11 @@ class _VirtualEntryDialog:
         frame.pack(fill="both", expand=True)
 
         self.variables: dict[str, tk.StringVar] = {}
-        for row, (key, label, values) in enumerate(specs):
+        for row, spec in enumerate(specs):
+            key, label, values = spec[:3]
+            initial = spec[3] if len(spec) > 3 else ""
             ttk.Label(frame, text=label).grid(row=row, column=0, sticky="w", pady=theme.SPACE_XS)
-            variable = tk.StringVar()
+            variable = tk.StringVar(value=initial or "")
             self.variables[key] = variable
             if values:
                 widget = ttk.Combobox(frame, textvariable=variable, values=list(values))
@@ -98,7 +115,7 @@ class _VirtualEntryDialog:
         ).pack(side="right")
         ttk.Button(
             buttons,
-            text=app._t("data_dictionary_virtual_dialog_create"),
+            text=confirm_label or app._t("data_dictionary_virtual_dialog_create"),
             command=self._on_validate,
             style=theme.PRIMARY_BUTTON,
         ).pack(side="right", padx=(0, theme.SPACE_SM))
@@ -149,25 +166,34 @@ class _DataDictionaryVirtualEntriesMixin:
             return self.app._t("data_dictionary_virtual_error_label_required")
         return None
 
-    def _virtual_object_error(self, api_name: str, label: str) -> str | None:
+    def _virtual_object_error(
+        self, api_name: str, label: str, current_name: str | None = None
+    ) -> str | None:
+        """``current_name`` is the entry being edited, which may keep its name."""
         error = self._virtual_name_error(api_name, label)
         if error:
             return error
-        if api_name in self.virtual_objects:
+        if api_name in self.virtual_objects and api_name != current_name:
             return self.app._t("data_dictionary_virtual_error_object_duplicate", name=api_name)
         if api_name in self._metadata_objects:
             return self.app._t("data_dictionary_virtual_error_object_exists", name=api_name)
         return None
 
     def _virtual_field_error(
-        self, obj: str, api_name: str, label: str, field_type: str
+        self,
+        obj: str,
+        api_name: str,
+        label: str,
+        field_type: str,
+        current_name: str | None = None,
     ) -> str | None:
+        """``current_name`` is the entry being edited, which may keep its name."""
         error = self._virtual_name_error(api_name, label)
         if error:
             return error
         if not field_type:
             return self.app._t("data_dictionary_virtual_error_type_required")
-        if api_name in self.virtual_fields.get(obj, {}):
+        if api_name in self.virtual_fields.get(obj, {}) and api_name != current_name:
             return self.app._t("data_dictionary_virtual_error_field_duplicate", name=api_name)
         if any(api_name == real for real, _label in self._real_object_fields(obj)):
             return self.app._t("data_dictionary_virtual_error_field_exists", name=api_name)
@@ -202,6 +228,78 @@ class _DataDictionaryVirtualEntriesMixin:
         # which also means the object key itself stays out when there is none.
         if comment:
             self.field_comments.setdefault(obj, {})[api_name] = comment
+        self._persist_virtual_entries()
+        self._persist_field_comments()
+
+    def _update_virtual_object(
+        self, obj: str, api_name: str, label: str, comment: str = ""
+    ) -> None:
+        """Apply the edited values to ``obj``, re-keying every mapping that
+        is keyed by object API name when the name itself changed. The status
+        is carried over untouched: only the key moves."""
+        for mapping in (
+            self.virtual_objects,
+            self.virtual_fields,
+            self.object_comments,
+            self.object_piloted_by,
+            self.object_status,
+            self.object_squad,
+            self.object_squad_consumer,
+            self.field_comments,
+            self.field_piloted_by,
+            self.field_status,
+        ):
+            _move_key(mapping, obj, api_name)
+        if obj != api_name and obj in self.selected_objects:
+            self.selected_objects.discard(obj)
+            self.selected_objects.add(api_name)
+
+        self.virtual_objects[api_name] = {"label": label}
+        if comment:
+            self.object_comments[api_name] = comment
+        else:
+            self.object_comments.pop(api_name, None)
+
+        if obj != api_name:
+            self.all_objects = sorted(
+                {*(name for name in self.all_objects if name != obj), api_name}
+            )
+
+        self._persist_virtual_entries()
+        self._persist_comments()
+        self._persist_field_comments()
+        self.app.settings["dd_selected_objects"] = list(self.selected_objects)
+        self.app._save_settings()
+
+    def _update_virtual_field(
+        self,
+        obj: str,
+        field_api_name: str,
+        api_name: str,
+        label: str,
+        field_type: str,
+        comment: str = "",
+    ) -> None:
+        """Apply the edited values to ``obj.field_api_name``, re-keying every
+        field-level mapping when the name itself changed. The status is
+        carried over untouched: only the key moves."""
+        for mapping in (
+            self.virtual_fields,
+            self.field_comments,
+            self.field_piloted_by,
+            self.field_status,
+        ):
+            _move_key(mapping.get(obj, {}), field_api_name, api_name)
+
+        self.virtual_fields.setdefault(obj, {})[api_name] = {
+            "label": label,
+            "type": field_type,
+        }
+        if comment:
+            self.field_comments.setdefault(obj, {})[api_name] = comment
+        elif obj in self.field_comments:
+            self.field_comments[obj].pop(api_name, None)
+
         self._persist_virtual_entries()
         self._persist_field_comments()
 
@@ -344,6 +442,108 @@ class _DataDictionaryVirtualEntriesMixin:
         api_name = dialog.result["api_name"]
         self._create_virtual_field(
             obj,
+            api_name,
+            dialog.result["label"],
+            dialog.result["type"],
+            dialog.result["comment"],
+        )
+        self._refresh_fields_list(obj)
+        self._refresh_selected_list()
+        self.fields_tree.selection_set(api_name)
+
+    def _edit_virtual_object(self) -> None:
+        obj = self.current_comment_object
+        if not obj or not self._is_virtual_object(obj):
+            return
+
+        info = self.virtual_objects.get(obj, {})
+        dialog = _VirtualEntryDialog(
+            self.window,
+            self.app,
+            self.app._t("data_dictionary_virtual_object_edit_dialog_title"),
+            [
+                ("api_name", self.app._t("data_dictionary_virtual_api_name_label"), None, obj),
+                (
+                    "label",
+                    self.app._t("data_dictionary_virtual_label_label"),
+                    None,
+                    info.get("label") or obj,
+                ),
+                (
+                    "comment",
+                    self.app._t("data_dictionary_virtual_comment_label"),
+                    None,
+                    self.object_comments.get(obj, ""),
+                ),
+            ],
+            lambda values: self._virtual_object_error(
+                values["api_name"], values["label"], current_name=obj
+            ),
+            confirm_label=self.app._t("data_dictionary_virtual_dialog_save"),
+        )
+        if not dialog.result:
+            return
+
+        api_name = dialog.result["api_name"]
+        self._update_virtual_object(
+            obj, api_name, dialog.result["label"], dialog.result["comment"]
+        )
+        self._refresh_lists()
+        self._set_comment_target(api_name)
+
+    def _edit_virtual_field(self) -> None:
+        obj = self.current_comment_object
+        field_api_name = self.current_comment_field
+        if not obj or not field_api_name or not self._is_virtual_field(obj, field_api_name):
+            return
+
+        info = self.virtual_fields.get(obj, {}).get(field_api_name, {})
+        dialog = _VirtualEntryDialog(
+            self.window,
+            self.app,
+            self.app._t("data_dictionary_virtual_field_edit_dialog_title"),
+            [
+                (
+                    "api_name",
+                    self.app._t("data_dictionary_virtual_api_name_label"),
+                    None,
+                    field_api_name,
+                ),
+                (
+                    "label",
+                    self.app._t("data_dictionary_virtual_label_label"),
+                    None,
+                    info.get("label") or field_api_name,
+                ),
+                (
+                    "type",
+                    self.app._t("data_dictionary_virtual_type_label"),
+                    VIRTUAL_FIELD_TYPES,
+                    info.get("type", ""),
+                ),
+                (
+                    "comment",
+                    self.app._t("data_dictionary_virtual_comment_label"),
+                    None,
+                    self.field_comments.get(obj, {}).get(field_api_name, ""),
+                ),
+            ],
+            lambda values: self._virtual_field_error(
+                obj,
+                values["api_name"],
+                values["label"],
+                values["type"],
+                current_name=field_api_name,
+            ),
+            confirm_label=self.app._t("data_dictionary_virtual_dialog_save"),
+        )
+        if not dialog.result:
+            return
+
+        api_name = dialog.result["api_name"]
+        self._update_virtual_field(
+            obj,
+            field_api_name,
             api_name,
             dialog.result["label"],
             dialog.result["type"],
