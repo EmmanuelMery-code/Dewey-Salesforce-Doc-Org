@@ -28,9 +28,18 @@ innovations.json
 dashboards.json
 config/
 
+# Timestamped backup copies of the local state files above, written before a
+# migration: same API keys and same client comments as the originals.
+app_settings.backup-*.json
+findings_qualifications.backup-*.json
+technical_debt.backup-*.json
+innovations.backup-*.json
+dashboards.backup-*.json
+
 # Exclusion files (org-specific, not committed)
 exclusion.json
 exclusion_PV.xlsx
+exclusion.backup-*.json
 
 # Local Salesforce CLI / SFDX state
 .sf_cli_project/
