@@ -15,11 +15,20 @@ from pathlib import Path
 from tkinter import messagebox
 from typing import TYPE_CHECKING
 
+from src.core.data_dictionary_selection import (
+    DEFAULT_STATUS,
+    DELIVERED_STATUS,
+    IN_DESIGN_STATUS,
+)
 from src.parsers.salesforce_parser import SalesforceMetadataParser
 from src.ui.data_dictionary_screen.builders import _DataDictionaryUiBuilderMixin
+from src.ui.data_dictionary_screen.constants import VIRTUAL_ROW_TAG
 from src.ui.data_dictionary_screen.csv_io import _DataDictionaryCsvMixin
 from src.ui.data_dictionary_screen.field_info import _DataDictionaryFieldInfoMixin
 from src.ui.data_dictionary_screen.generation import _DataDictionaryGenerationMixin
+from src.ui.data_dictionary_screen.virtual_entries import (
+    _DataDictionaryVirtualEntriesMixin,
+)
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -35,8 +44,9 @@ class DataDictionaryScreen(
     _DataDictionaryCsvMixin,
     _DataDictionaryFieldInfoMixin,
     _DataDictionaryGenerationMixin,
+    _DataDictionaryVirtualEntriesMixin,
 ):
-    STATUS_OPTIONS = ["-", "en dév.", "Livré", "En conception"]
+    STATUS_OPTIONS = [DEFAULT_STATUS, "en dév.", DELIVERED_STATUS, IN_DESIGN_STATUS]
     SQUAD_MAX_LENGTH = 50
 
     def __init__(self, app: Application) -> None:
@@ -68,6 +78,14 @@ class DataDictionaryScreen(
         self.field_status: dict[str, dict[str, str]] = {
             obj: dict(fields) for obj, fields in app.settings.get("dd_field_status", {}).items()
         }
+        # Objects/fields being designed: declared here, not in the metadata.
+        self.virtual_objects: dict[str, dict[str, str]] = {
+            obj: dict(info) for obj, info in app.settings.get("dd_virtual_objects", {}).items()
+        }
+        self.virtual_fields: dict[str, dict[str, dict[str, str]]] = {
+            obj: {name: dict(info) for name, info in fields.items()}
+            for obj, fields in app.settings.get("dd_virtual_fields", {}).items()
+        }
         self.include_comment_var = tk.BooleanVar(value=app.settings.get("dd_include_comment", True))
         self.include_piloted_by_var = tk.BooleanVar(value=app.settings.get("dd_include_piloted_by", True))
         self.include_status_var = tk.BooleanVar(value=app.settings.get("dd_include_status", True))
@@ -91,6 +109,7 @@ class DataDictionaryScreen(
             value=app.settings.get("dd_concat_description_in_comment", True)
         )
         self.all_objects = []
+        self._metadata_objects: set[str] = set()
         self._object_dirs: dict[str, Path] = {}
         self.current_comment_object: str | None = None
         self.current_comment_field: str | None = None
@@ -102,13 +121,10 @@ class DataDictionaryScreen(
 
     def _load_objects(self) -> None:
         source_path = self.app.source_var.get()
-        if not source_path:
+        source_dir = Path(source_path) if source_path else None
+        if source_dir is None or not source_dir.exists():
             messagebox.showinfo(self.app._t("info_title"), self.app._t("data_dictionary_no_objects"))
-            return
-
-        source_dir = Path(source_path)
-        if not source_dir.exists():
-            messagebox.showinfo(self.app._t("info_title"), self.app._t("data_dictionary_no_objects"))
+            self._finish_loading_objects()
             return
 
         # Use the parser to find package roots and objects
@@ -116,24 +132,27 @@ class DataDictionaryScreen(
             source_dir, exclusion_config_path=self.app._selected_exclusion_file()
         )
         package_roots = parser._resolve_package_roots()
-        
-        self.all_objects = []
+
+        self._metadata_objects = set()
         self._object_dirs = {}
         for root in package_roots:
             obj_dir = root / "objects"
             if obj_dir.exists():
                 for d in obj_dir.iterdir():
                     if d.is_dir():
-                        self.all_objects.append(d.name)
+                        self._metadata_objects.add(d.name)
                         self._object_dirs[d.name] = d
-        
-        if not self.all_objects:
-            messagebox.showinfo(self.app._t("info_title"), self.app._t("data_dictionary_no_objects"))
-            return
 
-        self.all_objects = sorted(list(set(self.all_objects)))
-        
-        # Initial population of lists
+        if not self._metadata_objects:
+            messagebox.showinfo(self.app._t("info_title"), self.app._t("data_dictionary_no_objects"))
+
+        self._finish_loading_objects()
+
+    def _finish_loading_objects(self) -> None:
+        """Reconcile the virtual entries with the metadata just read, then
+        rebuild the lists. Also the hook for any later metadata refresh."""
+        self._promote_virtual_entries_and_report()
+        self.all_objects = sorted(self._metadata_objects | set(self.virtual_objects))
         self._refresh_lists()
 
     def _refresh_lists(self) -> None:
@@ -173,6 +192,14 @@ class DataDictionaryScreen(
             return "piloted_none"
         return "piloted_some"
 
+    def _selected_row_tags(self, obj: str) -> tuple[str, ...]:
+        """The "Piloté par" background tag plus, for a virtual object, the
+        foreground tag marking it as not yet in the metadata."""
+        tags = [self._selected_row_tag(obj)]
+        if self._is_virtual_object(obj):
+            tags.append(VIRTUAL_ROW_TAG)
+        return tuple(tags)
+
     def _apply_selected_filter(self) -> None:
         """Rebuild the "Objets selectionnes" tree from the current filter
         text and sort column, preserving the current comment target's
@@ -193,7 +220,7 @@ class DataDictionaryScreen(
         self.selected_listbox.delete(*self.selected_listbox.get_children())
         for row in rows:
             self.selected_listbox.insert(
-                "", tk.END, iid=row[0], values=row, tags=(self._selected_row_tag(row[0]),)
+                "", tk.END, iid=row[0], values=row, tags=self._selected_row_tags(row[0])
             )
         if self.current_comment_object in {row[0] for row in rows}:
             self.selected_listbox.selection_set(self.current_comment_object)
@@ -242,11 +269,19 @@ class DataDictionaryScreen(
         selection = self.selected_listbox.selection()
         if not selection:
             return
-        
+
         for obj in selection:
+            # A virtual object has no existence outside the selection, so
+            # "Retirer" offers to drop it (and its virtual fields) for good.
+            if self._is_virtual_object(obj) and messagebox.askyesno(
+                self.app._t("data_dictionary_virtual_delete_object_title"),
+                self.app._t("data_dictionary_virtual_delete_object_confirm", name=obj),
+            ):
+                self._delete_virtual_object(obj)
+                continue
             if obj in self.selected_objects:
                 self.selected_objects.remove(obj)
-        
+
         self._refresh_lists()
         self._set_comment_target(None)
 

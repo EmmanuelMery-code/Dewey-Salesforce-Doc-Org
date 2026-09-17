@@ -15,9 +15,14 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Mapping, Sequence
 
-from src.core.models import ObjectInfo
+from src.core.models import FieldInfo, ObjectInfo
 
 DEFAULT_STATUS = "-"
+#: Status forced on objects/fields the user declared but that the org
+#: metadata does not contain (yet).
+IN_DESIGN_STATUS = "En conception"
+#: Status a virtual entry is promoted to once the metadata contains it.
+DELIVERED_STATUS = "Livré"
 
 
 def data_dictionary_filename_base(run_date: date | None = None) -> str:
@@ -38,6 +43,11 @@ class DataDictionarySelection:
     field_comments: dict[str, dict[str, str]] = field(default_factory=dict)
     field_piloted_by: dict[str, dict[str, str]] = field(default_factory=dict)
     field_status: dict[str, dict[str, str]] = field(default_factory=dict)
+    #: ``{object_api_name: {"label": str}}`` for objects declared in the
+    #: screen but absent from the parsed metadata.
+    virtual_objects: dict[str, dict[str, str]] = field(default_factory=dict)
+    #: ``{object_api_name: {field_api_name: {"label": str, "type": str}}}``
+    virtual_fields: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
     include_comment: bool = True
     include_piloted_by: bool = True
     include_status: bool = True
@@ -64,6 +74,8 @@ class DataDictionarySelection:
             field_comments=_nested_str_map(settings.get("dd_field_comments")),
             field_piloted_by=_nested_str_map(settings.get("dd_field_piloted_by")),
             field_status=_nested_str_map(settings.get("dd_field_status")),
+            virtual_objects=_virtual_object_map(settings.get("dd_virtual_objects")),
+            virtual_fields=_virtual_field_map(settings.get("dd_virtual_fields")),
             include_comment=_flag(settings, "dd_include_comment"),
             include_piloted_by=_flag(settings, "dd_include_piloted_by"),
             include_status=_flag(settings, "dd_include_status"),
@@ -82,6 +94,11 @@ class DataDictionarySelection:
         Copies rather than in-place mutation: the same snapshot also feeds
         the HTML pages and the full ``data_dictionary.xlsx``, which must
         keep showing the raw parsed metadata.
+
+        Objects and fields the user declared as "En conception" are absent
+        from the parsed snapshot, so they are synthesized here: this is the
+        single choke point both the screen and the full documentation run go
+        through before handing the objects to the writers.
         """
         selected = []
         for obj in objects:
@@ -90,6 +107,7 @@ class DataDictionarySelection:
             comments = self.field_comments.get(obj.api_name, {})
             piloted_by = self.field_piloted_by.get(obj.api_name, {})
             status = self.field_status.get(obj.api_name, {})
+            known_fields = {field_info.api_name for field_info in obj.fields}
             selected.append(
                 replace(
                     obj,
@@ -101,7 +119,8 @@ class DataDictionarySelection:
                             dewey_status=status.get(field_info.api_name, ""),
                         )
                         for field_info in obj.fields
-                    ],
+                    ]
+                    + self._virtual_field_infos(obj.api_name, exclude=known_fields),
                     dewey_comment=self.object_comments.get(obj.api_name, ""),
                     dewey_piloted_by=self.object_piloted_by.get(obj.api_name, ""),
                     dewey_status=self.object_status.get(obj.api_name, DEFAULT_STATUS),
@@ -111,7 +130,50 @@ class DataDictionarySelection:
                     ),
                 )
             )
+
+        parsed_names = {obj.api_name for obj in objects}
+        for api_name, info in sorted(self.virtual_objects.items()):
+            if api_name not in self.objects or api_name in parsed_names:
+                continue
+            selected.append(
+                ObjectInfo(
+                    api_name=api_name,
+                    label=info.get("label") or api_name,
+                    custom=api_name.endswith("__c"),
+                    fields=self._virtual_field_infos(api_name),
+                    dewey_comment=self.object_comments.get(api_name, ""),
+                    dewey_piloted_by=self.object_piloted_by.get(api_name, ""),
+                    dewey_status=self.object_status.get(api_name, IN_DESIGN_STATUS),
+                    dewey_squad=self.object_squad.get(api_name, ""),
+                    dewey_squad_consumer=self.object_squad_consumer.get(api_name, ""),
+                    is_virtual=True,
+                )
+            )
         return selected
+
+    def _virtual_field_infos(
+        self, object_api_name: str, exclude: set[str] | None = None
+    ) -> list[FieldInfo]:
+        exclude = exclude or set()
+        comments = self.field_comments.get(object_api_name, {})
+        piloted_by = self.field_piloted_by.get(object_api_name, {})
+        status = self.field_status.get(object_api_name, {})
+        return [
+            FieldInfo(
+                api_name=api_name,
+                label=info.get("label") or api_name,
+                data_type=info.get("type", ""),
+                custom=api_name.endswith("__c"),
+                dewey_comment=comments.get(api_name, ""),
+                dewey_piloted_by=piloted_by.get(api_name, ""),
+                dewey_status=status.get(api_name, IN_DESIGN_STATUS),
+                is_virtual=True,
+            )
+            for api_name, info in sorted(
+                self.virtual_fields.get(object_api_name, {}).items()
+            )
+            if api_name not in exclude
+        ]
 
     def workbook_options(self) -> dict[str, bool]:
         """Column toggles accepted by ``write_data_dictionary_workbooks``."""
@@ -143,3 +205,13 @@ def _nested_str_map(raw: Any) -> dict[str, dict[str, str]]:
     if not isinstance(raw, Mapping):
         return {}
     return {str(key): _str_map(value) for key, value in raw.items()}
+
+
+def _virtual_object_map(raw: Any) -> dict[str, dict[str, str]]:
+    return _nested_str_map(raw)
+
+
+def _virtual_field_map(raw: Any) -> dict[str, dict[str, dict[str, str]]]:
+    if not isinstance(raw, Mapping):
+        return {}
+    return {str(key): _nested_str_map(value) for key, value in raw.items()}

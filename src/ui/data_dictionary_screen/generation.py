@@ -38,6 +38,13 @@ class _DataDictionaryGenerationMixin:
             field_status={
                 obj: dict(fields) for obj, fields in self.field_status.items()
             },
+            virtual_objects={
+                obj: dict(info) for obj, info in self.virtual_objects.items()
+            },
+            virtual_fields={
+                obj: {name: dict(info) for name, info in fields.items()}
+                for obj, fields in self.virtual_fields.items()
+            },
             include_comment=self.include_comment_var.get(),
             include_piloted_by=self.include_piloted_by_var.get(),
             include_status=self.include_status_var.get(),

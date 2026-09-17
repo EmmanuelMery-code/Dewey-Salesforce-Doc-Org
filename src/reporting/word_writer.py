@@ -56,8 +56,12 @@ class WordReportWriter(_WordAdviceMixin):
 
         # Excluded objects are already filtered upstream in the parser; we
         # additionally drop objects that have no field at all so the
-        # generated document mirrors the Excel dictionary exactly.
-        documented_objects = [obj for obj in snapshot.objects if obj.fields]
+        # generated document mirrors the Excel dictionary exactly — objects
+        # being designed excepted, since having no field yet is their normal
+        # state.
+        documented_objects = [
+            obj for obj in snapshot.objects if obj.fields or obj.is_virtual
+        ]
 
         document = Document()
         self._configure_default_style(document)

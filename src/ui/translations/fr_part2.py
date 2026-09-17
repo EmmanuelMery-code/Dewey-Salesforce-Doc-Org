@@ -300,6 +300,41 @@ FR_PART2: dict[str, str] = {
     "data_dictionary_copy_piloted_by_no_value": "L'objet sélectionné n'a pas de Piloté par renseigné.",
     "data_dictionary_copy_piloted_by_no_fields": "Tous les champs de cet objet ont déjà un Piloté par renseigné.",
     "data_dictionary_copy_piloted_by_success": "{count} champ(s) mis à jour avec le Piloté par \"{value}\".",
+    "data_dictionary_virtual_object_button": "Ajouter un objet en conception",
+    "data_dictionary_virtual_field_button": "Ajouter un champ en conception",
+    "data_dictionary_virtual_object_dialog_title": "Nouvel objet en conception",
+    "data_dictionary_virtual_field_dialog_title": "Nouveau champ en conception",
+    "data_dictionary_virtual_api_name_label": "Nom API",
+    "data_dictionary_virtual_label_label": "Label",
+    "data_dictionary_virtual_type_label": "Type",
+    "data_dictionary_virtual_dialog_create": "Créer",
+    "data_dictionary_virtual_dialog_cancel": "Annuler",
+    "data_dictionary_virtual_error_api_name_required": "Le nom API est obligatoire.",
+    "data_dictionary_virtual_error_api_name_whitespace": "Le nom API ne doit pas contenir d'espace.",
+    "data_dictionary_virtual_error_label_required": "Le label est obligatoire.",
+    "data_dictionary_virtual_error_type_required": "Le type est obligatoire.",
+    "data_dictionary_virtual_error_object_duplicate": "L'objet en conception « {name} » a déjà été déclaré.",
+    "data_dictionary_virtual_error_object_exists": "L'objet « {name} » existe déjà dans la métadonnée : il n'y a rien à concevoir.",
+    "data_dictionary_virtual_error_field_duplicate": "Le champ en conception « {name} » a déjà été déclaré sur cet objet.",
+    "data_dictionary_virtual_error_field_exists": "Le champ « {name} » existe déjà dans la métadonnée de cet objet : il n'y a rien à concevoir.",
+    "data_dictionary_virtual_field_no_object": "Veuillez sélectionner un objet avant d'ajouter un champ en conception.",
+    "data_dictionary_virtual_delete_object_title": "Supprimer l'objet en conception",
+    "data_dictionary_virtual_delete_object_confirm": (
+        "Supprimer définitivement l'objet en conception « {name} », ses champs en conception "
+        "et leurs informations complémentaires ?\n\nRépondez Non pour le retirer uniquement "
+        "de la sélection."
+    ),
+    "data_dictionary_virtual_delete_field_title": "Supprimer le champ en conception",
+    "data_dictionary_virtual_delete_field_confirm": (
+        "Supprimer définitivement le champ en conception « {name} » et ses informations "
+        "complémentaires ?"
+    ),
+    "data_dictionary_virtual_promoted_title": "Éléments passés en Livré",
+    "data_dictionary_virtual_promoted_object_suffix": " (objet)",
+    "data_dictionary_virtual_promoted_message": (
+        "Les éléments suivants existent désormais dans la métadonnée et passent "
+        "automatiquement au statut « Livré » :\n\n{details}"
+    ),
     "menu_create_findings_document": "Créer le document des findings",
     "findings_excel_in_progress": "Création du document des findings en cours...",
     "findings_excel_success": "Document des findings créé avec succès : {path}",

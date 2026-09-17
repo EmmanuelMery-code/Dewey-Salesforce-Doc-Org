@@ -14,7 +14,7 @@ retrieve ne ramene pas (``Contact.AccountId`` et consorts) sont donc absentes.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Collection, Sequence
 
 from src.core.models import ObjectInfo
@@ -89,6 +89,40 @@ def normalise_squad(raw: str) -> str:
     if text.endswith("(?)"):
         text = text[:-3].strip()
     return text
+
+
+def exclude_virtual(objects: Sequence[ObjectInfo]) -> list[ObjectInfo]:
+    """Perimetre debarrasse de ce qui n'existe pas encore dans l'org.
+
+    Les objets et les champs seulement declares "en conception" dans l'ecran
+    Data Dictionary n'appartiennent qu'aux livrables Excel et Word. Le
+    diagramme les ecarte, ainsi que les relations qu'ils porteraient, sans
+    quoi une fleche pointerait vers une boite absente. Le drapeau est
+    explicite et jamais deduit du statut : un objet reel peut avoir ete passe
+    en conception a la main et doit rester diagramme.
+    """
+
+    kept: list[ObjectInfo] = []
+    for obj in objects:
+        if obj.is_virtual:
+            continue
+        virtual_fields = {
+            field_info.api_name for field_info in obj.fields if field_info.is_virtual
+        }
+        if virtual_fields:
+            obj = replace(
+                obj,
+                fields=[
+                    field_info for field_info in obj.fields if not field_info.is_virtual
+                ],
+                relationships=[
+                    relationship
+                    for relationship in obj.relationships
+                    if relationship.field_name not in virtual_fields
+                ],
+            )
+        kept.append(obj)
+    return kept
 
 
 def build_links(objects: Sequence[ObjectInfo]) -> list[DataModelLink]:
@@ -260,7 +294,9 @@ def plan_data_model_tabs(
     Les objets sans aucune relation finissent dans un dernier onglet.
     """
 
-    named = [obj for obj in objects if obj.api_name]
+    # Filtrer ici plutot que dans le writer : onglets, zones, liens, compteurs
+    # et legendes derivent tous de ``named``, donc de ce seul perimetre.
+    named = [obj for obj in exclude_virtual(objects) if obj.api_name]
     squads = {obj.api_name: obj.dewey_squad for obj in named}
     links = build_links(named)
     adjacency = _adjacency(links)

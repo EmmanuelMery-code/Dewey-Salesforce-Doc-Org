@@ -142,6 +142,8 @@ class AppSettingsMixin:
             "dd_field_comments": self.settings.get("dd_field_comments", {}),
             "dd_field_piloted_by": self.settings.get("dd_field_piloted_by", {}),
             "dd_field_status": self.settings.get("dd_field_status", {}),
+            "dd_virtual_objects": self.settings.get("dd_virtual_objects", {}),
+            "dd_virtual_fields": self.settings.get("dd_virtual_fields", {}),
             "dd_include_comment": self.settings.get("dd_include_comment", True),
             "dd_include_piloted_by": self.settings.get("dd_include_piloted_by", True),
             "dd_include_status": self.settings.get("dd_include_status", True),

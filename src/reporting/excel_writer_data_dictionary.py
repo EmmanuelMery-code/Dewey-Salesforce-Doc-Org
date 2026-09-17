@@ -81,7 +81,9 @@ class _ExcelDataDictionaryMixin:
         # Skip objects that do not declare any field: their per-object sheet
         # would otherwise be empty (just the "Aucun champ detecte" hint) and
         # they pollute the Synthese sheet without bringing documentation value.
-        documented_objects = [obj for obj in objects if obj.fields]
+        # Objects being designed are the exception: having no field yet is
+        # precisely their normal state and the user wants to see them.
+        documented_objects = [obj for obj in objects if obj.fields or obj.is_virtual]
         skipped_count = len(objects) - len(documented_objects)
         if skipped_count > 0:
             self.log(
@@ -364,11 +366,14 @@ class _ExcelDataDictionaryMixin:
         if not rows:
             # Leave a tiny hint explaining why the sheet is empty rather than
             # letting the user wonder if parsing failed.
-            worksheet.cell(
-                row=2,
-                column=1,
-                value="Aucun champ detecte dans la metadata pour cet objet.",
-            ).font = Font(italic=True, color="666666")
+            hint = (
+                "Aucun champ en conception declare pour cet objet."
+                if obj.is_virtual
+                else "Aucun champ detecte dans la metadata pour cet objet."
+            )
+            worksheet.cell(row=2, column=1, value=hint).font = Font(
+                italic=True, color="666666"
+            )
 
         note_row = worksheet.max_row + 1
         comment_value = obj.dewey_comment_combined if concat_description else (obj.dewey_comment or "")

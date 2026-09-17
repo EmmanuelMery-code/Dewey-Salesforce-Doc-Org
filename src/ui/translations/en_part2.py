@@ -300,6 +300,39 @@ EN_PART2: dict[str, str] = {
     "data_dictionary_copy_piloted_by_no_value": "The selected object has no Piloted by value.",
     "data_dictionary_copy_piloted_by_no_fields": "All fields of this object already have a Piloted by value.",
     "data_dictionary_copy_piloted_by_success": "{count} field(s) updated with Piloted by \"{value}\".",
+    "data_dictionary_virtual_object_button": "Add an object being designed",
+    "data_dictionary_virtual_field_button": "Add a field being designed",
+    "data_dictionary_virtual_object_dialog_title": "New object being designed",
+    "data_dictionary_virtual_field_dialog_title": "New field being designed",
+    "data_dictionary_virtual_api_name_label": "API Name",
+    "data_dictionary_virtual_label_label": "Label",
+    "data_dictionary_virtual_type_label": "Type",
+    "data_dictionary_virtual_dialog_create": "Create",
+    "data_dictionary_virtual_dialog_cancel": "Cancel",
+    "data_dictionary_virtual_error_api_name_required": "The API name is required.",
+    "data_dictionary_virtual_error_api_name_whitespace": "The API name must not contain spaces.",
+    "data_dictionary_virtual_error_label_required": "The label is required.",
+    "data_dictionary_virtual_error_type_required": "The type is required.",
+    "data_dictionary_virtual_error_object_duplicate": "The object being designed \"{name}\" has already been declared.",
+    "data_dictionary_virtual_error_object_exists": "The object \"{name}\" already exists in the metadata: there is nothing to design.",
+    "data_dictionary_virtual_error_field_duplicate": "The field being designed \"{name}\" has already been declared on this object.",
+    "data_dictionary_virtual_error_field_exists": "The field \"{name}\" already exists in this object's metadata: there is nothing to design.",
+    "data_dictionary_virtual_field_no_object": "Please select an object before adding a field being designed.",
+    "data_dictionary_virtual_delete_object_title": "Delete the object being designed",
+    "data_dictionary_virtual_delete_object_confirm": (
+        "Permanently delete the object being designed \"{name}\", its fields being designed "
+        "and their additional information?\n\nAnswer No to only remove it from the selection."
+    ),
+    "data_dictionary_virtual_delete_field_title": "Delete the field being designed",
+    "data_dictionary_virtual_delete_field_confirm": (
+        "Permanently delete the field being designed \"{name}\" and its additional information?"
+    ),
+    "data_dictionary_virtual_promoted_title": "Entries moved to Delivered",
+    "data_dictionary_virtual_promoted_object_suffix": " (object)",
+    "data_dictionary_virtual_promoted_message": (
+        "The following entries now exist in the metadata and automatically move "
+        "to the \"Livré\" status:\n\n{details}"
+    ),
     "menu_create_findings_document": "Create the findings document",
     "findings_excel_in_progress": "Creating the findings document...",
     "findings_excel_success": "Findings document created successfully: {path}",

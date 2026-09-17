@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Callable
 
@@ -36,6 +37,23 @@ from src.reporting.i18n import t
 LogCallback = Callable[[str], None]
 
 
+# The Data Dictionary screen may hand these renderers objects and fields the
+# user only declared as being designed (see
+# :class:`~src.core.data_dictionary_selection.DataDictionarySelection`). They
+# belong to the Excel and Word dictionaries only, so the HTML site drops them
+# before anything is rendered or counted.
+
+
+def real_objects(objects: list[ObjectInfo]) -> list[ObjectInfo]:
+    return [item for item in objects if not item.is_virtual]
+
+
+def _without_virtual_fields(item: ObjectInfo) -> ObjectInfo:
+    if not any(field.is_virtual for field in item.fields):
+        return item
+    return replace(item, fields=[field for field in item.fields if not field.is_virtual])
+
+
 def render_object_body(
     item: ObjectInfo,
     snapshot: MetadataSnapshot,
@@ -58,6 +76,9 @@ def render_object_body(
     validation_findings = validation_findings or []
     all_dependencies = all_dependencies or []
     link_maps = link_maps or {}
+    # Dropped up front so every field table, count and diagram below sees the
+    # same list the page actually shows.
+    item = _without_virtual_fields(item)
 
     profiles = security_rows(snapshot.profiles, item.api_name)
     permsets = security_rows(snapshot.permission_sets, item.api_name)
@@ -252,7 +273,7 @@ def render_combined_objects_page(
     validation_findings = getattr(analyzer_report, "validation_rules", {}) if analyzer_report else {}
     
     bodies = []
-    for item in snapshot.objects:
+    for item in real_objects(snapshot.objects):
         vr_findings_for_object: list[Finding] = []
         for vr in item.validation_rules:
             key = f"{item.api_name}.{vr.full_name}"
@@ -307,8 +328,9 @@ def write_object_pages(
         "Flow": flow_pages or {},
     }
     
-    total = len(snapshot.objects)
-    for index, item in enumerate(snapshot.objects):
+    rendered_objects = real_objects(snapshot.objects)
+    total = len(rendered_objects)
+    for index, item in enumerate(rendered_objects):
         path = objects_dir / f"{item.api_name}.html"
         
         if index % 20 == 0:

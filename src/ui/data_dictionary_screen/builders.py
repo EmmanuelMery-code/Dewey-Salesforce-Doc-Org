@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from src.ui import theme
+from src.ui.data_dictionary_screen.constants import VIRTUAL_ROW_TAG
 
 
 class _DataDictionaryUiBuilderMixin:
@@ -219,6 +220,8 @@ class _DataDictionaryUiBuilderMixin:
         self.selected_listbox.tag_configure("piloted_all", background="#d9f2d9")
         self.selected_listbox.tag_configure("piloted_some", background="#fdf3cf")
         self.selected_listbox.tag_configure("piloted_none", background="#f8d7d7")
+        # Foreground only, so it composes with the background tags above.
+        self.selected_listbox.tag_configure(VIRTUAL_ROW_TAG, foreground="#7d3c98")
         selected_scroll = ttk.Scrollbar(list_container_right, orient="vertical", command=self.selected_listbox.yview)
         selected_hscroll = ttk.Scrollbar(
             list_container_right, orient="horizontal", command=self.selected_listbox.xview
@@ -229,6 +232,12 @@ class _DataDictionaryUiBuilderMixin:
         self.selected_listbox.grid(row=0, column=0, sticky="nsew")
         selected_scroll.grid(row=0, column=1, sticky="ns")
         selected_hscroll.grid(row=1, column=0, sticky="ew")
+
+        ttk.Button(
+            selected_frame,
+            text=self.app._t("data_dictionary_virtual_object_button"),
+            command=self._add_virtual_object,
+        ).pack(anchor="w", pady=(theme.SPACE_SM, 0))
 
         self.available_listbox.bind("<<ListboxSelect>>", self._on_object_select)
         self.selected_listbox.bind("<<TreeviewSelect>>", self._on_selected_tree_select)
@@ -383,9 +392,16 @@ class _DataDictionaryUiBuilderMixin:
             fields_list_container, orient="vertical", command=self.fields_tree.yview
         )
         self.fields_tree.configure(yscrollcommand=fields_tree_scroll.set)
+        self.fields_tree.tag_configure(VIRTUAL_ROW_TAG, foreground="#7d3c98")
         self.fields_tree.pack(side="left", fill="both", expand=True)
         fields_tree_scroll.pack(side="right", fill="y")
         self.fields_tree.bind("<<TreeviewSelect>>", self._on_field_select)
+
+        ttk.Button(
+            fields_comment_frame,
+            text=self.app._t("data_dictionary_virtual_field_button"),
+            command=self._add_virtual_field,
+        ).pack(anchor="w", pady=(0, theme.SPACE_SM))
 
         ttk.Label(
             fields_comment_frame,

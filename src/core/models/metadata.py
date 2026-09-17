@@ -26,6 +26,10 @@ class FieldInfo:
     dewey_comment: str = ""
     dewey_piloted_by: str = ""
     dewey_status: str = ""
+    #: Declared by the user as being designed, hence absent from the parsed
+    #: metadata. Never infer this from ``dewey_status``: a real field can be
+    #: set to "En conception" by hand and must keep its normal treatment.
+    is_virtual: bool = False
     #: Automation/code types referencing this field, filled from the impact
     #: analysis — see :mod:`src.core.field_automation_usage`.
     automation_usages: list[str] = field(default_factory=list)
@@ -117,6 +121,10 @@ class ObjectInfo:
     dewey_status: str = "-"
     dewey_squad: str = ""
     dewey_squad_consumer: str = ""
+    #: Declared by the user as being designed, hence absent from the parsed
+    #: metadata. Never infer this from ``dewey_status``: a real object can be
+    #: set to "En conception" by hand and must keep its normal treatment.
+    is_virtual: bool = False
 
     @property
     def dewey_comment_combined(self) -> str:

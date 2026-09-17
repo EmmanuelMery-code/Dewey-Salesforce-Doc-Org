@@ -11,12 +11,13 @@ import tkinter as tk
 from tkinter import messagebox
 
 from src.core.utils import child_text, parse_xml
+from src.ui.data_dictionary_screen.constants import VIRTUAL_ROW_TAG
 
 
 class _DataDictionaryFieldInfoMixin:
     """Read an object's fields and edit their Commentaire Dewey / Piloté par / Status."""
 
-    def _list_object_fields(self, obj: str) -> list[tuple[str, str]]:
+    def _real_object_fields(self, obj: str) -> list[tuple[str, str]]:
         """Return ``[(api_name, label), ...]`` sorted by API name for
         ``obj``'s fields, read directly from the metadata files (no need
         for a full parser pass since only the label/API name are used)."""
@@ -39,11 +40,27 @@ class _DataDictionaryFieldInfoMixin:
             fields.append((api_name, label))
         return fields
 
+    def _list_object_fields(self, obj: str) -> list[tuple[str, str]]:
+        """``_real_object_fields`` plus the fields declared "En conception"
+        on ``obj``, which every consumer (tree, CSV, "Piloté par" copy)
+        treats like any other field."""
+        fields = self._real_object_fields(obj)
+        known = {api_name for api_name, _label in fields}
+        fields.extend(
+            (api_name, label)
+            for api_name, label in self._virtual_object_fields(obj)
+            if api_name not in known
+        )
+        return sorted(fields, key=lambda entry: entry[0])
+
     def _refresh_fields_list(self, obj: str | None) -> None:
         self.fields_tree.delete(*self.fields_tree.get_children())
         if obj:
             for api_name, label in self._list_object_fields(obj):
-                self.fields_tree.insert("", tk.END, iid=api_name, values=(label, api_name))
+                tags = (VIRTUAL_ROW_TAG,) if self._is_virtual_field(obj, api_name) else ()
+                self.fields_tree.insert(
+                    "", tk.END, iid=api_name, values=(label, api_name), tags=tags
+                )
         self._set_field_comment_target(None)
 
     def _on_field_select(self, event: tk.Event) -> None:
@@ -128,6 +145,17 @@ class _DataDictionaryFieldInfoMixin:
         obj = self.current_comment_object
         field_api_name = self.current_comment_field
         if not obj or not field_api_name:
+            return
+
+        # A virtual field has no existence outside these mappings, so
+        # deleting its info offers to drop the field itself for good.
+        if self._is_virtual_field(obj, field_api_name) and messagebox.askyesno(
+            self.app._t("data_dictionary_virtual_delete_field_title"),
+            self.app._t("data_dictionary_virtual_delete_field_confirm", name=field_api_name),
+        ):
+            self._delete_virtual_field(obj, field_api_name)
+            self._refresh_fields_list(obj)
+            self._refresh_selected_list()
             return
 
         changed = False

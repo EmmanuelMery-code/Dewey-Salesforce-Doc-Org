@@ -21,6 +21,7 @@ from src.core.data_model_graph import (
     UNRELATED,
     DataModelCluster,
     DataModelLink,
+    exclude_virtual,
     plan_data_model_tabs,
 )
 from src.core.models import ObjectInfo
@@ -162,7 +163,9 @@ class DrawioDiagramWriter:
             )
             return None
 
-        by_name = {obj.api_name: obj for obj in objects if obj.api_name}
+        by_name = {
+            obj.api_name: obj for obj in exclude_virtual(objects) if obj.api_name
+        }
         mxfile = ET.Element("mxfile", host="Dewey")
         for index, cluster in enumerate(clusters):
             mxfile.append(self._render_tab(index, cluster, by_name))

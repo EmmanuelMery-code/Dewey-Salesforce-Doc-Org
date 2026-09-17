@@ -10,6 +10,9 @@ from src.core.data_dictionary_selection import (
 )
 from src.core.models import FieldInfo, ObjectInfo
 from src.ui.data_dictionary_screen.field_info import _DataDictionaryFieldInfoMixin
+from src.ui.data_dictionary_screen.virtual_entries import (
+    _DataDictionaryVirtualEntriesMixin,
+)
 
 
 def _object(api_name: str, *field_names: str) -> ObjectInfo:
@@ -187,7 +190,7 @@ class _App:
         return key
 
 
-class _FieldPanel(_DataDictionaryFieldInfoMixin):
+class _FieldPanel(_DataDictionaryFieldInfoMixin, _DataDictionaryVirtualEntriesMixin):
     """Minimal stand-in for the screen, enough to drive the panel's
     save/delete logic without a Tk display."""
 
@@ -200,6 +203,8 @@ class _FieldPanel(_DataDictionaryFieldInfoMixin):
         self.field_comments: dict[str, dict[str, str]] = {}
         self.field_piloted_by: dict[str, dict[str, str]] = {}
         self.field_status: dict[str, dict[str, str]] = {}
+        self.virtual_objects: dict[str, dict[str, str]] = {}
+        self.virtual_fields: dict[str, dict[str, dict[str, str]]] = {}
         self.field_comment_var = _Var()
         self.field_piloted_by_var = _Var()
         self.field_status_var = _Var(self.STATUS_OPTIONS[0])

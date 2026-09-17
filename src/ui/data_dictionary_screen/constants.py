@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import unicodedata
 
+#: Treeview tag marking a row declared "En conception" rather than read
+#: from the org metadata.
+VIRTUAL_ROW_TAG = "virtual"
+
 
 def _normalize_csv_header(value: str) -> str:
     """Accent/case-insensitive normalization used to recognize CSV columns
