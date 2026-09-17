@@ -57,6 +57,10 @@ class _VirtualEntryDialog:
     message to display, or ``None`` to accept.
     """
 
+    #: Wide enough for the free-text "Commentaire Dewey" row; the grid makes
+    #: every row share it, so the whole dialog widens with it.
+    ENTRY_WIDTH = 46
+
     def __init__(self, parent: tk.Misc, app, title: str, specs, validate) -> None:
         self.app = app
         self.validate = validate
@@ -79,7 +83,7 @@ class _VirtualEntryDialog:
             if values:
                 widget = ttk.Combobox(frame, textvariable=variable, values=list(values))
             else:
-                widget = ttk.Entry(frame, textvariable=variable, width=32)
+                widget = ttk.Entry(frame, textvariable=variable, width=self.ENTRY_WIDTH)
             widget.grid(row=row, column=1, sticky="ew", padx=(theme.SPACE_MD, 0), pady=theme.SPACE_XS)
             if row == 0:
                 widget.focus_set()
@@ -171,9 +175,13 @@ class _DataDictionaryVirtualEntriesMixin:
 
     # ------------------------------------------------------------ mutation
 
-    def _create_virtual_object(self, api_name: str, label: str) -> None:
+    def _create_virtual_object(self, api_name: str, label: str, comment: str = "") -> None:
         self.virtual_objects[api_name] = {"label": label}
         self.object_status[api_name] = IN_DESIGN_STATUS
+        # Only a non-empty comment is stored, as ``_save_comment`` does, so the
+        # mapping never carries empty values.
+        if comment:
+            self.object_comments[api_name] = comment
         self.selected_objects.add(api_name)
         if api_name not in self.all_objects:
             self.all_objects = sorted([*self.all_objects, api_name])
@@ -183,13 +191,17 @@ class _DataDictionaryVirtualEntriesMixin:
         self.app._save_settings()
 
     def _create_virtual_field(
-        self, obj: str, api_name: str, label: str, field_type: str
+        self, obj: str, api_name: str, label: str, field_type: str, comment: str = ""
     ) -> None:
         self.virtual_fields.setdefault(obj, {})[api_name] = {
             "label": label,
             "type": field_type,
         }
         self.field_status.setdefault(obj, {})[api_name] = IN_DESIGN_STATUS
+        # Only a non-empty comment is stored, as ``_save_field_comment`` does,
+        # which also means the object key itself stays out when there is none.
+        if comment:
+            self.field_comments.setdefault(obj, {})[api_name] = comment
         self._persist_virtual_entries()
         self._persist_field_comments()
 
@@ -289,6 +301,7 @@ class _DataDictionaryVirtualEntriesMixin:
             [
                 ("api_name", self.app._t("data_dictionary_virtual_api_name_label"), None),
                 ("label", self.app._t("data_dictionary_virtual_label_label"), None),
+                ("comment", self.app._t("data_dictionary_virtual_comment_label"), None),
             ],
             lambda values: self._virtual_object_error(values["api_name"], values["label"]),
         )
@@ -296,7 +309,9 @@ class _DataDictionaryVirtualEntriesMixin:
             return
 
         api_name = dialog.result["api_name"]
-        self._create_virtual_object(api_name, dialog.result["label"])
+        self._create_virtual_object(
+            api_name, dialog.result["label"], dialog.result["comment"]
+        )
         self._refresh_lists()
         self._set_comment_target(api_name)
 
@@ -317,6 +332,7 @@ class _DataDictionaryVirtualEntriesMixin:
                 ("api_name", self.app._t("data_dictionary_virtual_api_name_label"), None),
                 ("label", self.app._t("data_dictionary_virtual_label_label"), None),
                 ("type", self.app._t("data_dictionary_virtual_type_label"), VIRTUAL_FIELD_TYPES),
+                ("comment", self.app._t("data_dictionary_virtual_comment_label"), None),
             ],
             lambda values: self._virtual_field_error(
                 obj, values["api_name"], values["label"], values["type"]
@@ -327,7 +343,11 @@ class _DataDictionaryVirtualEntriesMixin:
 
         api_name = dialog.result["api_name"]
         self._create_virtual_field(
-            obj, api_name, dialog.result["label"], dialog.result["type"]
+            obj,
+            api_name,
+            dialog.result["label"],
+            dialog.result["type"],
+            dialog.result["comment"],
         )
         self._refresh_fields_list(obj)
         self._refresh_selected_list()

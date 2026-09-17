@@ -307,6 +307,7 @@ FR_PART2: dict[str, str] = {
     "data_dictionary_virtual_api_name_label": "Nom API",
     "data_dictionary_virtual_label_label": "Label",
     "data_dictionary_virtual_type_label": "Type",
+    "data_dictionary_virtual_comment_label": "Commentaire Dewey (facultatif)",
     "data_dictionary_virtual_dialog_create": "Créer",
     "data_dictionary_virtual_dialog_cancel": "Annuler",
     "data_dictionary_virtual_error_api_name_required": "Le nom API est obligatoire.",

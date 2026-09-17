@@ -113,6 +113,27 @@ class TestCreation:
             ("Name", "Name"),
         ]
 
+    def test_a_comment_typed_at_creation_is_stored(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+
+        screen._create_virtual_object("Projet__c", "Projet", "Objet du chantier 2027")
+        screen._create_virtual_field(
+            "Account", "Budget__c", "Budget", "Currency", "Montant previsionnel"
+        )
+
+        assert screen.object_comments == {"Projet__c": "Objet du chantier 2027"}
+        assert screen.field_comments == {"Account": {"Budget__c": "Montant previsionnel"}}
+
+    def test_no_comment_stores_nothing_at_all(self) -> None:
+        """Blank leaves the mappings untouched, as the save panels do."""
+        screen = _Screen(metadata_objects={"Account"})
+
+        screen._create_virtual_object("Projet__c", "Projet")
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency", "")
+
+        assert screen.object_comments == {}
+        assert screen.field_comments == {}
+
 
 class TestPersistence:
     def test_both_mappings_round_trip_through_the_settings(self) -> None:
@@ -522,6 +543,8 @@ class TestGeneratedDeliverables:
         selection = DataDictionarySelection(
             objects={"Account", "Compte_Parent__c", "Projet__c", "Atelier__c"},
             object_status={"Account": IN_DESIGN_STATUS},
+            object_comments={"Projet__c": "Chantier de refonte 2027"},
+            field_comments={"Projet__c": {"Budget__c": "Montant previsionnel annuel"}},
             virtual_objects={
                 "Projet__c": {"label": "Projet en conception"},
                 "Atelier__c": {"label": "Atelier sans champ"},
@@ -580,6 +603,10 @@ class TestGeneratedDeliverables:
         rows = {row[0]: row for row in summary[1:]}
         assert rows["Projet__c"][1] == "Projet en conception"
         assert rows["Projet__c"][headers.index("Status")] == IN_DESIGN_STATUS
+        assert (
+            rows["Projet__c"][headers.index("Commentaire Dewey")]
+            == "Chantier de refonte 2027"
+        )
 
         field_headers = [cell.value for cell in workbook["Account"][1]]
         account_rows = {row[0].value: row for row in workbook["Account"].iter_rows(min_row=2)}
@@ -587,9 +614,12 @@ class TestGeneratedDeliverables:
         assert segment[field_headers.index("Type")].value == "Picklist"
         assert segment[field_headers.index("Status")].value == IN_DESIGN_STATUS
         projet_rows = {row[0].value: row for row in workbook["Projet__c"].iter_rows(min_row=2)}
-        assert projet_rows["Budget__c"][
-            field_headers.index("Status")
-        ].value == IN_DESIGN_STATUS
+        budget = projet_rows["Budget__c"]
+        assert budget[field_headers.index("Status")].value == IN_DESIGN_STATUS
+        assert (
+            budget[field_headers.index("Commentaire Dewey")].value
+            == "Montant previsionnel annuel"
+        )
 
     def test_a_field_less_virtual_object_gets_an_empty_excel_sheet(self, tmp_path) -> None:
         openpyxl = pytest.importorskip("openpyxl")
@@ -637,7 +667,14 @@ class TestGeneratedDeliverables:
         writer.write_combined_data_dictionary_html(self._snapshot(tmp_path), output_path)
 
         content = output_path.read_text(encoding="utf-8")
-        for absent in ("Projet__c", "Atelier__c", "Budget__c", "Segment__c"):
+        for absent in (
+            "Projet__c",
+            "Atelier__c",
+            "Budget__c",
+            "Segment__c",
+            "Chantier de refonte 2027",
+            "Montant previsionnel annuel",
+        ):
             assert absent not in content
         # A real object manually set to "En conception" keeps its page.
         assert "Account" in content
@@ -674,6 +711,19 @@ class TestGeneratedDeliverables:
         assert IN_DESIGN_STATUS in text
         assert "Segment__c" in text
         assert "Budget__c" in text
+        # The object comment reaches its information table. The field comment
+        # cannot: the Word fields table renders Label / API Name / Type /
+        # Description only, with no per-field Dewey column — a pre-existing
+        # limitation shared with real fields, Excel being the only deliverable
+        # that carries per-field Dewey values.
+        assert "Chantier de refonte 2027" in text
+        assert "Montant previsionnel annuel" not in text
+        assert [cell.text for cell in self._chapter_tables(document, "Projet__c")[-1].rows[0].cells] == [
+            "Label",
+            "API Name",
+            "Type",
+            "Description",
+        ]
 
     @staticmethod
     def _chapter_tables(document, chapter_fragment: str) -> list:
@@ -725,7 +775,14 @@ class TestGeneratedDeliverables:
         )
 
         content = output_path.read_text(encoding="utf-8")
-        for absent in ("Projet__c", "Atelier__c", "Budget__c", "Segment__c"):
+        for absent in (
+            "Projet__c",
+            "Atelier__c",
+            "Budget__c",
+            "Segment__c",
+            "Chantier de refonte 2027",
+            "Montant previsionnel annuel",
+        ):
             assert absent not in content
         # The real objects and the real field carrying their relationship stay.
         assert "Account" in content
