@@ -48,6 +48,10 @@ exclusion_PV.xlsx
 # from the last retrieve, without replaying a full analysis.
 /regen_*.py
 
+# Local helper scripts for the Data Dictionary workbooks (client data plumbing,
+# run by hand from this workspace and not part of the tool).
+/tools/
+
 # Local SFDX projects used to fix or deploy an org from this workspace
 /smatch-org/
 /smatch-fix/
