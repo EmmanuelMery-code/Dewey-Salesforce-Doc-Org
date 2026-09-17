@@ -1,0 +1,180 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="dewey-mode-a" name="Mode A pipeline">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Mode A — SalesforceDocumentationGenerator.generate(): 11 synchronous steps on a worker thread" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1000" height="34" as="geometry" />
+        </mxCell>
+
+        <mxCell id="laneA" value="UI thread — Tkinter" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;align=center;fontStyle=1;fontSize=13;fontColor=#555555;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="300" height="800" as="geometry" />
+        </mxCell>
+        <mxCell id="laneB" value="Worker thread — daemon, synchronous pipeline" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;align=center;fontStyle=1;fontSize=13;fontColor=#555555;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="360" y="50" width="450" height="800" as="geometry" />
+        </mxCell>
+        <mxCell id="laneC" value="Artifacts written to disk" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;align=center;fontStyle=1;fontSize=13;fontColor=#555555;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="830" y="50" width="430" height="800" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u1" value="app.py → Application (tk.Tk)&lt;br&gt;8 mixins: UI, settings, language,&lt;br&gt;SF CLI, doc task, generation, CLI, AI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="90" width="260" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="u2" value="TaskManager.start_task(...)&lt;br&gt;refuses if a worker is alive" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="186" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="u3" value="Queue&lt;br&gt;(&quot;log&quot;, &quot;done&quot;, &quot;error&quot;)" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="105" y="280" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="u4" value="Application.after(150, poll_queue)&lt;br&gt;drains the queue on the Tk thread" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="390" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="u5" value="log pane + progress&lt;br&gt;+ success / error dialog" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="472" width="260" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="u6" value="Every downstream module receives&lt;br&gt;log_callback = task_manager.queue_log.&lt;br&gt;That is why the parser and the&lt;br&gt;orchestrator never import Tkinter." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;dashed=1;fontSize=10;align=left;spacingLeft=8;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="560" width="260" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="u7" value="app.py --action X --silent&lt;br&gt;hides the window, runs the same&lt;br&gt;pipeline synchronously, then&lt;br&gt;sys.exit(app.cli_exit_code)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;dashed=1;fontSize=10;align=left;spacingLeft=8;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="660" width="260" height="76" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1" value="1 — Parse: SalesforceMetadataParser.parse()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="90" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="2 — Enrich: config, test coverage, debt, innovations" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="152" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="3 — Excel workbooks + data-model diagram" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="214" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="4 — Reviews: review_apex_artifact / review_flow" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="276" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" value="5 — PMD (optional, PmdService)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="338" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s6" value="6 — Analyze: RuleCatalog.load() → AnalyzerEngine.analyze_snapshot()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="380" y="400" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s7" value="7 — Findings Excel / SARIF export (optional)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="462" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s8" value="8 — Metrics: AI usage, data model, selected usage, adoption" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="524" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s9" value="9 — Word: data dictionary + summary" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="586" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s10" value="10 — HTML: ~30 pages via html/renderers/*" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="648" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="s11" value="11 — History: HistoryService.add_entry()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="710" width="410" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="snote" value="Each writer runs inside _safe_run: one failing writer logs and is skipped, it does not abort the run." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;dashed=1;fontSize=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="380" y="772" width="410" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="o1" value="MetadataSnapshot (in memory)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;dashed=1;fontSize=11;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="850" y="94" width="390" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="o3" value="*.xlsx — inventory, security, picklists, data dictionary, PSG, debt&lt;br&gt;+ data model .drawio" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="212" width="390" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="o4" value="ReviewResult per Apex class / Flow (prose advice)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;dashed=1;fontSize=11;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="850" y="280" width="390" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="o6" value="AnalyzerReport — 11 dicts of name → list[Finding]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;dashed=1;fontSize=11;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="850" y="404" width="390" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="o7" value="Dewey_Findings_*.xlsx  ·  report.sarif (SARIF 2.1.0)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="466" width="390" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="o9" value="*.docx — data dictionary + summary" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="590" width="390" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="o10" value="html/ — index, findings, debt, adoption, methodology,&lt;br&gt;listings, one page per object / Apex / Flow / Omni / profile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="644" width="390" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="o11" value="history.db (SQLite) — feeds the trend dashboard&lt;br&gt;and the run-comparison page" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="850" y="706" width="390" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="u1" target="u2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" value="spawns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="u2" target="s1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" value="queue_log" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#d6b656;fontSize=10;dashed=1;" edge="1" parent="1" source="s6" target="u3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="u3" target="u4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="u4" target="u5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s1" target="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s2" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s3" target="s4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s4" target="s5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s5" target="s6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s6" target="s7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s7" target="s8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s8" target="s9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s9" target="s10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="s10" target="s11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="g1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s1" target="o1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s3" target="o3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s4" target="o4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s6" target="o6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s7" target="o7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s9" target="o9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s10" target="o10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#999999;dashed=1;" edge="1" parent="1" source="s11" target="o11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,115 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="dewey-rule-pipeline" name="Rule evaluation pipeline">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="From a &amp;lt;rule&amp;gt; element to a Finding — and the four gates that can suppress it" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1000" height="34" as="geometry" />
+        </mxCell>
+
+        <mxCell id="phase1" value="A — Load the catalog (once per run)" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontStyle=1;fontSize=12;fontColor=#555555;" vertex="1" parent="1">
+          <mxGeometry x="40" y="55" width="520" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="src-xml" value="src/analyzer/rules.xml&lt;br&gt;52 &amp;lt;rule&amp;gt; elements&lt;br&gt;French text + &amp;lt;translation lang=&quot;en&quot;&amp;gt;" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="95" width="230" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="src-soql" value="Mode B alternative:&lt;br&gt;DeweyRule__c via SOQL&lt;br&gt;(SfConfigService)" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="315" y="95" width="225" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="load" value="load_rules(path, language)&lt;br&gt;_localized_child: use the &amp;lt;translation&amp;gt; child if non-empty,&lt;br&gt;otherwise fall back to French — never blank" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="195" width="480" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="catalog" value="RuleCatalog — all · enabled · get(id) · for_scope(scope) · t(key)&lt;br&gt;disabled rules stay in the catalog, so each analyzer must check rule.enabled" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="275" width="480" height="52" as="geometry" />
+        </mxCell>
+
+        <mxCell id="phase2" value="B — Facts already computed by the parser" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontStyle=1;fontSize=12;fontColor=#555555;" vertex="1" parent="1">
+          <mxGeometry x="600" y="55" width="610" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="facts" value="MetadataSnapshot&lt;br&gt;&lt;br&gt;ApexArtifact.query_in_loop / dml_in_loop / callout_in_loop&lt;br&gt;ApexArtifact.line_count / comment_line_count / system_debug_count&lt;br&gt;FlowInfo.soql_in_loop / dml_in_loop / api_call_in_loop / max_depth&lt;br&gt;FlowInfo.unprotected_fault_elements&lt;br&gt;ValidationRuleInfo.complexity_score&lt;br&gt;SecurityArtifact permission bags · CustomizationMetrics counts" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=12;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="620" y="95" width="570" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="gate1" value="GATE 1 — metadata exclusion&lt;br&gt;the component was dropped from the snapshot entirely&lt;br&gt;(exclusion_mixin.py, 3-tier glob / substring / normalized match)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="265" width="570" height="62" as="geometry" />
+        </mxCell>
+
+        <mxCell id="phase3" value="C — Evaluate, per artifact" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontStyle=1;fontSize=12;fontColor=#555555;" vertex="1" parent="1">
+          <mxGeometry x="40" y="375" width="1170" height="400" as="geometry" />
+        </mxCell>
+
+        <mxCell id="engine" value="AnalyzerEngine.analyze_snapshot()&lt;br&gt;walks Apex → Flows → Objects/VR → Duplicate rules → Omni DT&lt;br&gt;→ Agents/Prompts → LWC/Aura → Security" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="415" width="330" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="analyzer" value="per-scope analyzer&lt;br&gt;apex_analyzer · flow_analyzer · object_analyzer&lt;br&gt;lwc_analyzer · aura_analyzer · security_analyzer · omni_analyzer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="505" width="330" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="check" value="one independent check per rule:&lt;br&gt;rule = catalog.get(id)&lt;br&gt;if rule and rule.enabled and &amp;lt;condition on the fact&amp;gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="595" width="330" height="72" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gate2" value="GATE 2&lt;br&gt;rule disabled?&lt;br&gt;enabled=&quot;false&quot;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="500" width="180" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="gate34" value="GATE 3 + 4 — _is_rule_applicable(rule, name, api_version)&lt;br&gt;&lt;br&gt;3. name in rule_exclusions[rule.id]  → suppressed&lt;br&gt;4. api_version outside [min_api_version, max_api_version] → suppressed" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="660" y="505" width="530" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="gate-note" value="Known asymmetry: SEC-001…SEC-005 bypass this gate — profiles and permission sets are passed straight to the security analyzer, so JSON exclusions and API-version windows have no effect on them." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;dashed=1;fontSize=10;align=left;spacingLeft=10;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="660" y="605" width="530" height="52" as="geometry" />
+        </mxCell>
+
+        <mxCell id="finding" value="Finding(rule, target_kind, target_name, message, details, source_path, line)&lt;br&gt;message built through catalog.t(key, **params) — localized at the source" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="690" width="560" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="sortbox" value="_sorted: sort by (SEVERITY_ORDER[severity], rule.id)&lt;br&gt;Critical 0 · Major 1 · Minor 2 · Info 3 — deterministic output" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="660" y="690" width="530" height="56" as="geometry" />
+        </mxCell>
+
+        <mxCell id="report" value="AnalyzerReport — apex · flows · objects · validation_rules · duplicate_rules · data_transforms · agents · prompts · lwc · aura · security&lt;br&gt;keys: component name, except &quot;Object.RuleName&quot; for VR/DR and the sentinel &quot;_org_&quot; for SEC-005&lt;br&gt;helpers: all_findings() · severity_counts() · rule_counts() · category_counts()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="800" width="1170" height="72" as="geometry" />
+        </mxCell>
+
+        <mxCell id="y1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="src-xml" target="load">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#d79b00;dashed=1;" edge="1" parent="1" source="src-soql" target="load">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="load" target="catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="catalog" target="engine">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#b85450;" edge="1" parent="1" source="facts" target="gate1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="gate1" target="engine">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="engine" target="analyzer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="analyzer" target="check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y9" value="checked inline" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1" source="analyzer" target="gate2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y10" value="applied by the engine" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#b85450;fontSize=10;" edge="1" parent="1" source="gate2" target="gate34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y11" value="survives all 4 gates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;fontSize=10;" edge="1" parent="1" source="check" target="finding">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#82b366;" edge="1" parent="1" source="finding" target="sortbox">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="y13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#9673a6;" edge="1" parent="1" source="sortbox" target="report">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
