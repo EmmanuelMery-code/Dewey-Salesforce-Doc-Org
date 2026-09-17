@@ -373,6 +373,10 @@ EN_PART2: dict[str, str] = {
     "findings_import_added": "{count} finding(s) present in the file but missing from the list were added to the organization.",
     "findings_import_none": "No filled-in Qualification or US column was found in this file.",
     "findings_import_error": "This workbook could not be read: {error}",
+    "findings_import_sheet_missing": (
+        "the sheet \"{expected}\" is missing. The file contains: {found}. "
+        "Rename the reviewed sheet to \"{expected}\", then import it again."
+    ),
     "findings_cache_failed": "Could not store the findings of this run: {error}",
     "menu_export_picklist_csvs": "Create the picklist CSV files",
     "picklist_csv_export_in_progress": "Exporting picklist CSV files...",

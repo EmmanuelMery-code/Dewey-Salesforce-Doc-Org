@@ -29,6 +29,7 @@ from src.core.findings_qualification import (
     save_qualifications,
 )
 from src.reporting.excel_reader_findings import (
+    FindingsSheetMissingError,
     FindingsWorkbookError,
     read_findings_qualifications,
 )
@@ -230,6 +231,23 @@ class TestWorkbookRoundTrip:
 
         with pytest.raises(FindingsWorkbookError):
             read_findings_qualifications(other)
+
+    def test_a_misnamed_sheet_names_both_the_expected_and_the_found_sheets(
+        self, tmp_path: Path
+    ) -> None:
+        renamed = tmp_path / "renamed.xlsx"
+        workbook = openpyxl.Workbook()
+        workbook.active.title = "Sheet1"
+        workbook.create_sheet("Légende")
+        workbook.save(renamed)
+
+        with pytest.raises(FindingsSheetMissingError) as error:
+            read_findings_qualifications(renamed)
+
+        assert error.value.expected == FINDINGS_SHEET
+        assert error.value.found == ("Sheet1", "Légende")
+        assert FINDINGS_SHEET in str(error.value)
+        assert "Sheet1" in str(error.value)
 
     def test_a_non_excel_file_is_rejected(self, tmp_path: Path) -> None:
         text = tmp_path / "notes.txt"

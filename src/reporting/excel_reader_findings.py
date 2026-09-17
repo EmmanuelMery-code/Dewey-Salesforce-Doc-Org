@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -52,6 +53,22 @@ class FindingsWorkbookError(Exception):
     """Raised when a file cannot be read as a Dewey findings workbook."""
 
 
+class FindingsSheetMissingError(FindingsWorkbookError):
+    """Raised when the workbook holds no sheet named like the Dewey export.
+
+    Both names are kept apart from the message so the caller can name them
+    in its own language and tell the reviewer which sheet to rename.
+    """
+
+    def __init__(self, expected: str, found: Sequence[str]) -> None:
+        self.expected = expected
+        self.found = tuple(found)
+        super().__init__(
+            f"Sheet '{expected}' not found. Sheets in the file: "
+            f"{', '.join(self.found)}."
+        )
+
+
 @dataclass(slots=True)
 class ImportedFinding:
     """One data row of a reviewed workbook."""
@@ -79,9 +96,7 @@ def read_findings_workbook(workbook_path: str | Path) -> list[ImportedFinding]:
 
     try:
         if FINDINGS_SHEET not in workbook.sheetnames:
-            raise FindingsWorkbookError(
-                f"Feuille « {FINDINGS_SHEET} » absente du fichier."
-            )
+            raise FindingsSheetMissingError(FINDINGS_SHEET, workbook.sheetnames)
         rows = list(workbook[FINDINGS_SHEET].iter_rows(values_only=True))
     finally:
         workbook.close()

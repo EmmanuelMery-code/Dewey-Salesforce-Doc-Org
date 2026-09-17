@@ -46,6 +46,7 @@ from src.core.findings_qualification import (
     store_alias,
 )
 from src.reporting.excel_reader_findings import (
+    FindingsSheetMissingError,
     FindingsWorkbookError,
     read_findings_workbook,
 )
@@ -393,6 +394,19 @@ class FindingsScreen:
 
         try:
             rows = read_findings_workbook(file_path)
+        except FindingsSheetMissingError as exc:
+            messagebox.showerror(
+                self.app._t("error_title"),
+                self.app._t(
+                    "findings_import_error",
+                    error=self.app._t(
+                        "findings_import_sheet_missing",
+                        expected=exc.expected,
+                        found=", ".join(exc.found),
+                    ),
+                ),
+            )
+            return
         except FindingsWorkbookError as exc:
             messagebox.showerror(
                 self.app._t("error_title"),

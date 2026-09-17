@@ -376,6 +376,10 @@ FR_PART2: dict[str, str] = {
     "findings_import_added": "{count} finding(s) présent(s) dans le fichier mais absent(s) de la liste ont été ajouté(s) à l'organisation.",
     "findings_import_none": "Aucune colonne Qualification ou US renseignée n'a été trouvée dans ce fichier.",
     "findings_import_error": "Impossible de lire ce classeur : {error}",
+    "findings_import_sheet_missing": (
+        "la feuille « {expected} » est absente. Le fichier contient : {found}. "
+        "Renommez la feuille relue en « {expected} », puis relancez l'import."
+    ),
     "findings_cache_failed": "Impossible d'enregistrer les findings de cette génération : {error}",
     "menu_export_picklist_csvs": "Créer les CSV des picklists",
     "picklist_csv_export_in_progress": "Export des CSV des picklists en cours...",
