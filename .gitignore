@@ -61,6 +61,10 @@ exclusion.backup-*.json
 # that git cannot diff or compress, kept locally rather than in the history.
 /docs/presentation/
 
+# Local archives of the documentation folder: binaries git cannot diff, and a
+# duplicate of files already tracked next to them.
+/docs/*.7z
+
 # Local helper scripts for the Data Dictionary workbooks (client data plumbing,
 # run by hand from this workspace and not part of the tool).
 /tools/
