@@ -183,16 +183,25 @@ def _analyze_class(artifact: ApexArtifact, catalog: RuleCatalog) -> list[Finding
 
     # APEX-MAINT-001 : class length
     rule = catalog.get("APEX-MAINT-001")
-    if rule and rule.enabled and artifact.line_count > 500:
-        findings.append(
-            Finding(
-                rule=rule,
-                target_kind="ApexClass",
-                target_name=artifact.name,
-                message=catalog.t("apex.class_length.message", lines=artifact.line_count),
-                source_path=artifact.source_path,
+    if rule and rule.enabled:
+        code_lines = _count_code_lines(artifact.body)
+        if code_lines > 500:
+            findings.append(
+                Finding(
+                    rule=rule,
+                    target_kind="ApexClass",
+                    target_name=artifact.name,
+                    message=catalog.t("apex.class_length.message", lines=code_lines),
+                    details=[
+                        catalog.t(
+                            "apex.class_length.detail",
+                            code=code_lines,
+                            total=artifact.line_count,
+                        )
+                    ],
+                    source_path=artifact.source_path,
+                )
             )
-        )
 
     # APEX-MAINT-002 : comment density
     rule = catalog.get("APEX-MAINT-002")

@@ -266,7 +266,7 @@
         severity="Minor" source="PMD ExcessiveClassLength"
         reference="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#excessiveclasslength" min_api_version="10.0" max_api_version="100.0">
     <title>Classe Apex trop longue</title>
-    <description>Classe depassant 500 lignes, seuil propose par PMD pour les composants Apex.</description>
+    <description>Classe depassant 500 lignes de code hors commentaires et lignes vides, seuil propose par PMD pour les composants Apex.</description>
     <rationale>
       Une classe longue melange souvent plusieurs responsabilites et complique la lecture,
       les tests et les evolutions (Easy > Readability + Adaptable > Separation of Concerns).
@@ -275,7 +275,7 @@
 
     <translation lang="en">
       <title>Apex class too long</title>
-      <description>Class longer than 500 lines, the threshold suggested by PMD for Apex components.</description>
+      <description>Class longer than 500 code lines, excluding comments and blank lines, the threshold suggested by PMD for Apex components.</description>
       <rationale>
           A long class often mixes several responsibilities and makes reading, testing and evolving
       harder (Easy &gt; Readability and Adaptable &gt; Separation of Concerns).

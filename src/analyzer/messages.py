@@ -58,7 +58,13 @@ MESSAGES: dict[str, dict[str, str]] = {
             "Aucune garde de reentrance evidente (Set<Id>/flag static) consultee "
             "dans la methode."
         ),
-        "apex.class_length.message": "Classe de {lines} lignes (seuil recommande : 500).",
+        "apex.class_length.message": (
+            "Classe de {lines} lignes de code hors commentaires (seuil recommande : 500)."
+        ),
+        "apex.class_length.detail": (
+            "{code} lignes de code sur {total} lignes de fichier "
+            "(commentaires et lignes vides exclus)."
+        ),
         "apex.comment_density.message": "Densite de commentaires = {ratio} (recommande >= 5%).",
         "apex.comment_density.detail": "{commented} lignes commentees sur {total}.",
         "apex.system_debug.message": "{count} appels 'System.debug' presents dans la classe.",
@@ -215,7 +221,13 @@ MESSAGES: dict[str, dict[str, str]] = {
         "apex.recursion.detail_no_guard": (
             "No obvious reentrancy guard (Set<Id>/static flag) read inside the method."
         ),
-        "apex.class_length.message": "Class of {lines} lines (recommended threshold: 500).",
+        "apex.class_length.message": (
+            "Class of {lines} code lines excluding comments (recommended threshold: 500)."
+        ),
+        "apex.class_length.detail": (
+            "{code} code lines out of {total} file lines "
+            "(comments and blank lines excluded)."
+        ),
         "apex.comment_density.message": "Comment density = {ratio} (recommended >= 5%).",
         "apex.comment_density.detail": "{commented} commented lines out of {total}.",
         "apex.system_debug.message": "{count} 'System.debug' calls present in the class.",
