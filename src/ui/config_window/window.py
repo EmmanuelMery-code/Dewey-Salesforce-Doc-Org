@@ -141,6 +141,9 @@ def show_configuration_screen(app: Application) -> None:
         ),
         "run_tests": tk.BooleanVar(value=bool(app.run_tests_var.get())),
         "calculate_coverage": tk.BooleanVar(value=bool(app.calculate_coverage_var.get())),
+        "coverage_alert_threshold": tk.StringVar(
+            value=app.coverage_alert_threshold_var.get()
+        ),
         "include_comparison": tk.BooleanVar(value=bool(app.include_comparison_var.get())),
         "comparison_target": tk.StringVar(value=app.comparison_target_var.get()),
         "show_card_customization_level": tk.BooleanVar(

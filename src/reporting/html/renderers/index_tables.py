@@ -8,6 +8,7 @@ from typing import Collection
 
 from src.core.models import MetadataSnapshot
 from src.core.utils import html_value
+from src.reporting.html.coverage_alert import coverage_alert_marker
 from src.reporting.html.page_shell import href_relative, tabbed_sections
 from src.reporting.html.renderers.psg_summary import render_psg_group_summary
 
@@ -234,7 +235,8 @@ def render_apex_rows(
     current_path: Path,
 ) -> str:
     return "".join(
-        f"<tr><td><a href='{href_relative(current_path, apex_pages[item.name])}'>{html_value(item.name)}</a></td>"
+        f"<tr><td><a href='{href_relative(current_path, apex_pages[item.name])}'>{html_value(item.name)}</a>"
+        f"{coverage_alert_marker(item.test_coverage)}</td>"
         f"<td>{html_value(item.kind)}</td><td>{item.line_count}</td><td>{item.method_count}</td>"
         f"<td>{(f'{item.test_coverage:.1f}% ({item.test_coverage_lines_covered}/{item.test_coverage_lines_covered + item.test_coverage_lines_uncovered} lignes)') if item.test_coverage is not None else 'N/A'}</td></tr>"
         for item in snapshot.apex_artifacts

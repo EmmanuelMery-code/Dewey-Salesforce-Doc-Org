@@ -22,6 +22,7 @@ from typing import Callable
 
 from src.core.data_dictionary_selection import DataDictionarySelection
 from src.core.orchestrator import GenerationResult, SalesforceDocumentationGenerator
+from src.ui.settings import parse_coverage_threshold
 
 
 class AppDocumentationTaskMixin:
@@ -81,6 +82,9 @@ class AppDocumentationTaskMixin:
         # drives the extra workbook, while the HTML index uses the picked
         # objects to offer its "selected objects only" filters.
         dd_selection = DataDictionarySelection.from_settings(self.settings)
+        coverage_alert_threshold = parse_coverage_threshold(
+            self.coverage_alert_threshold_var.get()
+        )
         generate_org_check = bool(self.generate_org_check_reports_var.get())
         org_check_choice = self.org_check_choice_var.get().strip()
         run_alias = self._run_alias(org_ref)
@@ -144,6 +148,7 @@ class AppDocumentationTaskMixin:
                 index_card_visibility=self._current_index_card_visibility(),
                 one_page_max_depth=int(self.one_page_max_depth_var.get()),
                 one_page_hub_threshold=int(self.one_page_hub_threshold_var.get()),
+                coverage_alert_threshold=coverage_alert_threshold,
                 language=self.language,
                 include_comparison=bool(self.include_comparison_var.get()),
                 comparison_target=self.comparison_target_var.get().strip() or "auto",

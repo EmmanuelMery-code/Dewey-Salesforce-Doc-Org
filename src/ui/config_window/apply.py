@@ -12,7 +12,7 @@ from src.ui import (
     analyzer_rules_panel,
     posture_capability_panel,
 )
-from src.ui.settings import DEFAULT_AI_USAGE_TAGS
+from src.ui.settings import DEFAULT_AI_USAGE_TAGS, parse_coverage_threshold
 
 if TYPE_CHECKING:
     from src.ui.application import Application
@@ -105,6 +105,9 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     )
     app.run_tests_var.set(bool(edit_vars["run_tests"].get()))
     app.calculate_coverage_var.set(bool(edit_vars["calculate_coverage"].get()))
+    app.coverage_alert_threshold_var.set(
+        f"{parse_coverage_threshold(edit_vars['coverage_alert_threshold'].get()):g}"
+    )
     app.include_comparison_var.set(bool(edit_vars["include_comparison"].get()))
     app.comparison_target_var.set(
         _canonical_comparison_target(edit_vars["comparison_target"].get())

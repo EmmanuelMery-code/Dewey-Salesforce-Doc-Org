@@ -365,6 +365,9 @@ class Application(
         self.calculate_coverage_var = tk.BooleanVar(
             value=bool(self.settings.get("calculate_coverage", True))
         )
+        self.coverage_alert_threshold_var = tk.StringVar(
+            value=str(self.settings.get("coverage_alert_threshold", 75))
+        )
         self.include_comparison_var = tk.BooleanVar(
             value=bool(self.settings.get("include_comparison", False))
         )

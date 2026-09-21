@@ -6,6 +6,7 @@ from pathlib import Path
 
 from src.core.models import MetadataSnapshot
 from src.core.utils import html_value
+from src.reporting.html.coverage_alert import coverage_alert_marker
 from src.reporting.html.page_shell import href_relative, index_back_link
 from src.reporting.html.renderers.listing_tables import LogCallback, _table, _write
 
@@ -90,7 +91,7 @@ def write_apex_list_page(
             )
             result.append(
                 f"<tr>"
-                f"<td>{name_cell}</td>"
+                f"<td>{name_cell}{coverage_alert_marker(getattr(art, 'test_coverage', None))}</td>"
                 f"<td>{art.line_count}</td>"
                 f"<td>{art.method_count}</td>"
                 f"<td>{html_value(art.api_version)}</td>"

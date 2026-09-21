@@ -59,6 +59,7 @@ class _OrchestratorState:
     innovation_colors: dict[str, str]
     one_page_max_depth: int | None
     one_page_hub_threshold: int | None
+    coverage_alert_threshold: float | None
     index_card_visibility: IndexCardVisibility
     language: str
     log: LogCallback

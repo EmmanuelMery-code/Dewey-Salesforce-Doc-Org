@@ -66,6 +66,7 @@ class SalesforceDocumentationGenerator(
         index_card_visibility: IndexCardVisibility | None = None,
         one_page_max_depth: int | None = None,
         one_page_hub_threshold: int | None = None,
+        coverage_alert_threshold: float | None = None,
         language: str = "fr",
         include_comparison: bool = False,
         comparison_target: str = "auto",
@@ -129,6 +130,7 @@ class SalesforceDocumentationGenerator(
         self.innovation_colors = innovation_colors or {}
         self.one_page_max_depth = one_page_max_depth
         self.one_page_hub_threshold = one_page_hub_threshold
+        self.coverage_alert_threshold = coverage_alert_threshold
         self.index_card_visibility = (
             index_card_visibility
             if index_card_visibility is not None

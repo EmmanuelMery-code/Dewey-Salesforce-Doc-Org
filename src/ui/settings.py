@@ -108,6 +108,33 @@ def _coerce_int(value: Any) -> int | None:
     return None
 
 
+DEFAULT_COVERAGE_ALERT_THRESHOLD = 75.0
+
+
+def parse_coverage_threshold(
+    value: Any, default: float = DEFAULT_COVERAGE_ALERT_THRESHOLD
+) -> float:
+    """Return ``value`` as a percentage clamped to 0-100.
+
+    The field is a free-text entry, so the user may type ``"80"``, ``"80 %"``
+    or garbage; anything unparseable falls back to ``default``.
+    """
+
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, (int, float)):
+        number = float(value)
+    elif isinstance(value, str):
+        text = value.strip().rstrip("%").strip().replace(",", ".")
+        try:
+            number = float(text)
+        except ValueError:
+            return default
+    else:
+        return default
+    return max(0.0, min(100.0, number))
+
+
 DEFAULT_AI_USAGE_TAGS: tuple[str, ...] = ("@IAgenerated", "@IAassisted")
 
 

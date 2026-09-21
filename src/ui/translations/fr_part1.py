@@ -314,4 +314,11 @@ FR_PART1: dict[str, str] = {
     "configuration_section_tests": "Tests et Couverture",
     "configuration_run_tests": "Executer les tests Apex (sf apex run test)",
     "configuration_calculate_coverage": "Calculer la couverture de tests",
+    "configuration_coverage_alert_threshold": (
+        "Signaler les classes dont la couverture est inferieure a :"
+    ),
+    "configuration_coverage_alert_threshold_hint": (
+        "Les classes sous ce seuil sont marquees d'un pictogramme d'alerte a droite de "
+        "leur nom dans l'onglet Apex / Trigger de l'index et sur la page apex_list.html."
+    ),
 }

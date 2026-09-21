@@ -348,7 +348,10 @@ class _StepsMixin(_OrchestratorState):
             set_one_page_node_descriptions,
             set_one_page_test_names,
         )
+        from src.reporting.html.coverage_alert import configure_coverage_alert
+
         configure_one_page(self.one_page_max_depth, self.one_page_hub_threshold)
+        configure_coverage_alert(self.coverage_alert_threshold)
         set_one_page_test_names(
             {art.name for art in snapshot.apex_artifacts if art.is_test}
         )

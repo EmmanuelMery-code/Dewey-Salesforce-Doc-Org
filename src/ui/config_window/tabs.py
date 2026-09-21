@@ -191,6 +191,25 @@ def build_documentation_tab(app: Application, parent: ttk.Frame, edit_vars: dict
         variable=edit_vars["calculate_coverage"],
     ).pack(anchor="w", pady=(2, 2))
 
+    coverage_alert_row = ttk.Frame(tests)
+    coverage_alert_row.pack(fill="x", pady=(theme.SPACE_XS, 2))
+    ttk.Label(
+        coverage_alert_row, text=app._t("configuration_coverage_alert_threshold")
+    ).pack(side="left")
+    ttk.Entry(
+        coverage_alert_row,
+        textvariable=edit_vars["coverage_alert_threshold"],
+        width=6,
+    ).pack(side="left", padx=(theme.SPACE_XS, 2))
+    ttk.Label(coverage_alert_row, text="%").pack(side="left")
+    ttk.Label(
+        tests,
+        text=app._t("configuration_coverage_alert_threshold_hint"),
+        wraplength=620,
+        justify="left",
+        style=theme.MUTED_LABEL,
+    ).pack(anchor="w", pady=(0, 2))
+
 
 def build_model_management(
     app: Application,
