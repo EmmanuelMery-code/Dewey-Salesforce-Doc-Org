@@ -97,7 +97,7 @@ class TestSelectedDataDictionaryExcel:
         assert len(result.selected_data_dictionary_excels) == 1
         path = result.selected_data_dictionary_excels[0]
         assert path.name == f"dataDictionnary_{date.today():%Y%m%d}.xlsx"
-        assert openpyxl.load_workbook(path).sheetnames == ["Synthese", "Account"]
+        assert openpyxl.load_workbook(path).sheetnames == ["Synthese", "Record Types", "Account"]
 
     def test_nothing_is_written_without_a_selection(self, tmp_path: Path) -> None:
         result = self._run(tmp_path, DataDictionarySelection())

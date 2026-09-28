@@ -86,7 +86,10 @@ class _StepsMixin(_OrchestratorState):
             self._safe_run(
                 "data_dictionary.xlsx",
                 lambda: excel_writer.write_data_dictionary_workbooks(
-                    snapshot.objects, excel_dir
+                    snapshot.objects,
+                    excel_dir,
+                    profiles=snapshot.profiles,
+                    permission_sets=snapshot.permission_sets,
                 ),
             )
             or []
@@ -152,6 +155,8 @@ class _StepsMixin(_OrchestratorState):
                     objects,
                     excel_dir,
                     filename_base=filename_base,
+                    profiles=snapshot.profiles,
+                    permission_sets=snapshot.permission_sets,
                     **selection.workbook_options(),
                 ),
             )

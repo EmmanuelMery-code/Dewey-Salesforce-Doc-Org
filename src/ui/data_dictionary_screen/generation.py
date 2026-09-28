@@ -163,6 +163,8 @@ class _DataDictionaryGenerationMixin:
                 snapshot.objects,
                 excel_dir,
                 filename_base=filename_base,
+                profiles=snapshot.profiles,
+                permission_sets=snapshot.permission_sets,
                 **selection.workbook_options(),
             )
         if self.word_var.get():

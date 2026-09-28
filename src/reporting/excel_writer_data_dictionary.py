@@ -12,9 +12,9 @@ import re
 from pathlib import Path
 
 from openpyxl import Workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Alignment, Font
 
-from src.core.models import ObjectInfo
+from src.core.models import ObjectInfo, SecurityArtifact
 
 # Excel spec allows a theoretically unbounded number of sheets per workbook but
 # the file format becomes unresponsive well before that. We cap at a safe soft
@@ -46,12 +46,19 @@ class _ExcelDataDictionaryMixin:
         include_field_status: bool = True,
         include_field_automation: bool = True,
         concat_description: bool = True,
+        profiles: list[SecurityArtifact] | None = None,
+        permission_sets: list[SecurityArtifact] | None = None,
     ) -> list[Path]:
         """Generate the Data Dictionary workbook(s).
 
         Each workbook starts with a "Synthese" sheet listing the objects it
-        contains (general info) followed by one sheet per object describing
-        its fields. When the number of object sheets exceeds
+        contains (general info), then a "Record Types" sheet listing the
+        record types of those objects, followed by one sheet per object
+        describing its fields.
+
+        ``profiles`` and ``permission_sets`` feed the visibility columns of
+        the "Record Types" sheet; those columns are omitted when both are
+        ``None``. When the number of object sheets exceeds
         ``max_object_sheets`` a new workbook is created (``{filename_base}_part_2.xlsx``,
         ``..._part_3.xlsx`` and so on) so Excel stays responsive.
 
@@ -120,6 +127,11 @@ class _ExcelDataDictionaryMixin:
             for index in range(0, len(ordered_objects), max_object_sheets)
         ]
         total_parts = len(chunks)
+        record_type_access = (
+            self._record_type_access(profiles or [], permission_sets or [])
+            if profiles is not None or permission_sets is not None
+            else None
+        )
         written: list[Path] = []
         for part_index, chunk in enumerate(chunks, start=1):
             path = output_base / self._data_dictionary_filename(part_index, filename_base)
@@ -128,6 +140,7 @@ class _ExcelDataDictionaryMixin:
                 path,
                 part_index=part_index,
                 total_parts=total_parts,
+                record_type_access=record_type_access,
                 include_comment=include_comment,
                 include_piloted_by=include_piloted_by,
                 include_status=include_status,
@@ -173,6 +186,7 @@ class _ExcelDataDictionaryMixin:
             "Nb champs",
             "Nb champs custom",
             "Nb record types",
+            "Record Type",
             "Nb validation rules",
             "Nb relations",
             "Feuille",
@@ -197,6 +211,7 @@ class _ExcelDataDictionaryMixin:
         *,
         part_index: int,
         total_parts: int,
+        record_type_access: dict[str, dict[str, list[str]]] | None = None,
         include_comment: bool = True,
         include_piloted_by: bool = True,
         include_status: bool = True,
@@ -214,6 +229,9 @@ class _ExcelDataDictionaryMixin:
         summary_name = self._unique_sheet_name("Synthese", used_names)
         summary = workbook.active
         summary.title = summary_name
+        record_types_sheet = workbook.create_sheet(
+            self._unique_sheet_name("Record Types", used_names)
+        )
 
         sheet_names_by_object: list[tuple[ObjectInfo, str]] = []
         for obj in objects_chunk:
@@ -234,7 +252,8 @@ class _ExcelDataDictionaryMixin:
                 obj.visibility,
                 len(obj.fields),
                 sum(1 for field in obj.fields if field.custom),
-                len(obj.record_types),
+                self._record_types_activity(obj),
+                self._record_types_summary(obj),
                 len(obj.validation_rules),
                 len(obj.relationships),
                 sheet_name,
@@ -277,6 +296,10 @@ class _ExcelDataDictionaryMixin:
                 ),
             ).font = Font(italic=True)
 
+        self._write_record_types_sheet(
+            record_types_sheet, objects_chunk, record_type_access
+        )
+
         for obj, sheet_name in sheet_names_by_object:
             worksheet = workbook.create_sheet(sheet_name)
             self._write_object_fields_sheet(
@@ -296,6 +319,120 @@ class _ExcelDataDictionaryMixin:
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         workbook.save(output_path)
+
+    @staticmethod
+    def _record_types_activity(obj: ObjectInfo) -> str:
+        """``"Actif : 2 | Inactif : 1"``."""
+        active = sum(1 for rt in obj.record_types if rt.active)
+        return f"Actif : {active} | Inactif : {len(obj.record_types) - active}"
+
+    @staticmethod
+    def _record_types_summary(obj: ObjectInfo) -> str:
+        """``"2 : Label A | Label B"``, or an empty string without record type."""
+        if not obj.record_types:
+            return ""
+        labels = sorted(
+            (rt.label or rt.full_name for rt in obj.record_types), key=str.lower
+        )
+        return f"{len(labels)} : " + " | ".join(labels)
+
+    @staticmethod
+    def _record_type_access(
+        profiles: list[SecurityArtifact],
+        permission_sets: list[SecurityArtifact],
+    ) -> dict[str, dict[str, list[str]]]:
+        """Map ``Object.RecordType`` (lower-cased) to the profiles and
+        permission sets that make it visible, and the profiles that use it
+        as their default."""
+        access: dict[str, dict[str, list[str]]] = {}
+        for artifacts, visible_key in (
+            (profiles, "profiles"),
+            (permission_sets, "permission_sets"),
+        ):
+            for artifact in sorted(artifacts, key=lambda item: item.name.lower()):
+                for visibility in artifact.record_type_visibilities:
+                    if not visibility.record_type:
+                        continue
+                    entry = access.setdefault(
+                        visibility.record_type.lower(),
+                        {"profiles": [], "default_profiles": [], "permission_sets": []},
+                    )
+                    if visibility.visible:
+                        entry[visible_key].append(artifact.name)
+                    if visibility.default and visible_key == "profiles":
+                        entry["default_profiles"].append(artifact.name)
+        return access
+
+    def _write_record_types_sheet(
+        self,
+        worksheet,
+        objects: list[ObjectInfo],
+        record_type_access: dict[str, dict[str, list[str]]] | None,
+    ) -> None:
+        headers = [
+            "Objet (API Name)",
+            "Objet (Label)",
+            "Record Type (API Name)",
+            "Label",
+            "Actif",
+            "Description",
+            "Business Process",
+            "Compact Layout",
+            "Nb picklists restreintes",
+            "Valeurs de picklist disponibles",
+        ]
+        if record_type_access is not None:
+            headers += [
+                "Profils (visible)",
+                "Profils (par defaut)",
+                "Permission Sets (visible)",
+            ]
+
+        rows = []
+        for obj in objects:
+            for record_type in sorted(
+                obj.record_types, key=lambda rt: (rt.label or rt.full_name).lower()
+            ):
+                row = [
+                    obj.api_name,
+                    obj.label,
+                    record_type.full_name,
+                    record_type.label,
+                    "Oui" if record_type.active else "Non",
+                    record_type.description,
+                    record_type.business_process,
+                    record_type.compact_layout,
+                    len(record_type.picklist_values),
+                    "\n".join(
+                        f"{field_name} : {', '.join(values)}"
+                        for field_name, values in sorted(record_type.picklist_values.items())
+                    ),
+                ]
+                if record_type_access is not None:
+                    access = record_type_access.get(
+                        f"{obj.api_name}.{record_type.full_name}".lower(), {}
+                    )
+                    row += [
+                        ", ".join(access.get("profiles", [])),
+                        ", ".join(access.get("default_profiles", [])),
+                        ", ".join(access.get("permission_sets", [])),
+                    ]
+                rows.append(row)
+        self._write_sheet(worksheet, headers, rows)
+
+        if not rows:
+            worksheet.cell(
+                row=2,
+                column=1,
+                value="Aucun record type detecte pour les objets de ce fichier.",
+            ).font = Font(italic=True, color="666666")
+            return
+
+        picklist_column = headers.index("Valeurs de picklist disponibles") + 1
+        for (cell,) in worksheet.iter_rows(
+            min_row=2, min_col=picklist_column, max_col=picklist_column
+        ):
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
 
     def _write_object_fields_sheet(
         self,

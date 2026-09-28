@@ -67,6 +67,12 @@ class RecordTypeInfo:
     label: str = ""
     description: str = ""
     active: bool = False
+    #: Sales / Support / Lead / Solution process, only set on Opportunity,
+    #: Case, Lead and Solution record types.
+    business_process: str = ""
+    compact_layout: str = ""
+    #: Picklist field API name -> values available for this record type.
+    picklist_values: dict[str, list[str]] = field(default_factory=dict)
 
 
 @dataclass(slots=True)

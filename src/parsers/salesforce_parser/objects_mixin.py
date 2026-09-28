@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import unquote
 
 from src.core.models import (
     FieldInfo,
@@ -163,11 +164,24 @@ class _ObjectsMixin(_ParserState):
 
     def _parse_record_type(self, record_type_file: Path) -> RecordTypeInfo:
         root = parse_xml(record_type_file)
+        picklist_values: dict[str, list[str]] = {}
+        for node in root.findall("sf:picklistValues", SF_NS):
+            field_name = child_text(node, "picklist")
+            if not field_name:
+                continue
+            picklist_values[field_name] = [
+                unquote(child_text(value, "fullName"))
+                for value in node.findall("sf:values", SF_NS)
+                if child_text(value, "fullName")
+            ]
         return RecordTypeInfo(
             full_name=child_text(root, "fullName") or record_type_file.stem.replace(".recordType-meta", ""),
             label=child_text(root, "label"),
             description=child_text(root, "description"),
             active=to_bool(child_text(root, "active")),
+            business_process=child_text(root, "businessProcess"),
+            compact_layout=child_text(root, "compactLayoutAssignment"),
+            picklist_values=picklist_values,
         )
 
     def _parse_validation_rule(self, validation_rule_file: Path) -> ValidationRuleInfo:
