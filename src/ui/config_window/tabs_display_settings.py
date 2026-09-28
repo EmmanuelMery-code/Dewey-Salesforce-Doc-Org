@@ -39,6 +39,7 @@ def build_index_cards_tab(app: Application, parent: ttk.Frame, edit_vars: dict[s
                 ("show_card_custom_objects", "configuration_card_custom_objects"),
                 ("show_card_custom_fields", "configuration_card_custom_fields"),
                 ("show_card_flows", "configuration_card_flows"),
+                ("show_card_legacy_automation", "configuration_card_legacy_automation"),
                 ("show_card_apex_classes_triggers", "configuration_card_apex_classes_triggers"),
                 ("show_card_omni_components", "configuration_card_omni_components"),
                 ("show_card_einstein_predictions", "configuration_card_einstein_predictions"),

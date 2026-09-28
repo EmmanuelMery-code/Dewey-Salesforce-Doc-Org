@@ -192,6 +192,7 @@ class AppSettingsMixin:
             show_aura=bool(self.show_card_aura_var.get()),
             show_dependencies=bool(self.show_card_dependencies_var.get()),
             show_picklists=bool(self.show_card_picklists_var.get()),
+            show_legacy_automation=bool(self.show_card_legacy_automation_var.get()),
         )
 
     def _to_rel_path(self, path_str: str) -> str:

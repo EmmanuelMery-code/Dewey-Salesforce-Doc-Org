@@ -165,7 +165,6 @@ class _DataDictionaryGenerationMixin:
                 filename_base=filename_base,
                 **selection.workbook_options(),
             )
-
         if self.word_var.get():
             word_dir = output_dir / "word"
             word_dir.mkdir(parents=True, exist_ok=True)

@@ -187,6 +187,9 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     app.show_card_picklists_var.set(
         bool(edit_vars["show_card_picklists"].get())
     )
+    app.show_card_legacy_automation_var.set(
+        bool(edit_vars["show_card_legacy_automation"].get())
+    )
 
     try:
         max_depth = int(edit_vars["one_page_max_depth"].get())

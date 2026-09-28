@@ -34,6 +34,9 @@ from src.reporting.html.renderers.listing_components import (
     write_duplicate_rules_list_page,
     write_lwc_list_page,
 )
+from src.reporting.html.renderers.listing_legacy_automation import (
+    write_legacy_automation_list_page,
+)
 
 
 def write_listing_pages(
@@ -99,5 +102,9 @@ def write_listing_pages(
     result = write_aura_list_page(snapshot, output_dir, assets_dir, log)
     if result:
         pages["aura"] = result
+
+    result = write_legacy_automation_list_page(snapshot, output_dir, assets_dir, log)
+    if result:
+        pages["legacy_automation"] = result
 
     return pages

@@ -157,7 +157,6 @@ class _StepsMixin(_OrchestratorState):
             )
             or []
         )
-
     def _generate_data_model_diagram(
         self,
         snapshot: MetadataSnapshot,

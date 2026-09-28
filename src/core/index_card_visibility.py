@@ -45,6 +45,7 @@ class IndexCardVisibility:
     show_lwc: bool = True
     show_aura: bool = True
     show_dependencies: bool = True
+    show_legacy_automation: bool = True
 
     def to_settings(self) -> dict[str, bool]:
         """Return the JSON-friendly mapping persisted in ``app_settings.json``."""
@@ -75,6 +76,7 @@ class IndexCardVisibility:
             "show_card_lwc": self.show_lwc,
             "show_card_aura": self.show_aura,
             "show_card_dependencies": self.show_dependencies,
+            "show_card_legacy_automation": self.show_legacy_automation,
         }
 
 
@@ -104,6 +106,7 @@ _SETTING_KEYS: dict[str, str] = {
     "show_lwc": "show_card_lwc",
     "show_aura": "show_card_aura",
     "show_dependencies": "show_card_dependencies",
+    "show_legacy_automation": "show_card_legacy_automation",
 }
 
 

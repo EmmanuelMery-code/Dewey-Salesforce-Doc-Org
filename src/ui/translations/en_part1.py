@@ -219,6 +219,7 @@ EN_PART1: dict[str, str] = {
     "configuration_card_debt": "Technical Debt & Deviations and PR",
     "configuration_card_innovation": "POC and Innovation",
     "configuration_card_sharing_rules": "Sharing Rules",
+    "configuration_card_legacy_automation": "Legacy automation (Process Builder, Workflows, Visualforce pages)",
     "configuration_card_duplicate_rules": "Duplicate Rules",
     "configuration_card_lwc": "LWC Components",
     "configuration_card_aura": "Aura Components",

@@ -27,6 +27,8 @@ class _InventoryMixin(_ParserState):
             "profiles": self._inventory_security(snapshot.profiles),
             "reports": self._inventory_reports(snapshot.package_roots),
             "dashboards": self._inventory_dashboards(snapshot.package_roots),
+            "workflow_rules": self._inventory_workflow_rules(snapshot.package_roots),
+            "visualforce_pages": self._inventory_visualforce_pages(snapshot.package_roots),
         }
 
     def _inventory_record_types(self, objects: list[ObjectInfo]) -> list[dict[str, object]]:
@@ -194,6 +196,51 @@ class _InventoryMixin(_ParserState):
                         "Type": child_text(root, "dashboardType"),
                         "RunningUser": child_text(root, "runningUser"),
                         "Composants": len(root.findall("sf:dashboardGridComponents", SF_NS)),
+                        "Source": self._safe_relative_path(meta_file),
+                    }
+                )
+        return rows
+
+    def _inventory_workflow_rules(self, package_roots: list[Path]) -> list[dict[str, object]]:
+        rows: list[dict[str, object]] = []
+        for package_root in package_roots:
+            folder = package_root / "workflows"
+            if not folder.exists():
+                continue
+            for meta_file in sorted(folder.glob("*.workflow-meta.xml")):
+                object_name = meta_file.name.replace(".workflow-meta.xml", "")
+                root = parse_xml(meta_file)
+                for rule in root.findall("sf:rules", SF_NS):
+                    rule_name = child_text(rule, "fullName")
+                    if self._is_excluded("workflow", rule_name, f"{object_name}.{rule_name}"):
+                        continue
+                    rows.append(
+                        {
+                            "Objet": object_name,
+                            "Regle": rule_name,
+                            "Active": child_text(rule, "active").lower() == "true",
+                            "Description": child_text(rule, "description"),
+                            "Source": self._safe_relative_path(meta_file),
+                        }
+                    )
+        return rows
+
+    def _inventory_visualforce_pages(self, package_roots: list[Path]) -> list[dict[str, object]]:
+        rows: list[dict[str, object]] = []
+        for package_root in package_roots:
+            folder = package_root / "pages"
+            if not folder.exists():
+                continue
+            for meta_file in sorted(folder.glob("*.page-meta.xml")):
+                name = meta_file.name.replace(".page-meta.xml", "")
+                if self._is_excluded("visualforce", name):
+                    continue
+                root = parse_xml(meta_file)
+                rows.append(
+                    {
+                        "Nom": name,
+                        "Label": child_text(root, "label"),
+                        "ApiVersion": child_text(root, "apiVersion"),
                         "Source": self._safe_relative_path(meta_file),
                     }
                 )

@@ -412,6 +412,7 @@ class Application(
         self.show_card_aura_var = tk.BooleanVar(value=icv.show_aura)
         self.show_card_dependencies_var = tk.BooleanVar(value=icv.show_dependencies)
         self.show_card_picklists_var = tk.BooleanVar(value=icv.show_picklists)
+        self.show_card_legacy_automation_var = tk.BooleanVar(value=icv.show_legacy_automation)
 
         # Window / widget references (set by _build_ui / secondary screens)
         self.hero_image: tk.PhotoImage | None = None

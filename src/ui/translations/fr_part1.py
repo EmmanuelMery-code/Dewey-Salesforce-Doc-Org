@@ -203,6 +203,7 @@ FR_PART1: dict[str, str] = {
     "configuration_card_debt": "Dette technique & Entorse et PR",
     "configuration_card_innovation": "POC et Innovation",
     "configuration_card_sharing_rules": "Sharing Rules",
+    "configuration_card_legacy_automation": "Automatisations legacy (Process Builder, Workflows, pages Visualforce)",
     "configuration_card_duplicate_rules": "Duplicate Rules",
     "configuration_card_lwc": "Composants LWC",
     "configuration_card_aura": "Composants Aura",

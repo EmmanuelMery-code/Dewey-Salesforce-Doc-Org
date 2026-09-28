@@ -19,6 +19,9 @@ from src.reporting.html.renderers.index_cards import (
     render_picklists_card,
     render_summary_tabs,
 )
+from src.reporting.html.renderers.listing_legacy_automation import (
+    collect_active_legacy_automation,
+)
 
 
 def render_index_summary_tabs(
@@ -213,6 +216,22 @@ def render_index_summary_tabs(
         if visibility.show_flows
         else ""
     )
+    legacy_items = collect_active_legacy_automation(snapshot)
+    active_process_builders = sum(1 for item in legacy_items if item[2] == "Process Builder")
+    active_workflow_rules = sum(1 for item in legacy_items if item[2] == "Workflow Rule")
+    visualforce_pages = sum(1 for item in legacy_items if item[2] == "Page Visualforce")
+    legacy_automation_total = len(legacy_items)
+    legacy_automation_card = (
+        f'  <div class="card"><span>{_listing_link("legacy_automation", "Automatisations legacy", legacy_automation_total)} <small style="color: #64748b; font-weight: normal;">(actives)</small></span>'
+        f'<span class="value">{legacy_automation_total}</span>'
+        f'<div style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.75rem; color: #64748b;">'
+        f'<span>Process Builder: {active_process_builders}</span>'
+        f'<span>Workflows: {active_workflow_rules}</span>'
+        f'<span>Pages VF: {visualforce_pages}</span>'
+        f'</div></div>\n'
+        if visibility.show_legacy_automation
+        else ""
+    )
     apex_classes_triggers_card = (
         f'  <div class="card"><span>{_listing_link("apex", "Classes / Triggers", metrics.apex_classes + metrics.apex_triggers)} <small style="color: #64748b; font-weight: normal;">(Pro-code)</small></span>'
         f'<span class="value">{metrics.apex_classes + metrics.apex_triggers}</span></div>\n'
@@ -270,7 +289,8 @@ def render_index_summary_tabs(
 
     return render_summary_tabs(
         description_cards=[
-            custom_objects_card, custom_fields_card, flows_card, apex_classes_triggers_card,
+            custom_objects_card, custom_fields_card, flows_card, legacy_automation_card,
+            apex_classes_triggers_card,
             lwc_card, aura_card, omni_components_card, predictions_card, agents_card,
             prompts_card, sharing_rules_card, duplicate_rules_card, picklists_card,
         ],
