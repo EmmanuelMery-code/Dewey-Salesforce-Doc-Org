@@ -19,12 +19,13 @@ def configure_coverage_alert(threshold: float | None = None) -> None:
     COVERAGE_ALERT_THRESHOLD = max(0.0, min(100.0, value))
 
 
-def coverage_alert_marker(coverage: float | None) -> str:
+def coverage_alert_marker(coverage: float | None, is_test: bool = False) -> str:
     """Retourne le pictogramme d'alerte a accoler au nom d'une classe.
 
-    Chaine vide si la couverture est inconnue ou au-dessus du seuil.
+    Chaine vide pour une classe de test, ou si la couverture est inconnue
+    ou au-dessus du seuil.
     """
-    if coverage is None:
+    if is_test or coverage is None:
         return ""
     try:
         value = float(coverage)

@@ -42,13 +42,22 @@ def apply_test_coverage(
 
     # Collect coverage data for non-test artifacts
     for artifact in snapshot.apex_artifacts:
+        if artifact.is_test:
+            continue
         if artifact.name in test_coverage_data:
             coverage_info = test_coverage_data[artifact.name]
             if isinstance(coverage_info, dict):
                 # New format with detailed coverage info
-                artifact.test_coverage = coverage_info.get("percentage")
-                artifact.test_coverage_lines_covered = coverage_info.get("lines_covered", 0)
-                artifact.test_coverage_lines_uncovered = coverage_info.get("lines_uncovered", 0)
+                covered = coverage_info.get("lines_covered", 0) or 0
+                uncovered = coverage_info.get("lines_uncovered", 0) or 0
+                has_line_counts = "lines_covered" in coverage_info or "lines_uncovered" in coverage_info
+                # 0/0 lines means nothing is coverable: unknown, not 0 %.
+                if has_line_counts and covered + uncovered == 0:
+                    artifact.test_coverage = None
+                else:
+                    artifact.test_coverage = coverage_info.get("percentage")
+                artifact.test_coverage_lines_covered = covered
+                artifact.test_coverage_lines_uncovered = uncovered
             else:
                 # Old format (just percentage) - fallback for compatibility
                 artifact.test_coverage = coverage_info

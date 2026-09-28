@@ -91,7 +91,7 @@ def write_apex_list_page(
             )
             result.append(
                 f"<tr>"
-                f"<td>{name_cell}{coverage_alert_marker(getattr(art, 'test_coverage', None))}</td>"
+                f"<td>{name_cell}{coverage_alert_marker(getattr(art, 'test_coverage', None), getattr(art, 'is_test', False))}</td>"
                 f"<td>{art.line_count}</td>"
                 f"<td>{art.method_count}</td>"
                 f"<td>{html_value(art.api_version)}</td>"
