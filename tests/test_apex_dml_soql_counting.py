@@ -164,3 +164,28 @@ def test_apex_sec_004_still_reported_on_unprotected_data_access(tmp_path):
     catalog = RuleCatalog.load()
     rule_ids = {f.rule.id for f in analyze_apex_artifact(artifact, catalog)}
     assert "APEX-SEC-004" in rule_ids
+
+
+def test_apex_sec_004_not_reported_on_user_mode_dml(tmp_path):
+    body = REAL_DATA_ACCESS_CLASS.replace(
+        "WHERE OwnerId = :ownerId]", "WHERE OwnerId = :ownerId WITH\n            USER_MODE]"
+    ).replace("update accounts;", "update as user accounts;")
+    _write_class(tmp_path, "AccountService", body)
+    artifact = _artifact(tmp_path, "AccountService")
+    catalog = RuleCatalog.load()
+    rule_ids = {f.rule.id for f in analyze_apex_artifact(artifact, catalog)}
+    assert "APEX-SEC-004" not in rule_ids
+
+
+def test_apex_sec_004_not_reported_on_dml_as_system_only(tmp_path):
+    body = """public with sharing class AuditWriter {
+    public static void log(List<Audit__c> rows) {
+        insert as system rows;
+    }
+}
+"""
+    _write_class(tmp_path, "AuditWriter", body)
+    artifact = _artifact(tmp_path, "AuditWriter")
+    catalog = RuleCatalog.load()
+    rule_ids = {f.rule.id for f in analyze_apex_artifact(artifact, catalog)}
+    assert "APEX-SEC-004" not in rule_ids

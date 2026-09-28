@@ -521,21 +521,17 @@ def _detect_soql_injection(body: str) -> list[int]:
     return injection_lines
 
 
+SECURITY_ENFORCEMENT_RE = re.compile(
+    r"\bWITH\s+(?:USER_MODE|SYSTEM_MODE|SECURITY_ENFORCED)\b"
+    r"|\b(?:INSERT|UPDATE|UPSERT|DELETE|UNDELETE|MERGE)\s+AS\s+(?:USER|SYSTEM)\b"
+    r"|\bSECURITY\s*\.\s*STRIPINACCESSIBLE\b"
+    r"|\bACCESSLEVEL\s*\.\s*(?:USER_MODE|SYSTEM_MODE)\b"
+    r"|\bIS(?:ACCESSIBLE|CREATEABLE|UPDATEABLE|DELETABLE)\s*\(",
+    re.IGNORECASE,
+)
+
+
 def _has_security_enforcement(body: str) -> bool:
     """Check if the class uses any explicit CRUD/FLS enforcement mechanism."""
-    clean = _strip_comments_and_strings(body).upper()
-
-    enforcements = [
-        "WITH USER_MODE",
-        "WITH SYSTEM_MODE",
-        "WITH SECURITY_ENFORCED",
-        "SECURITY.STRIPINACCESSIBLE",
-        "ACCESSLEVEL.USER_MODE",
-        "ACCESSLEVEL.SYSTEM_MODE",
-        "ISACCESSIBLE(",
-        "ISCREATEABLE(",
-        "ISUPDATEABLE(",
-        "ISDELETABLE(",
-    ]
-
-    return any(e in clean for e in enforcements)
+    clean = _strip_comments_and_strings(body)
+    return SECURITY_ENFORCEMENT_RE.search(clean) is not None
