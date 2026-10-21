@@ -144,6 +144,42 @@ class TestCreation:
         assert screen.object_comments == {}
         assert screen.field_comments == {}
 
+    def test_a_piloted_by_typed_at_creation_is_the_object_value(self) -> None:
+        """The dialog writes the same mapping as the Data Dictionary screen."""
+        screen = _Screen()
+
+        screen._create_virtual_object("Projet__c", "Projet", "", "Squad Delivery")
+
+        assert screen.object_piloted_by == {"Projet__c": "Squad Delivery"}
+        assert screen.app.settings["dd_object_piloted_by"] == {"Projet__c": "Squad Delivery"}
+
+    def test_no_piloted_by_stores_nothing_at_all(self) -> None:
+        screen = _Screen()
+
+        screen._create_virtual_object("Projet__c", "Projet", "", "")
+
+        assert screen.object_piloted_by == {}
+
+    def test_a_piloted_by_typed_at_field_creation_is_the_field_value(self) -> None:
+        """The dialog writes the same mapping as the Data Dictionary screen."""
+        screen = _Screen(metadata_objects={"Account"})
+
+        screen._create_virtual_field(
+            "Account", "Budget__c", "Budget", "Currency", "", "Squad Finance"
+        )
+
+        assert screen.field_piloted_by == {"Account": {"Budget__c": "Squad Finance"}}
+        assert screen.app.settings["dd_field_piloted_by"] == {
+            "Account": {"Budget__c": "Squad Finance"}
+        }
+
+    def test_no_field_piloted_by_stores_nothing_at_all(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency", "", "")
+
+        assert screen.field_piloted_by == {}
+
 
 class TestEdition:
     def test_a_field_is_edited_in_place_when_the_name_does_not_change(self) -> None:
@@ -199,6 +235,52 @@ class TestEdition:
         )
 
         assert screen.field_status["Account"] == {"BudgetAnnuel__c": "en dév."}
+
+    def test_an_object_piloted_by_is_replaced_on_edit(self) -> None:
+        screen = _Screen()
+        screen._create_virtual_object("Projet__c", "Projet", "Chantier", "Squad A")
+
+        screen._update_virtual_object(
+            "Projet__c", "Projet__c", "Projet", "Chantier", "Squad B"
+        )
+
+        assert screen.object_piloted_by == {"Projet__c": "Squad B"}
+        assert screen.app.settings["dd_object_piloted_by"] == {"Projet__c": "Squad B"}
+
+    def test_an_emptied_piloted_by_is_dropped_on_edit(self) -> None:
+        screen = _Screen()
+        screen._create_virtual_object("Projet__c", "Projet", "", "Squad A")
+
+        screen._update_virtual_object("Projet__c", "Projet__c", "Projet", "", "")
+
+        assert screen.object_piloted_by == {}
+
+    def test_a_field_piloted_by_is_replaced_on_edit(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field(
+            "Account", "Budget__c", "Budget", "Currency", "", "Squad A"
+        )
+
+        screen._update_virtual_field(
+            "Account", "Budget__c", "Budget__c", "Budget", "Currency", "", "Squad B"
+        )
+
+        assert screen.field_piloted_by == {"Account": {"Budget__c": "Squad B"}}
+        assert screen.app.settings["dd_field_piloted_by"] == {
+            "Account": {"Budget__c": "Squad B"}
+        }
+
+    def test_an_emptied_field_piloted_by_is_dropped_on_edit(self) -> None:
+        screen = _Screen(metadata_objects={"Account"})
+        screen._create_virtual_field(
+            "Account", "Budget__c", "Budget", "Currency", "", "Squad A"
+        )
+
+        screen._update_virtual_field(
+            "Account", "Budget__c", "Budget__c", "Budget", "Currency", "", ""
+        )
+
+        assert screen.field_piloted_by["Account"] == {}
 
     def test_an_object_is_edited_in_place_when_the_name_does_not_change(self) -> None:
         screen = _Screen()
@@ -363,6 +445,69 @@ class TestPersistence:
 
         assert screen.virtual_fields == {"Account": {}}
         assert screen.field_status == {"Account": {}}
+
+    def test_confirmed_delete_drops_the_field_being_designed(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        prompts: list[tuple[str, str, str]] = []
+
+        def askokcancel(title, message, **kwargs):
+            prompts.append((title, message, kwargs.get("icon", "")))
+            return True
+
+        monkeypatch.setattr(virtual_entries.messagebox, "askokcancel", askokcancel)
+        screen = _Screen(metadata_objects={"Account"})
+        screen.window = object()
+        screen._create_virtual_field(
+            "Account", "Budget__c", "Budget", "Currency", "Montant previsionnel"
+        )
+        screen.field_piloted_by["Account"] = {"Budget__c": "Equipe A"}
+        screen.current_comment_object = "Account"
+        screen.current_comment_field = "Budget__c"
+        refreshed: list[object] = []
+        screen._refresh_fields_list = lambda obj: refreshed.append(("fields", obj))
+        screen._refresh_selected_list = lambda: refreshed.append("selected")
+
+        screen._confirm_delete_virtual_field()
+
+        assert prompts == [
+            (
+                "data_dictionary_virtual_delete_field_title",
+                "data_dictionary_virtual_delete_field_confirm[name=Budget__c]",
+                "warning",
+            )
+        ]
+        assert screen.virtual_fields == {"Account": {}}
+        assert screen.field_status == {"Account": {}}
+        assert screen.field_comments == {"Account": {}}
+        assert screen.field_piloted_by == {"Account": {}}
+        assert refreshed == [("fields", "Account"), "selected"]
+
+    def test_cancelled_delete_keeps_the_field(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(virtual_entries.messagebox, "askokcancel", lambda *args, **kwargs: False)
+        screen = _Screen(metadata_objects={"Account"})
+        screen.window = object()
+        screen._create_virtual_field("Account", "Budget__c", "Budget", "Currency")
+        screen.current_comment_object = "Account"
+        screen.current_comment_field = "Budget__c"
+
+        screen._confirm_delete_virtual_field()
+
+        assert screen.virtual_fields["Account"]["Budget__c"]["label"] == "Budget"
+        assert screen.field_status["Account"]["Budget__c"] == IN_DESIGN_STATUS
+
+    def test_a_real_field_is_not_offered_for_deletion(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        def fail(*args, **kwargs):
+            raise AssertionError("the warning must not open for a real field")
+
+        monkeypatch.setattr(virtual_entries.messagebox, "askokcancel", fail)
+        screen = _Screen(metadata_objects={"Account"}, metadata_fields={"Account": ["Name"]})
+        screen.current_comment_object = "Account"
+        screen.current_comment_field = "Name"
+
+        screen._confirm_delete_virtual_field()
 
 
 class TestValidation:

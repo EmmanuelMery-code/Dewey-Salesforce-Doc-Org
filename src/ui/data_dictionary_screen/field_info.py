@@ -95,8 +95,12 @@ class _DataDictionaryFieldInfoMixin:
                 or field_api_name in self.field_status.get(obj, {})
             )
             self.delete_field_comment_btn.configure(state="normal" if has_extra_info else "disabled")
+            is_virtual_field = self._is_virtual_field(obj, field_api_name)
             self.edit_virtual_field_btn.configure(
-                state="normal" if self._is_virtual_field(obj, field_api_name) else "disabled"
+                state="normal" if is_virtual_field else "disabled"
+            )
+            self.delete_virtual_field_btn.configure(
+                state="normal" if is_virtual_field else "disabled"
             )
         else:
             self.fields_comment_label_var.set(self.app._t("data_dictionary_fields_comment_placeholder"))
@@ -109,6 +113,7 @@ class _DataDictionaryFieldInfoMixin:
             self.save_field_comment_btn.configure(state="disabled")
             self.delete_field_comment_btn.configure(state="disabled")
             self.edit_virtual_field_btn.configure(state="disabled")
+            self.delete_virtual_field_btn.configure(state="disabled")
 
     def _save_field_comment(self) -> None:
         obj = self.current_comment_object

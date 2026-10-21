@@ -201,13 +201,17 @@ class _DataDictionaryVirtualEntriesMixin:
 
     # ------------------------------------------------------------ mutation
 
-    def _create_virtual_object(self, api_name: str, label: str, comment: str = "") -> None:
+    def _create_virtual_object(
+        self, api_name: str, label: str, comment: str = "", piloted_by: str = ""
+    ) -> None:
         self.virtual_objects[api_name] = {"label": label}
         self.object_status[api_name] = IN_DESIGN_STATUS
-        # Only a non-empty comment is stored, as ``_save_comment`` does, so the
-        # mapping never carries empty values.
+        # Only a non-empty comment or "Piloté par" is stored, as ``_save_comment``
+        # does, so the mappings never carry empty values.
         if comment:
             self.object_comments[api_name] = comment
+        if piloted_by:
+            self.object_piloted_by[api_name] = piloted_by
         self.selected_objects.add(api_name)
         if api_name not in self.all_objects:
             self.all_objects = sorted([*self.all_objects, api_name])
@@ -217,26 +221,45 @@ class _DataDictionaryVirtualEntriesMixin:
         self.app._save_settings()
 
     def _create_virtual_field(
-        self, obj: str, api_name: str, label: str, field_type: str, comment: str = ""
+        self,
+        obj: str,
+        api_name: str,
+        label: str,
+        field_type: str,
+        comment: str = "",
+        piloted_by: str = "",
     ) -> None:
         self.virtual_fields.setdefault(obj, {})[api_name] = {
             "label": label,
             "type": field_type,
         }
         self.field_status.setdefault(obj, {})[api_name] = IN_DESIGN_STATUS
-        # Only a non-empty comment is stored, as ``_save_field_comment`` does,
-        # which also means the object key itself stays out when there is none.
+        # Only a non-empty comment or "Piloté par" is stored, as
+        # ``_save_field_comment`` does, which also means the object key
+        # itself stays out when there is none.
         if comment:
             self.field_comments.setdefault(obj, {})[api_name] = comment
+        if piloted_by:
+            self.field_piloted_by.setdefault(obj, {})[api_name] = piloted_by
         self._persist_virtual_entries()
         self._persist_field_comments()
 
     def _update_virtual_object(
-        self, obj: str, api_name: str, label: str, comment: str = ""
+        self,
+        obj: str,
+        api_name: str,
+        label: str,
+        comment: str = "",
+        piloted_by: str | None = None,
     ) -> None:
         """Apply the edited values to ``obj``, re-keying every mapping that
         is keyed by object API name when the name itself changed. The status
-        is carried over untouched: only the key moves."""
+        is carried over untouched: only the key moves.
+
+        ``piloted_by`` is the same object-level value as the Data Dictionary
+        screen. ``None`` leaves the value already stored (after the re-key);
+        a string sets it, and an empty string clears it.
+        """
         for mapping in (
             self.virtual_objects,
             self.virtual_fields,
@@ -259,6 +282,11 @@ class _DataDictionaryVirtualEntriesMixin:
             self.object_comments[api_name] = comment
         else:
             self.object_comments.pop(api_name, None)
+        if piloted_by is not None:
+            if piloted_by:
+                self.object_piloted_by[api_name] = piloted_by
+            else:
+                self.object_piloted_by.pop(api_name, None)
 
         if obj != api_name:
             self.all_objects = sorted(
@@ -279,10 +307,16 @@ class _DataDictionaryVirtualEntriesMixin:
         label: str,
         field_type: str,
         comment: str = "",
+        piloted_by: str | None = None,
     ) -> None:
         """Apply the edited values to ``obj.field_api_name``, re-keying every
         field-level mapping when the name itself changed. The status is
-        carried over untouched: only the key moves."""
+        carried over untouched: only the key moves.
+
+        ``piloted_by`` is the same field-level value as the Data Dictionary
+        screen. ``None`` leaves the value already stored (after the re-key);
+        a string sets it, and an empty string clears it.
+        """
         for mapping in (
             self.virtual_fields,
             self.field_comments,
@@ -299,6 +333,11 @@ class _DataDictionaryVirtualEntriesMixin:
             self.field_comments.setdefault(obj, {})[api_name] = comment
         elif obj in self.field_comments:
             self.field_comments[obj].pop(api_name, None)
+        if piloted_by is not None:
+            if piloted_by:
+                self.field_piloted_by.setdefault(obj, {})[api_name] = piloted_by
+            elif obj in self.field_piloted_by:
+                self.field_piloted_by[obj].pop(api_name, None)
 
         self._persist_virtual_entries()
         self._persist_field_comments()
@@ -400,6 +439,7 @@ class _DataDictionaryVirtualEntriesMixin:
                 ("api_name", self.app._t("data_dictionary_virtual_api_name_label"), None),
                 ("label", self.app._t("data_dictionary_virtual_label_label"), None),
                 ("comment", self.app._t("data_dictionary_virtual_comment_label"), None),
+                ("piloted_by", self.app._t("data_dictionary_piloted_by_label"), None),
             ],
             lambda values: self._virtual_object_error(values["api_name"], values["label"]),
         )
@@ -408,7 +448,10 @@ class _DataDictionaryVirtualEntriesMixin:
 
         api_name = dialog.result["api_name"]
         self._create_virtual_object(
-            api_name, dialog.result["label"], dialog.result["comment"]
+            api_name,
+            dialog.result["label"],
+            dialog.result["comment"],
+            dialog.result["piloted_by"],
         )
         self._refresh_lists()
         self._set_comment_target(api_name)
@@ -431,6 +474,7 @@ class _DataDictionaryVirtualEntriesMixin:
                 ("label", self.app._t("data_dictionary_virtual_label_label"), None),
                 ("type", self.app._t("data_dictionary_virtual_type_label"), VIRTUAL_FIELD_TYPES),
                 ("comment", self.app._t("data_dictionary_virtual_comment_label"), None),
+                ("piloted_by", self.app._t("data_dictionary_piloted_by_label"), None),
             ],
             lambda values: self._virtual_field_error(
                 obj, values["api_name"], values["label"], values["type"]
@@ -446,6 +490,7 @@ class _DataDictionaryVirtualEntriesMixin:
             dialog.result["label"],
             dialog.result["type"],
             dialog.result["comment"],
+            dialog.result["piloted_by"],
         )
         self._refresh_fields_list(obj)
         self._refresh_selected_list()
@@ -475,6 +520,12 @@ class _DataDictionaryVirtualEntriesMixin:
                     None,
                     self.object_comments.get(obj, ""),
                 ),
+                (
+                    "piloted_by",
+                    self.app._t("data_dictionary_piloted_by_label"),
+                    None,
+                    self.object_piloted_by.get(obj, ""),
+                ),
             ],
             lambda values: self._virtual_object_error(
                 values["api_name"], values["label"], current_name=obj
@@ -486,7 +537,11 @@ class _DataDictionaryVirtualEntriesMixin:
 
         api_name = dialog.result["api_name"]
         self._update_virtual_object(
-            obj, api_name, dialog.result["label"], dialog.result["comment"]
+            obj,
+            api_name,
+            dialog.result["label"],
+            dialog.result["comment"],
+            dialog.result["piloted_by"],
         )
         self._refresh_lists()
         self._set_comment_target(api_name)
@@ -527,6 +582,12 @@ class _DataDictionaryVirtualEntriesMixin:
                     None,
                     self.field_comments.get(obj, {}).get(field_api_name, ""),
                 ),
+                (
+                    "piloted_by",
+                    self.app._t("data_dictionary_piloted_by_label"),
+                    None,
+                    self.field_piloted_by.get(obj, {}).get(field_api_name, ""),
+                ),
             ],
             lambda values: self._virtual_field_error(
                 obj,
@@ -548,7 +609,31 @@ class _DataDictionaryVirtualEntriesMixin:
             dialog.result["label"],
             dialog.result["type"],
             dialog.result["comment"],
+            dialog.result["piloted_by"],
         )
         self._refresh_fields_list(obj)
         self._refresh_selected_list()
         self.fields_tree.selection_set(api_name)
+
+    def _confirm_delete_virtual_field(self) -> None:
+        """Ask before dropping the selected field being designed.
+
+        Cancel leaves the field and its extra information untouched.
+        """
+        obj = self.current_comment_object
+        field_api_name = self.current_comment_field
+        if not obj or not field_api_name or not self._is_virtual_field(obj, field_api_name):
+            return
+
+        confirmed = messagebox.askokcancel(
+            self.app._t("data_dictionary_virtual_delete_field_title"),
+            self.app._t("data_dictionary_virtual_delete_field_confirm", name=field_api_name),
+            icon="warning",
+            parent=self.window,
+        )
+        if not confirmed:
+            return
+
+        self._delete_virtual_field(obj, field_api_name)
+        self._refresh_fields_list(obj)
+        self._refresh_selected_list()

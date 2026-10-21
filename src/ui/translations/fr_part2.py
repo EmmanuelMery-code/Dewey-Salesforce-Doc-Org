@@ -304,6 +304,7 @@ FR_PART2: dict[str, str] = {
     "data_dictionary_virtual_field_button": "Ajouter un champ en conception",
     "data_dictionary_virtual_object_edit_button": "Modifier l'objet en conception",
     "data_dictionary_virtual_field_edit_button": "Modifier le champ en conception",
+    "data_dictionary_virtual_field_delete_button": "Supprimer le champ en conception",
     "data_dictionary_virtual_object_dialog_title": "Nouvel objet en conception",
     "data_dictionary_virtual_field_dialog_title": "Nouveau champ en conception",
     "data_dictionary_virtual_object_edit_dialog_title": "Modifier l'objet en conception",

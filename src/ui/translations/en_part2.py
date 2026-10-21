@@ -304,6 +304,7 @@ EN_PART2: dict[str, str] = {
     "data_dictionary_virtual_field_button": "Add a field being designed",
     "data_dictionary_virtual_object_edit_button": "Edit the object being designed",
     "data_dictionary_virtual_field_edit_button": "Edit the field being designed",
+    "data_dictionary_virtual_field_delete_button": "Delete the field being designed",
     "data_dictionary_virtual_object_dialog_title": "New object being designed",
     "data_dictionary_virtual_field_dialog_title": "New field being designed",
     "data_dictionary_virtual_object_edit_dialog_title": "Edit the object being designed",

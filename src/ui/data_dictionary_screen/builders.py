@@ -425,6 +425,14 @@ class _DataDictionaryUiBuilderMixin:
         )
         self.edit_virtual_field_btn.pack(side="left", padx=(theme.SPACE_SM, 0))
 
+        self.delete_virtual_field_btn = ttk.Button(
+            virtual_field_buttons_row,
+            text=self.app._t("data_dictionary_virtual_field_delete_button"),
+            command=self._confirm_delete_virtual_field,
+            state="disabled",
+        )
+        self.delete_virtual_field_btn.pack(side="left", padx=(theme.SPACE_SM, 0))
+
         ttk.Label(
             fields_comment_frame,
             textvariable=self.fields_comment_label_var,
