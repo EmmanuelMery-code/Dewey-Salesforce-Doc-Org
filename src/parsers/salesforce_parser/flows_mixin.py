@@ -237,6 +237,9 @@ class _FlowsMixin(_ParserState):
                 trigger_type=child_text(root.find("sf:start", SF_NS), "triggerType")
                 if root.find("sf:start", SF_NS) is not None
                 else "",
+                record_trigger_type=child_text(root.find("sf:start", SF_NS), "recordTriggerType")
+                if root.find("sf:start", SF_NS) is not None
+                else "",
                 start_object=child_text(root.find("sf:start", SF_NS), "object")
                 if root.find("sf:start", SF_NS) is not None
                 else "",

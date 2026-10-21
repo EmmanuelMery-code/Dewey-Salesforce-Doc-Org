@@ -75,6 +75,7 @@ class FlowInfo:
     status: str = ""
     api_version: str = ""
     trigger_type: str = ""
+    record_trigger_type: str = ""
     start_object: str = ""
     start_node: str = ""
     source_path: Path | None = None

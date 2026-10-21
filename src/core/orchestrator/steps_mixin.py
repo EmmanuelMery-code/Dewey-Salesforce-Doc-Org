@@ -30,6 +30,7 @@ from src.reporting.excel_writer_findings import (
     FindingsExcelWriter,
     findings_workbook_path,
 )
+from src.reporting.excel_writer_triggers import TRIGGER_WORKBOOK_NAME
 from src.reporting.html_writer import HtmlReportWriter
 from src.reporting.sarif_writer import write_sarif_report
 from src.reporting.word_writer import WordReportWriter
@@ -118,6 +119,15 @@ class _StepsMixin(_OrchestratorState):
                 [(self.alias, item) for item in snapshot.technical_debt],
                 [(self.alias, item) for item in snapshot.deviations],
                 excel_dir / DEBT_WORKBOOK_NAME,
+            ),
+        )
+        result.triggers_excel = self._safe_run(
+            TRIGGER_WORKBOOK_NAME,
+            lambda: excel_writer.write_triggers_workbook(
+                snapshot.apex_artifacts,
+                snapshot.flows,
+                snapshot.objects,
+                excel_dir / TRIGGER_WORKBOOK_NAME,
             ),
         )
 

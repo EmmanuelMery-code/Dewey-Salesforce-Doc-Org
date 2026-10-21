@@ -11,6 +11,7 @@ from src.core.models import FieldInfo, ObjectInfo, PmdViolation, SecurityArtifac
 from src.reporting.excel_writer_data_dictionary import _ExcelDataDictionaryMixin
 from src.reporting.excel_writer_debt import _ExcelDebtMixin
 from src.reporting.excel_writer_psg import _ExcelPsgSummaryMixin
+from src.reporting.excel_writer_triggers import _ExcelTriggersMixin
 
 LogCallback = Callable[[str], None]
 
@@ -29,7 +30,9 @@ def _picklist_api_names(item: FieldInfo) -> list[str]:
     ]
 
 
-class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin, _ExcelDebtMixin):
+class ExcelReportWriter(
+    _ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin, _ExcelDebtMixin, _ExcelTriggersMixin
+):
     """Produce ``.xlsx`` documents from the parsed metadata snapshot.
 
     Each ``write_*`` method writes one workbook (security, inventory, data
@@ -38,9 +41,11 @@ class ExcelReportWriter(_ExcelDataDictionaryMixin, _ExcelPsgSummaryMixin, _Excel
     Data Dictionary generation itself lives in
     :class:`~src.reporting.excel_writer_data_dictionary._ExcelDataDictionaryMixin`,
     la synthese des Permission Set Groups dans
-    :class:`~src.reporting.excel_writer_psg._ExcelPsgSummaryMixin`, et la
+    :class:`~src.reporting.excel_writer_psg._ExcelPsgSummaryMixin`, la
     dette technique dans
-    :class:`~src.reporting.excel_writer_debt._ExcelDebtMixin`.
+    :class:`~src.reporting.excel_writer_debt._ExcelDebtMixin`, et la
+    matrice des triggers dans
+    :class:`~src.reporting.excel_writer_triggers._ExcelTriggersMixin`.
     """
 
     def __init__(self, log_callback: LogCallback | None = None) -> None:

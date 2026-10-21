@@ -38,6 +38,7 @@ class GenerationResult:
     picklists_excel: Path | None = None
     psg_summary_excel: Path | None = None
     debt_excel: Path | None = None
+    triggers_excel: Path | None = None
     pmd_excel: Path | None = None
     data_dictionary_word: Path | None = None
     summary_word: Path | None = None
