@@ -85,6 +85,10 @@ flows/
 assets/
 index.html
 
+# Documents métier produits par l'onglet Discussion (contenu d'une org)
+Description_metier_org_*.docx
+Correction_Maintenabilit*_metier_org_*.docx
+
 # ...but keep the source HTML assets package (not a generated output dir)
 !src/reporting/html/assets/
 !src/reporting/html/assets/*.py
