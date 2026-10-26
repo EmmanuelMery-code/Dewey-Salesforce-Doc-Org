@@ -25,6 +25,7 @@ from src.ai import (
     AIMessage,
     CLAUDE_MODELS,
     GEMINI_MODELS,
+    GATEWAY_MODELS,
     build_system_prompt,
     create_service,
 )
@@ -96,18 +97,7 @@ class Application(
 
     DEFAULT_GEMINI_MODELS = list(GEMINI_MODELS)
     DEFAULT_CLAUDE_MODELS = list(CLAUDE_MODELS)
-    DEFAULT_GATEWAY_MODELS = [
-        "claude-sonnet-4-20250514",
-        "claude-3-7-sonnet-20250219",
-        "claude-3-5-sonnet-20241022",
-        "gemini-2.5-pro",
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gpt-5",
-        "gpt-5-mini",
-        "gpt-40",
-        "gpt-4o-mini",
-    ]
+    DEFAULT_GATEWAY_MODELS = list(GATEWAY_MODELS)
 
     DEFAULT_GEMINI_MODEL = GEMINI_MODELS[0]
     DEFAULT_CLAUDE_MODEL = CLAUDE_MODELS[0]
@@ -308,6 +298,9 @@ class Application(
         stored_gateway_model = str(self.settings.get("gateway_model", "") or "").strip()
         if stored_gateway_model not in self.gateway_model_choices:
             stored_gateway_model = self.DEFAULT_GATEWAY_MODEL
+        self.show_discussion_doc_buttons_var = tk.BooleanVar(
+            value=bool(self.settings.get("show_discussion_doc_buttons", True))
+        )
         self.claude_model_var = tk.StringVar(value=stored_claude_model)
         self.gemini_model_var = tk.StringVar(value=stored_gemini_model)
         self.gateway_model_var = tk.StringVar(value=stored_gateway_model)
@@ -464,6 +457,8 @@ class Application(
         self.discussion_question_index: int | None = None
         self.discussion_question_ranges: list[tuple[str, str]] = []
         self.discussion_force_existing_docs: bool = False
+        self.discussion_document_kind: str | None = None
+        self.discussion_locks_ui: bool = False
 
         self._build_ui()
         self._apply_language(initial=True)

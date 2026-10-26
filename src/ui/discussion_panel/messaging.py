@@ -20,6 +20,8 @@ from src.ui.discussion_panel.history_view import (
     _append_user_question,
     _rollback_failed_user_message,
     append_line,
+    release_discussion_job,
+    set_discussion_controls,
     update_context_status,
     update_navigation_state,
 )
@@ -205,9 +207,7 @@ def send_message(app: Application) -> None:
     messages_snapshot = list(app.discussion_messages)
     app.discussion_pending = True
     app._discussion_last_send_ts = time.monotonic()
-    app.discussion_send_button.configure(state="disabled")
-    if hasattr(app, "discussion_summarize_button"):
-        app.discussion_summarize_button.configure(state="disabled")
+    set_discussion_controls(app, False)
     append_line(
         app, app._t("discussion_thinking", provider=provider), tag="system"
     )
@@ -255,9 +255,7 @@ def handle_reply(app: Application, payload: dict[str, str]) -> None:
     reply = payload.get("reply", "")
     provider = payload.get("provider", "")
     app.discussion_pending = False
-    app.discussion_send_button.configure(state="normal")
-    if hasattr(app, "discussion_summarize_button"):
-        app.discussion_summarize_button.configure(state="normal")
+    set_discussion_controls(app, True)
     if reply:
         app.discussion_messages.append(AIMessage(role="assistant", content=reply))
         append_line(app, f"[{provider}] {reply}", tag="assistant")
@@ -282,12 +280,13 @@ def handle_reply(app: Application, payload: dict[str, str]) -> None:
 
 
 def handle_error(app: Application, message: str) -> None:
-    app.discussion_pending = False
+    locked = bool(getattr(app, "discussion_locks_ui", False))
     app.is_summarize_request = False
-    app.discussion_send_button.configure(state="normal")
-    if hasattr(app, "discussion_summarize_button"):
-        app.discussion_summarize_button.configure(state="normal")
-    _rollback_failed_user_message(app)
+    release_discussion_job(app)
+    if locked:
+        app.status_var.set(app._t("operation_failed"))
+    else:
+        _rollback_failed_user_message(app)
     append_line(app, app._t("discussion_error", error=message), tag="error")
 
 
@@ -305,3 +304,8 @@ def handle_info(app: Application, payload: dict[str, object]) -> None:
             ),
             tag="system",
         )
+        return
+    if kind == "status":
+        message = str(payload.get("message", "")).strip()
+        if message:
+            append_line(app, message, tag="system")

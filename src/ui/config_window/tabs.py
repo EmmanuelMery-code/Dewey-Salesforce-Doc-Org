@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import tkinter as tk
 from pathlib import Path
-from tkinter import scrolledtext, ttk
+from threading import Thread
+from tkinter import messagebox, scrolledtext, ttk
 from typing import TYPE_CHECKING
 
 from src.ai import build_system_prompt
+from src.ai.ai_service_providers import GatewayService
 from src.ui import theme
 from src.ui.config_window.tabs_display_settings import (
     build_index_cards_tab,
@@ -304,6 +306,92 @@ def build_model_management(
     ).pack(side="left")
 
 
+def _resolve_gateway_cert(app: Application, raw: str) -> str:
+    text = (raw or "").strip() or "config/Salesforce_Internal_Root_CA_3.pem"
+    path = Path(text)
+    if path.is_file():
+        return str(path)
+    rooted = Path(app.app_dir) / text
+    return str(rooted if rooted.is_file() else path)
+
+
+def _add_gateway_refresh_button(
+    app: Application,
+    parent: ttk.Frame,
+    edit_vars: dict[str, tk.Variable],
+    model_combo: ttk.Combobox,
+) -> None:
+    """Button that replaces the Gateway combo with the live /models catalog."""
+
+    row = ttk.Frame(parent)
+    row.pack(fill="x", pady=(0, theme.SPACE_SM))
+    ttk.Label(row, text="", width=22).pack(side="left")
+    button = ttk.Button(row, text=app._t("configuration_gateway_models_refresh"))
+    button.pack(side="left")
+
+    def apply_models(models: list[str]) -> None:
+        button.configure(
+            state="normal", text=app._t("configuration_gateway_models_refresh")
+        )
+        if not models:
+            messagebox.showwarning(
+                app._t("info_title"),
+                app._t("configuration_gateway_models_refresh_empty"),
+                parent=parent.winfo_toplevel(),
+            )
+            return
+        app.gateway_model_choices.clear()
+        app.gateway_model_choices.extend(models)
+        model_combo["values"] = list(models)
+        current = str(edit_vars["gateway_model"].get() or "").strip()
+        if current not in models:
+            preferred = (
+                app.DEFAULT_GATEWAY_MODEL
+                if app.DEFAULT_GATEWAY_MODEL in models
+                else models[0]
+            )
+            edit_vars["gateway_model"].set(preferred)
+        messagebox.showinfo(
+            app._t("info_title"),
+            app._t("configuration_gateway_models_refresh_done", count=len(models)),
+            parent=parent.winfo_toplevel(),
+        )
+
+    def fail(message: str) -> None:
+        button.configure(
+            state="normal", text=app._t("configuration_gateway_models_refresh")
+        )
+        messagebox.showerror(
+            app._t("error_title"), message, parent=parent.winfo_toplevel()
+        )
+
+    def refresh() -> None:
+        api_key = str(edit_vars["gateway_key"].get() or "").strip()
+        if not api_key:
+            messagebox.showwarning(
+                app._t("info_title"),
+                app._t("configuration_gateway_models_refresh_missing_key"),
+                parent=parent.winfo_toplevel(),
+            )
+            return
+        cert_path = _resolve_gateway_cert(app, str(edit_vars["gateway_cert"].get() or ""))
+        button.configure(
+            state="disabled", text=app._t("configuration_gateway_models_refreshing")
+        )
+
+        def worker() -> None:
+            try:
+                models = GatewayService(api_key=api_key, cert_path=cert_path).list_models()
+            except Exception as exc:
+                parent.after(0, lambda error=str(exc): fail(error))
+                return
+            parent.after(0, lambda found=list(models): apply_models(found))
+
+        Thread(target=worker, daemon=True).start()
+
+    button.configure(command=refresh)
+
+
 def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[str, tk.Variable]) -> None:
     ai_frame = ttk.LabelFrame(parent, text=app._t("configuration_section_ai"), padding=theme.SPACE_MD)
     ai_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
@@ -369,11 +457,16 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
     config_entry_row(
         gateway_frame, app._t("configuration_gateway_key"), edit_vars["gateway_key"], show="*"
     )
-    config_combo_row(
+    gateway_model_row = config_combo_row(
         gateway_frame,
         app._t("configuration_gateway_model"),
         edit_vars["gateway_model"],
         list(app.gateway_model_choices),
+    )
+    gateway_model_combo = next(
+        child
+        for child in gateway_model_row.winfo_children()
+        if isinstance(child, ttk.Combobox)
     )
     build_model_management(
         app,
@@ -383,6 +476,7 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
         app.DEFAULT_GATEWAY_MODELS,
         "Gateway",
     )
+    _add_gateway_refresh_button(app, gateway_frame, edit_vars, gateway_model_combo)
     config_entry_row(
         gateway_frame, app._t("configuration_gateway_cert"), edit_vars["gateway_cert"]
     )
@@ -394,6 +488,16 @@ def build_discussion_tab(app: Application, parent: ttk.Frame, edit_vars: dict[st
         justify="left",
         style=theme.MUTED_LABEL,
     ).pack(anchor="w", pady=(6, 0))
+
+    buttons_frame = ttk.LabelFrame(
+        parent, text=app._t("configuration_section_discussion_buttons"), padding=theme.SPACE_MD
+    )
+    buttons_frame.pack(fill="x", pady=(0, theme.SPACE_SM))
+    ttk.Checkbutton(
+        buttons_frame,
+        text=app._t("configuration_show_discussion_doc_buttons"),
+        variable=edit_vars["show_discussion_doc_buttons"],
+    ).pack(anchor="w")
 
     prompt_frame = ttk.LabelFrame(
         parent, text=app._t("configuration_section_prompt"), padding=theme.SPACE_MD

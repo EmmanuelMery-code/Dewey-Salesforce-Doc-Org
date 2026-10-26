@@ -8,6 +8,22 @@ import re
 import time
 
 
+def _as_count(value: object) -> int:
+    """Coerce a Tooling API count, including JSON null, to an int."""
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _related_name(record: dict, key: str) -> str:
+    """Name of a relationship field. A null relationship must not raise."""
+    related = record.get(key) or {}
+    if not isinstance(related, dict):
+        return ""
+    return str(related.get("Name") or "")
+
+
 class _QueryMixin:
     def run_query(
         self,
@@ -48,7 +64,12 @@ class _QueryMixin:
             )
             try:
                 payload = self._run_json(command, label=label)
-                records = payload.get("records", [])
+                records = payload.get("records", []) or []
+                if payload.get("done") is False:
+                    self._emit_log(
+                        f"[AVERTISSEMENT] La requete SOQL ({object_name}) est tronquee "
+                        f"({len(records)} lignes, done=false). Le resultat est incomplet."
+                    )
                 self._emit_log(f"{len(records)} enregistrement(s) recupere(s).")
                 return records
             except Exception as exc:
@@ -88,13 +109,16 @@ class _QueryMixin:
             if apex_records:
                 self._emit_log("[APEX] Resultats detailles:")
                 for idx, record in enumerate(apex_records, 1):
-                    name = record.get("ApexClassOrTrigger", {}).get("Name")
-                    covered = record.get("NumLinesCovered", 0)
-                    uncovered = record.get("NumLinesUncovered", 0)
+                    # A deleted class leaves ApexClassOrTrigger null, and the line
+                    # counts can be JSON null. Either used to raise here and abort
+                    # the Flow coverage that follows.
+                    name = _related_name(record, "ApexClassOrTrigger")
+                    covered = _as_count(record.get("NumLinesCovered"))
+                    uncovered = _as_count(record.get("NumLinesUncovered"))
                     total = covered + uncovered
                     pct = (covered / total) * 100 if total > 0 else 0.0
                     self._emit_log(
-                        f"  {idx}. {name}: {covered}/{total} lignes couvertes ({pct:.1f}%)"
+                        f"  {idx}. {name or '(sans nom)'}: {covered}/{total} lignes couvertes ({pct:.1f}%)"
                     )
                     if name:
                         coverage_data[name] = {
@@ -105,167 +129,176 @@ class _QueryMixin:
                         }
             else:
                 self._emit_log("[APEX] AUCUN enregistrement de couverture Apex trouve!")
-
-            # Step 1 — FlowTestCoverage: aggregate coverage + lookup tables for element join
-            # Id                 → used as key to join FlowElementTestCoverage.FlowTestCoverageId
-            # ApexTestClassId    → resolved to a class name via a separate ApexClass query below
-            #                      (ApexTestClass.Name relationship traversal is NOT reliable on
-            #                      this object, unlike FlowVersion.Definition.DeveloperName)
-            # FlowVersion.Definition.DeveloperName → canonical flow API name
-            flow_query = (
-                "SELECT Id, ApexTestClassId, FlowVersion.Definition.DeveloperName, "
-                "NumElementsCovered, NumElementsNotCovered FROM FlowTestCoverage"
-            )
-            self._emit_log(f"[FLOW] Requete SOQL: {flow_query}")
-            flow_records = self.run_query(flow_query, target_org, use_tooling_api=True)
-            self._emit_log(
-                f"[FLOW] Recupere {len(flow_records)} enregistrement(s) de couverture Flow."
-            )
-
-            # Resolve ApexTestClassId -> class name via a dedicated ApexClass query, only if
-            # there is anything to resolve (keeps the number of API calls minimal).
-            class_id_to_name: dict[str, str] = {}
-            if flow_records:
-                class_ids = sorted({
-                    record.get("ApexTestClassId")
-                    for record in flow_records
-                    if record.get("ApexTestClassId")
-                })
-                if class_ids:
-                    ids_literal = ", ".join(f"'{cid}'" for cid in class_ids)
-                    class_query = f"SELECT Id, Name FROM ApexClass WHERE Id IN ({ids_literal})"
-                    self._emit_log(f"[FLOW] Requete SOQL: {class_query}")
-                    class_records = self.run_query(class_query, target_org, use_tooling_api=True)
-                    class_id_to_name = {
-                        record.get("Id"): record.get("Name")
-                        for record in class_records
-                        if record.get("Id") and record.get("Name")
-                    }
-
-            # Lookup: FlowTestCoverage.Id → flow_name and apex_class_name
-            cov_id_to_flow: dict[str, str] = {}
-            cov_id_to_class: dict[str, str] = {}
-
-            # For each flow: record elements_total (constant across all test-class records)
-            # using the first record seen. Do NOT sum — each record is per test class.
-            for record in flow_records:
-                fv = record.get("FlowVersion") or {}
-                defn = fv.get("Definition") or {}
-                flow_name = defn.get("DeveloperName") or fv.get("DeveloperName") or fv.get("FullName")
-                apex_class = class_id_to_name.get(record.get("ApexTestClassId"))
-                cov_id = record.get("Id")
-                covered = record.get("NumElementsCovered") or 0
-                uncovered = record.get("NumElementsNotCovered") or 0
-
-                if flow_name and cov_id:
-                    cov_id_to_flow[cov_id] = flow_name
-                if apex_class and cov_id:
-                    cov_id_to_class[cov_id] = apex_class
-
-                if flow_name and flow_name not in coverage_data:
-                    # Record the total bloc count from the first record for this flow.
-                    # All records for the same flow agree on NumElementsCovered+NumElementsNotCovered.
-                    total = covered + uncovered
-                    coverage_data[flow_name] = {
-                        "percentage": 0.0,       # Recalculated after FlowElementTestCoverage
-                        "elements_covered": 0,   # Recalculated after FlowElementTestCoverage
-                        "elements_uncovered": total,
-                        "elements_total": total,
-                        "element_details": {},
-                        "_covered_set": set(),   # Temp: distinct element names covered
-                    }
-
-            flow_names_found = {k for k in cov_id_to_flow.values()}
-            if not flow_records:
-                self._emit_log(
-                    "[FLOW] AUCUN enregistrement de couverture Flow trouve "
-                    "(la requete FlowTestCoverage n'a renvoye aucune ligne)."
-                )
-            elif not flow_names_found:
-                self._emit_log(
-                    f"[FLOW] {len(flow_records)} enregistrement(s) recupere(s) mais aucun nom de "
-                    "flow n'a pu etre resolu. Premier enregistrement brut : "
-                    f"{flow_records[0]}"
-                )
-            else:
-                self._emit_log(
-                    f"[FLOW] {len(flow_names_found)} flow(s) distinct(s) identifie(s) dans "
-                    "FlowTestCoverage."
-                )
-
-            # Step 2 — FlowElementTestCoverage: per-element detail
-            # ElementName        → API name of the flow element (matches XML <name> tag)
-            # FlowTestCoverageId → join key → flow name + Apex class name
-            elem_query = (
-                "SELECT FlowVersionId, ElementName, FlowTestCoverageId "
-                "FROM FlowElementTestCoverage"
-            )
-            self._emit_log(f"[FLOW-ELEM] Requete SOQL: {elem_query}")
-            elem_records = self.run_query(elem_query, target_org, use_tooling_api=True)
-            self._emit_log(
-                f"[FLOW-ELEM] Recupere {len(elem_records)} enregistrement(s) d'elements Flow."
-            )
-
-            # Case-insensitive index for canonical key resolution
-            coverage_keys_lower = {k.lower(): k for k in coverage_data}
-
-            for record in elem_records:
-                cov_id = record.get("FlowTestCoverageId")
-                elem_name = record.get("ElementName")
-                flow_name = cov_id_to_flow.get(cov_id) if cov_id else None
-                test_class = cov_id_to_class.get(cov_id) if cov_id else None
-
-                if not (flow_name and elem_name and test_class):
-                    continue
-
-                canonical_key = coverage_keys_lower.get(flow_name.lower())
-                if canonical_key is None:
-                    total = 0
-                    coverage_data[flow_name] = {
-                        "percentage": 0.0,
-                        "elements_covered": 0,
-                        "elements_uncovered": 0,
-                        "elements_total": total,
-                        "element_details": {},
-                        "_covered_set": set(),
-                    }
-                    canonical_key = flow_name
-                    coverage_keys_lower[flow_name.lower()] = flow_name
-
-                data = coverage_data[canonical_key]
-                elem_key = elem_name.lower()
-
-                # Track distinct covered elements (deduplicates across test classes)
-                data["_covered_set"].add(elem_key)
-
-                # Record which test classes cover each element
-                details = data.setdefault("element_details", {})
-                if elem_key not in details:
-                    details[elem_key] = []
-                if test_class not in details[elem_key]:
-                    details[elem_key].append(test_class)
-
-            # Step 3 — Recalculate aggregate percentages from distinct element counts
-            # NOTE: coverage_data also holds Apex entries (keyed by class name, with
-            # "lines_*" keys) inserted earlier. Only touch entries created by the Flow
-            # queries above, identified by the presence of "_covered_set".
-            for flow_name, data in coverage_data.items():
-                if "_covered_set" not in data:
-                    continue
-                covered_set = data.pop("_covered_set", set())
-                distinct_covered = len(covered_set)
-                total = data["elements_total"]
-                data["elements_covered"] = distinct_covered
-                data["elements_uncovered"] = max(0, total - distinct_covered)
-                data["percentage"] = (distinct_covered / total * 100) if total > 0 else 0.0
-                self._emit_log(
-                    f"[FLOW] {flow_name}: {distinct_covered}/{total} blocs couverts ({data['percentage']:.1f}%)"
-                )
-
-            self._emit_log(f"[RESUME] Couverture enregistree pour {len(coverage_data)} flow(s).")
         except Exception as exc:
-            self._emit_log(f"Avertissement : impossible de recuperer la couverture de tests : {exc}")
+            self._emit_log(
+                f"Avertissement : impossible de recuperer la couverture Apex : {exc}"
+            )
+
+        try:
+            self._collect_flow_coverage(target_org, coverage_data)
+        except Exception as exc:
+            self._emit_log(
+                f"Avertissement : impossible de recuperer la couverture des flows : {exc}"
+            )
+        self._emit_log(f"[RESUME] Couverture enregistree pour {len(coverage_data)} composant(s).")
         return coverage_data
+
+    def _collect_flow_coverage(self, target_org: str, coverage_data: dict[str, dict]) -> None:
+        """Fill ``coverage_data`` with one entry per flow that has test coverage.
+
+        ``FlowTestCoverage`` has one row per test class. The bloc total is the
+        same on every row, but the first row seen can be 0/0, so the total kept
+        is the largest sum. Covered blocs are the distinct element names; an
+        element still counts when its test class name cannot be resolved.
+        """
+        flow_query = (
+            "SELECT Id, ApexTestClassId, FlowVersion.Definition.DeveloperName, "
+            "NumElementsCovered, NumElementsNotCovered FROM FlowTestCoverage"
+        )
+        self._emit_log(f"[FLOW] Requete SOQL: {flow_query}")
+        flow_records = self.run_query(flow_query, target_org, use_tooling_api=True)
+        self._emit_log(
+            f"[FLOW] Recupere {len(flow_records)} enregistrement(s) de couverture Flow."
+        )
+
+        class_id_to_name: dict[str, str] = {}
+        if flow_records:
+            class_ids = sorted({
+                record.get("ApexTestClassId")
+                for record in flow_records
+                if record.get("ApexTestClassId")
+            })
+            if class_ids:
+                ids_literal = ", ".join(f"'{cid}'" for cid in class_ids)
+                class_query = f"SELECT Id, Name FROM ApexClass WHERE Id IN ({ids_literal})"
+                self._emit_log(f"[FLOW] Requete SOQL: {class_query}")
+                class_records = self.run_query(class_query, target_org, use_tooling_api=True)
+                class_id_to_name = {
+                    record.get("Id"): record.get("Name")
+                    for record in class_records
+                    if record.get("Id") and record.get("Name")
+                }
+
+        cov_id_to_flow: dict[str, str] = {}
+        cov_id_to_class: dict[str, str] = {}
+
+        for record in flow_records:
+            fv = record.get("FlowVersion") or {}
+            defn = fv.get("Definition") or {} if isinstance(fv, dict) else {}
+            flow_name = ""
+            if isinstance(defn, dict):
+                flow_name = defn.get("DeveloperName") or ""
+            if isinstance(fv, dict):
+                flow_name = flow_name or fv.get("DeveloperName") or fv.get("FullName") or ""
+            apex_class = class_id_to_name.get(record.get("ApexTestClassId"))
+            cov_id = record.get("Id")
+            covered = _as_count(record.get("NumElementsCovered"))
+            uncovered = _as_count(record.get("NumElementsNotCovered"))
+            total = covered + uncovered
+
+            if flow_name and cov_id:
+                cov_id_to_flow[cov_id] = flow_name
+            if apex_class and cov_id:
+                cov_id_to_class[cov_id] = apex_class
+            if not flow_name:
+                continue
+
+            existing = coverage_data.get(flow_name)
+            if existing is not None and "_covered_set" not in existing:
+                continue
+            if existing is None:
+                coverage_data[flow_name] = {
+                    "percentage": 0.0,
+                    "elements_covered": 0,
+                    "elements_uncovered": total,
+                    "elements_total": total,
+                    "element_details": {},
+                    "_covered_set": set(),
+                    "_max_covered": covered,
+                }
+                continue
+            if total > existing["elements_total"]:
+                existing["elements_total"] = total
+            existing["_max_covered"] = max(existing.get("_max_covered", 0), covered)
+
+        flow_names_found = set(cov_id_to_flow.values())
+        if not flow_records:
+            self._emit_log(
+                "[FLOW] AUCUN enregistrement de couverture Flow trouve "
+                "(la requete FlowTestCoverage n'a renvoye aucune ligne)."
+            )
+        elif not flow_names_found:
+            self._emit_log(
+                f"[FLOW] {len(flow_records)} enregistrement(s) recupere(s) mais aucun nom de "
+                "flow n'a pu etre resolu. Premier enregistrement brut : "
+                f"{flow_records[0]}"
+            )
+        else:
+            self._emit_log(
+                f"[FLOW] {len(flow_names_found)} flow(s) distinct(s) identifie(s) dans "
+                "FlowTestCoverage."
+            )
+
+        elem_query = (
+            "SELECT FlowVersionId, ElementName, FlowTestCoverageId "
+            "FROM FlowElementTestCoverage"
+        )
+        self._emit_log(f"[FLOW-ELEM] Requete SOQL: {elem_query}")
+        elem_records = self.run_query(elem_query, target_org, use_tooling_api=True)
+        self._emit_log(
+            f"[FLOW-ELEM] Recupere {len(elem_records)} enregistrement(s) d'elements Flow."
+        )
+
+        coverage_keys_lower = {k.lower(): k for k in coverage_data}
+        for record in elem_records:
+            cov_id = record.get("FlowTestCoverageId")
+            elem_name = record.get("ElementName")
+            flow_name = cov_id_to_flow.get(cov_id) if cov_id else None
+            test_class = cov_id_to_class.get(cov_id) if cov_id else None
+            if not (flow_name and elem_name):
+                continue
+
+            canonical_key = coverage_keys_lower.get(flow_name.lower())
+            if canonical_key is None or "_covered_set" not in coverage_data.get(canonical_key, {}):
+                coverage_data[flow_name] = {
+                    "percentage": 0.0,
+                    "elements_covered": 0,
+                    "elements_uncovered": 0,
+                    "elements_total": 0,
+                    "element_details": {},
+                    "_covered_set": set(),
+                    "_max_covered": 0,
+                }
+                canonical_key = flow_name
+                coverage_keys_lower[flow_name.lower()] = flow_name
+
+            data = coverage_data[canonical_key]
+            elem_key = elem_name.lower()
+            data["_covered_set"].add(elem_key)
+            if not test_class:
+                continue
+            details = data.setdefault("element_details", {})
+            if elem_key not in details:
+                details[elem_key] = []
+            if test_class not in details[elem_key]:
+                details[elem_key].append(test_class)
+
+        for flow_name, data in coverage_data.items():
+            if "_covered_set" not in data:
+                continue
+            covered_set = data.pop("_covered_set", set())
+            max_covered = data.pop("_max_covered", 0)
+            distinct_covered = len(covered_set) or max_covered
+            total = data["elements_total"]
+            if distinct_covered > total:
+                total = distinct_covered
+                data["elements_total"] = total
+            data["elements_covered"] = distinct_covered
+            data["elements_uncovered"] = max(0, total - distinct_covered)
+            data["percentage"] = (distinct_covered / total * 100) if total > 0 else 0.0
+            self._emit_log(
+                f"[FLOW] {flow_name}: {distinct_covered}/{total} blocs couverts ({data['percentage']:.1f}%)"
+            )
 
     def run_apex_tests(self, org_ref: str, wait_minutes: int = 60) -> None:
         """Execute all local Apex tests and stream output to the log.

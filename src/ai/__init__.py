@@ -14,6 +14,7 @@ from .ai_service import (
     create_service,
 )
 from .context_builder import build_org_context, build_system_prompt
+from .gateway_models import GATEWAY_MODELS
 
 __all__ = [
     "AIMessage",
@@ -26,6 +27,7 @@ __all__ = [
     "GatewayService",
     "CLAUDE_MODELS",
     "GEMINI_MODELS",
+    "GATEWAY_MODELS",
     "create_service",
     "build_org_context",
     "build_system_prompt",

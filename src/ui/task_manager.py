@@ -96,6 +96,9 @@ class TaskManager:
                 elif event_type == "discussion_info":
                     if isinstance(payload, dict):
                         self.app._handle_discussion_info(payload)
+                elif event_type == "discussion_document":
+                    if isinstance(payload, dict):
+                        self.app._handle_discussion_document(payload)
         except Empty:
             pass
         # Reschedule polling

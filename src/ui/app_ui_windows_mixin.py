@@ -18,6 +18,7 @@ from src.ui.findings_screen import show_findings_screen
 from src.ui.flow_coverage_exclusion_screen import show_flow_coverage_exclusion_screen
 from src.ui.history_screen import show_history_screen
 from src.ui.picklist_csv_export import export_picklist_csvs
+from src.ui.screen_count_export import export_screen_count
 from src.ui.scoring_screens import show_adopt_adapt_screen, show_scoring_screen
 from src.ui.threshold_screen import show_threshold_screen
 
@@ -59,6 +60,9 @@ class _AppUiWindowsMixin:
 
     def _show_data_dictionary_screen(self) -> None:
         show_data_dictionary_screen(self)
+
+    def _menu_count_screens(self) -> None:
+        export_screen_count(self)
 
     def _show_findings_screen(self) -> None:
         show_findings_screen(self)

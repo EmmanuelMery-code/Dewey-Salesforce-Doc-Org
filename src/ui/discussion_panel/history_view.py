@@ -17,6 +17,43 @@ def append_line(app: Application, text: str, tag: str = "system") -> None:
     widget.configure(state="disabled")
 
 
+_DISCUSSION_ACTION_BUTTONS = (
+    "discussion_send_button",
+    "discussion_summarize_button",
+    "discussion_business_doc_button",
+    "discussion_maintainability_button",
+)
+
+
+def set_discussion_controls(app: Application, enabled: bool) -> None:
+    """Enable or disable the buttons that talk to the configured AI."""
+
+    state = "normal" if enabled else "disabled"
+    for name in _DISCUSSION_ACTION_BUTTONS:
+        widget = getattr(app, name, None)
+        if widget is not None:
+            widget.configure(state=state)
+
+
+def release_discussion_job(app: Application) -> None:
+    """Re-enable the UI after a Discussion document job finishes or fails."""
+
+    locked = bool(getattr(app, "discussion_locks_ui", False))
+    app.discussion_locks_ui = False
+    app.discussion_pending = False
+    app.discussion_document_kind = None
+    if not locked:
+        set_discussion_controls(app, True)
+        return
+    worker = getattr(getattr(app, "task_manager", None), "worker", None)
+    if worker is not None and worker.is_alive():
+        set_discussion_controls(app, True)
+        return
+    app._set_buttons_state(True)
+    if hasattr(app, "_apply_folder_policy_button_states"):
+        app._apply_folder_policy_button_states()
+
+
 def _user_questions(app: Application) -> list[str]:
     """Return the list of user-authored questions, in chronological order."""
 

@@ -14,6 +14,7 @@ from .ai_service_retry import (
     RetryNotifier,
     _call_with_retry,
 )
+from .gateway_models import GATEWAY_MODELS, models_endpoint, parse_gateway_model_ids
 
 
 GEMINI_MODELS: list[str] = [
@@ -241,11 +242,39 @@ class GatewayService(AIServiceBase):
 
     name = "Gateway"
     default_model = "gpt-5"
+    available_models = GATEWAY_MODELS
     url = "https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl/chat/completions"
 
     def __init__(self, api_key: str, model: str | None = None, cert_path: str | None = None) -> None:
         super().__init__(api_key, model)
         self.cert_path = cert_path or "config/Salesforce_Internal_Root_CA_3.pem"
+
+    def list_models(self) -> list[str]:
+        """Return the model ids currently published by the gateway."""
+
+        if not self.api_key:
+            raise AIProviderNotConfigured(
+                "Aucune cle API Gateway configuree. Ajoutez-la dans Configuration > Discussion."
+            )
+        try:
+            response = requests.get(
+                models_endpoint(self.url),
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                verify=self.cert_path,
+                timeout=60,
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except requests.exceptions.RequestException as exc:
+            detail = ""
+            http_response = getattr(exc, "response", None)
+            if http_response is not None:
+                detail = (http_response.text or "")[:400]
+            message = detail or str(exc)
+            raise RuntimeError(f"Impossible de lire les modeles Gateway : {message}") from exc
+        except ValueError as exc:
+            raise RuntimeError("La gateway n'a pas renvoye une liste de modeles lisible.") from exc
+        return parse_gateway_model_ids(payload)
 
     def chat(
         self,

@@ -15,6 +15,10 @@ from src.ui.discussion_panel.history_view import (
     go_previous,
     update_navigation_state,
 )
+from src.ui.discussion_panel.business_docs import (
+    generate_business_document,
+    generate_maintainability_document,
+)
 from src.ui.discussion_panel.messaging import (
     send_message,
     summarize_org,
@@ -24,6 +28,23 @@ from src.ui import theme
 
 if TYPE_CHECKING:
     from src.ui.application import Application
+
+
+def apply_doc_buttons_visibility(app: Application) -> None:
+    """Show or hide the "Doc. Métier" / "Maintenabilité" row per the configuration."""
+
+    row = getattr(app, "discussion_doc_buttons_row", None)
+    if row is None:
+        return
+    if app.show_discussion_doc_buttons_var.get():
+        if not row.winfo_manager():
+            row.pack(
+                fill="x",
+                pady=(0, theme.SPACE_SM),
+                before=app.discussion_history_label,
+            )
+    else:
+        row.pack_forget()
 
 
 def build_panel(app: Application, parent: ttk.Frame) -> None:
@@ -69,8 +90,20 @@ def build_panel(app: Application, parent: ttk.Frame) -> None:
     )
     app.discussion_force_docs_button.pack(side="left", padx=(theme.SPACE_LG, 0))
 
+    docs_row = ttk.Frame(container)
+    app.discussion_doc_buttons_row = docs_row
+    app.discussion_business_doc_button = app._track_button(
+        ttk.Button(docs_row, command=lambda: generate_business_document(app))
+    )
+    app.discussion_business_doc_button.pack(side="left")
+    app.discussion_maintainability_button = app._track_button(
+        ttk.Button(docs_row, command=lambda: generate_maintainability_document(app))
+    )
+    app.discussion_maintainability_button.pack(side="left", padx=(theme.SPACE_SM, 0))
+
     app.discussion_history_label = ttk.Label(container)
     app.discussion_history_label.pack(anchor="w")
+    apply_doc_buttons_visibility(app)
     history = scrolledtext.ScrolledText(container, wrap="word", height=14)
     history.pack(fill="both", expand=True, pady=(theme.SPACE_XS, theme.SPACE_SM))
     history.configure(state="disabled")

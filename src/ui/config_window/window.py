@@ -114,6 +114,9 @@ def show_configuration_screen(app: Application) -> None:
         "claude_model": tk.StringVar(value=app.claude_model_var.get()),
         "gemini_model": tk.StringVar(value=app.gemini_model_var.get()),
         "gateway_model": tk.StringVar(value=app.gateway_model_var.get()),
+        "show_discussion_doc_buttons": tk.BooleanVar(
+            value=bool(app.show_discussion_doc_buttons_var.get())
+        ),
         "generate_excels": tk.BooleanVar(value=bool(app.generate_excels_var.get())),
         "generate_org_check_reports": tk.BooleanVar(
             value=bool(app.generate_org_check_reports_var.get())

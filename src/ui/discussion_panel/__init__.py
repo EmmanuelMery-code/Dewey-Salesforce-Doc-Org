@@ -12,6 +12,11 @@ existing call sites keep working unchanged.
 
 from __future__ import annotations
 
+from src.ui.discussion_panel.business_docs import (
+    generate_business_document,
+    generate_maintainability_document,
+    handle_document,
+)
 from src.ui.discussion_panel.history_view import (
     append_line,
     clear_history,
@@ -26,12 +31,16 @@ from src.ui.discussion_panel.messaging import (
     summarize_org,
     toggle_force_existing_docs,
 )
-from src.ui.discussion_panel.panel import build_panel
+from src.ui.discussion_panel.panel import apply_doc_buttons_visibility, build_panel
 
 __all__ = [
     "append_line",
+    "apply_doc_buttons_visibility",
     "build_panel",
     "clear_history",
+    "generate_business_document",
+    "generate_maintainability_document",
+    "handle_document",
     "handle_error",
     "handle_info",
     "handle_reply",

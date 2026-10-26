@@ -104,6 +104,7 @@ class AppSettingsMixin:
             "claude_models": self.claude_model_choices,
             "gateway_models": self.gateway_model_choices,
             "system_prompt": self.system_prompt,
+            "show_discussion_doc_buttons": bool(self.show_discussion_doc_buttons_var.get()),
             "generate_excels": bool(self.generate_excels_var.get()),
             "generate_org_check_reports": bool(self.generate_org_check_reports_var.get()),
             "generate_data_dictionary_word": bool(self.generate_data_dictionary_word_var.get()),

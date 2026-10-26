@@ -78,6 +78,9 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
     gateway_model_choice = edit_vars["gateway_model"].get().strip()
     if gateway_model_choice in app.gateway_model_choices:
         app.gateway_model_var.set(gateway_model_choice)
+    app.show_discussion_doc_buttons_var.set(
+        bool(edit_vars["show_discussion_doc_buttons"].get())
+    )
     app.generate_excels_var.set(bool(edit_vars["generate_excels"].get()))
     app.generate_org_check_reports_var.set(
         bool(edit_vars["generate_org_check_reports"].get())
@@ -236,6 +239,7 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
         app._apply_pmd_state()
         app._on_login_target_changed()
     app._apply_folder_policy_button_states()
+    app._apply_discussion_doc_buttons_visibility()
 
     app._append_log(app._t("configuration_saved"))
     window.destroy()

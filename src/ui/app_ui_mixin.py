@@ -266,6 +266,12 @@ class AppUiMixin(
     def _handle_discussion_info(self, payload: dict[str, object]) -> None:
         discussion_panel.handle_info(self, payload)
 
+    def _handle_discussion_document(self, payload: dict[str, str]) -> None:
+        discussion_panel.handle_document(self, payload)
+
+    def _apply_discussion_doc_buttons_visibility(self) -> None:
+        discussion_panel.apply_doc_buttons_visibility(self)
+
     # ================================================================== misc helpers
 
     def _track_button(self, button: ttk.Button) -> ttk.Button:
