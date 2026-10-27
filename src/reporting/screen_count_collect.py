@@ -7,8 +7,8 @@ Deux lectures, les mêmes que le classeur produit à la main :
   qui est le système source).
 
 Un écran est une page Lightning d'enregistrement, un screen flow actif,
-un OmniScript actif qui contient une étape, ou un LWC exposé sur une
-cible visible par un utilisateur.
+un OmniScript actif qui contient une étape, une FlexCard active, ou un
+LWC exposé sur une cible visible par un utilisateur.
 """
 
 from __future__ import annotations
@@ -25,8 +25,9 @@ from src.core.models.security import SecurityArtifact
 LIGHTNING = "Lightning Page"
 SCREEN_FLOW = "Screen Flow"
 OMNI = "OmniScript"
+FLEXCARD = "FlexCard"
 LWC = "LWC"
-TYPE_ORDER = (LIGHTNING, SCREEN_FLOW, OMNI, LWC)
+TYPE_ORDER = (LIGHTNING, SCREEN_FLOW, OMNI, FLEXCARD, LWC)
 
 SHARED = "Objets partagés"
 DICT_MULTI = "Plusieurs squads"
@@ -67,10 +68,13 @@ _USER_TARGETS = {
     "lightningCommunity__Default",
 }
 _BUNDLE_RE = re.compile(r'"bundle"\s*:\s*"([^"]+)"')
-_IP_KEY_RE = re.compile(r'"integrationProcedureKey"\s*:\s*"([^"]+)"')
+_IP_KEY_RE = re.compile(r'"(?:integrationProcedureKey|ipMethod)"\s*:\s*"([^"]+)"')
 _SCHEMA_RE = re.compile(r"@salesforce/schema/([A-Za-z][A-Za-z0-9_]*)\.")
 _CUSTOM_RE = re.compile(r"\b([A-Za-z][A-Za-z0-9_]*__(?:c|mdt|e))\b")
 _DR_VERSION_RE = re.compile(r"^(.*)_(\d+(?:\.\d+)?)$")
+_SOQL_FROM_RE = re.compile(r"(?i)\bFROM\s+([A-Za-z][A-Za-z0-9_]*)")
+_CARD_FOLDERS = ("omniUiCard", "omniUiCards", "vlocityCards")
+_CARD_PATTERNS = ("*.ouc-meta.xml", "*.card-meta.xml")
 
 ExcludedFn = Callable[[str, str], bool]
 
@@ -242,6 +246,7 @@ class _MetadataReader:
         items = self._flexipages()
         items.extend(self._flows())
         items.extend(self._chosen_omnis(omnis))
+        items.extend(self._flexcards(procedures))
         items.extend(self._lwcs(hosts))
         return items
 
@@ -316,6 +321,35 @@ class _MetadataReader:
                 rows.append(
                     _RawScreen(OMNI, version.display_name, version.label, tuple(sorted(version.objects)), False, motif)
                 )
+        return rows
+
+    def _flexcards(self, procedures: dict[str, set[str]]) -> list[_RawScreen]:
+        versions: list[_CardVersion] = []
+        for folder in _CARD_FOLDERS:
+            for pattern in _CARD_PATTERNS:
+                for path in self._files(folder, pattern):
+                    card = _read_flexcard(path, self.skip, procedures, self.known)
+                    if card is not None:
+                        versions.append(card)
+        grouped: dict[str, list[_CardVersion]] = {}
+        for card in versions:
+            grouped.setdefault(card.name, []).append(card)
+        rows: list[_RawScreen] = []
+        for group in grouped.values():
+            active = [card for card in group if card.active]
+            chosen = max(active or group, key=lambda card: card.version)
+            for card in group:
+                selected = card.identity == chosen.identity
+                if selected and chosen.active and not chosen.child:
+                    rows.append(_RawScreen(FLEXCARD, card.display_name, card.label, card.objects, True, ""))
+                    continue
+                if selected and chosen.active and chosen.child:
+                    motif = "FlexCard enfant, affichée dans une carte parente"
+                elif not card.active:
+                    motif = "FlexCard inactive ou version antérieure"
+                else:
+                    motif = "version antérieure"
+                rows.append(_RawScreen(FLEXCARD, card.display_name, card.label, card.objects, False, motif))
         return rows
 
     def _lwcs(self, hosts: dict[str, set[str]]) -> list[_RawScreen]:
@@ -515,6 +549,57 @@ class _MetadataReader:
             if base.exists():
                 found.extend(base.glob(pattern))
         return sorted(found)
+
+
+@dataclass(frozen=True)
+class _CardVersion:
+    name: str
+    version: float
+    active: bool
+    child: bool
+    label: str
+    display_name: str
+    objects: tuple[str, ...]
+
+    @property
+    def identity(self) -> tuple[str, float]:
+        return (self.name, self.version)
+
+
+def _read_flexcard(
+    path: Path,
+    skip: ExcludedFn,
+    procedures: Mapping[str, set[str]],
+    known: set[str],
+) -> _CardVersion | None:
+    stem = path.name.replace(".ouc-meta.xml", "").replace(".card-meta.xml", "")
+    if skip("omni", stem):
+        return None
+    root = _parse(path)
+    if root is None or _local(root.tag) != "OmniUiCard":
+        return None
+    name = _direct(root, "name") or stem
+    version = _version(root)
+    number = int(version) if version == int(version) else version
+    text = unescape(
+        "\n".join(_all_texts(root, "dataSourceConfig") + _all_texts(root, "propertySetConfig"))
+    )
+    objects: set[str] = {item for item in _SOQL_FROM_RE.findall(text) if _valid_object(item)}
+    for token in _CUSTOM_RE.findall(text):
+        if not known or token in known:
+            objects.add(token)
+    for key in _IP_KEY_RE.findall(text):
+        if key and key != "null":
+            objects.update(procedures.get(key, set()))
+    return _CardVersion(
+        name=name,
+        version=version,
+        active=_direct(root, "isActive").lower() == "true",
+        child=_direct(root, "omniUiCardType").casefold() == "child",
+        label=_direct(root, "description") or _direct(root, "masterLabel") or name,
+        display_name=f"{name}_{number}",
+        objects=tuple(sorted(objects)),
+    )
 
 
 @dataclass

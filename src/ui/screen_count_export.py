@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def export_screen_count(app: Application) -> None:
-    """Parse le dossier source et écrit ``ecrans_YYYYMMDD.xlsx``."""
+    """Parse le dossier source et écrit ``excel/ecrans_YYYYMMDD.xlsx``."""
     output = app._validate_output_dir()
     if output is None:
         return
@@ -41,7 +41,7 @@ def export_screen_count(app: Application) -> None:
         return
 
     selection = DataDictionarySelection.from_settings(app.settings)
-    target = output / f"ecrans_{date.today():%Y%m%d}.xlsx"
+    target = output / "excel" / f"ecrans_{date.today():%Y%m%d}.xlsx"
 
     def task() -> Path:
         parser = SalesforceMetadataParser(

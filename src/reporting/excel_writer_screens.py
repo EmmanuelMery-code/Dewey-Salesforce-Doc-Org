@@ -191,7 +191,7 @@ def _write_matrix(
         cell = worksheet.cell(row=note_row, column=1, value=note)
         cell.font = _NOTE_FONT
         cell.alignment = _WRAP
-        worksheet.row_dimensions[note_row].height = 32
+        worksheet.row_dimensions[note_row].height = 48 if len(note) > 220 else 32
         note_row += 1
 
     _chart(worksheet, len(columns), note_row + 1)
@@ -220,8 +220,8 @@ def _chart(worksheet, column_count: int, anchor_row: int) -> None:
     chart.title = "Écrans par type"
     chart.y_axis.title = "Nombre d'écrans"
     chart.style = 10
-    data = Reference(worksheet, min_col=2, max_col=1 + column_count, min_row=4, max_row=8)
-    categories = Reference(worksheet, min_col=1, min_row=5, max_row=8)
+    data = Reference(worksheet, min_col=2, max_col=1 + column_count, min_row=4, max_row=4 + len(TYPE_ORDER))
+    categories = Reference(worksheet, min_col=1, min_row=5, max_row=4 + len(TYPE_ORDER))
     chart.add_data(data, from_rows=False, titles_from_data=True)
     chart.set_categories(categories)
     chart.shape = 4
@@ -293,8 +293,9 @@ def _write_method(worksheet, result: ScreenCountResult) -> None:
     worksheet["A1"].font = _TITLE_FONT
     worksheet.column_dimensions["A"].width = 120
     lines = [
-        "Un écran est une page Lightning d'enregistrement (Record Page), un screen flow actif, un OmniScript actif qui produit au moins une étape, ou un LWC exposé sur une cible visible.",
-        "Les barres d'utilitaires, les pages d'application ou d'accueil, les flows inactifs, les OmniScripts sans étape et les composants non exposés ne sont pas comptés. Ils sont listés dans Hors perimetre.",
+        "Un écran est une page Lightning d'enregistrement (Record Page), un screen flow actif, un OmniScript actif qui produit au moins une étape, une FlexCard active, ou un LWC exposé sur une cible visible.",
+        "Les barres d'utilitaires, les pages d'application ou d'accueil, les flows inactifs, les OmniScripts sans étape, les FlexCards enfants ou inactives et les composants non exposés ne sont pas comptés. Ils sont listés dans Hors perimetre.",
+        "Pour une même FlexCard, seule la version active la plus élevée est comptée. Une carte enfant reste hors comptage : elle s'affiche à l'intérieur d'une carte parente. Ses objets viennent des requêtes SOQL (FROM), des objets personnalisés cités et des procédures d'intégration appelées.",
         "Pour un même OmniScript (type, sous-type, langue), seule la version active la plus élevée est comptée. Les objets viennent des DataRaptors (bundle), des procédures d'intégration appelées, et des OmniScripts embarqués.",
         "Un LWC compte s'il est exposé sur une page Lightning, un écran de flow, une action d'écran, un onglet, une URL ou une page de site. Une action d'enregistrement sans ScreenAction et un composant limité à la barre d'utilitaires restent hors comptage.",
         "Les objets d'un LWC sont ceux déclarés dans sa cible, importés via @salesforce/schema, les jetons personnalisés (__c, __mdt, __e) connus de l'org, et l'objet des pages d'enregistrement où il est déposé.",
@@ -303,7 +304,8 @@ def _write_method(worksheet, result: ScreenCountResult) -> None:
         f"Lorsque les squads trouvées sont Parcours de vente et Vision Client, la colonne des écrans mixtes s'appelle « {result.multi_label} ».",
         "Tableau Synthese dictionnaire. La squad est le champ Squad responsable du data dictionnary. Piloté par n'est pas utilisé : c'est le système source. Un objet qui a une squad consommatrice est un socle (Account, Contact, AccountContactRelation lorsqu'ils sont renseignés ainsi) : il ne décide que si aucun autre objet de l'écran n'a de squad.",
         "Plusieurs valeurs séparées par | donnent Plusieurs squads. « Tous » ne décide pas. Une squad vide donne Non renseigné. La squad consommatrice ne remplace pas la squad responsable.",
-        "Les totaux additionnent toutes les lignes de type, y compris les LWC.",
+        "Les totaux additionnent toutes les lignes de type, y compris les FlexCards et les LWC.",
+        _COMPARISON,
     ]
     if not result.squad_names:
         lines.append(
@@ -312,7 +314,7 @@ def _write_method(worksheet, result: ScreenCountResult) -> None:
     for index, line in enumerate(lines, start=3):
         cell = worksheet.cell(row=index, column=1, value=line)
         cell.alignment = _WRAP
-        worksheet.row_dimensions[index].height = 36
+        worksheet.row_dimensions[index].height = 60 if len(line) > 220 else 36
     worksheet.page_setup.orientation = "landscape"
     worksheet.page_setup.fitToPage = True
     worksheet.page_setup.fitToWidth = 1
@@ -323,9 +325,21 @@ def _write_method(worksheet, result: ScreenCountResult) -> None:
     worksheet.sheet_properties.pageSetUpPr.fitToPage = True
 
 
+_COMPARISON = (
+    "Différence entre les deux synthèses. La feuille Synthese classe chaque écran "
+    "d'après les objets accordés aux squads dans les permission sets : la squad retenue "
+    "est celle qui possède seule un objet utilisé par l'écran. La feuille Synthese dictionnaire "
+    "classe les mêmes écrans d'après la Squad responsable saisie dans Créer un data dictionnary. "
+    "Piloté par n'est pas une squad : c'est le système source (Salesforce, RCU, Alto…). "
+    "Un écran peut donc changer de colonne d'une feuille à l'autre. Le dictionnaire compte "
+    "aussi les écrans sans objet de permission set : ils apparaissent dans Non renseigné."
+)
+
+
 def _perm_notes(result: ScreenCountResult) -> list[str]:
     squads = ", ".join(result.squad_names) if result.squad_names else "aucune squad détectée"
     return [
+        _COMPARISON,
         f"Squads lues dans les descriptions : {squads}. {SHARED} : l'écran n'utilise que des objets présents dans plusieurs squads. {result.multi_label} : l'écran utilise des objets exclusifs de plusieurs squads.",
         "Les enfants standard suivent leur parent exclusif. Un objet partagé ne reclasse pas un écran qui utilise déjà un objet exclusif.",
     ]
@@ -333,6 +347,7 @@ def _perm_notes(result: ScreenCountResult) -> list[str]:
 
 def _dict_notes() -> list[str]:
     return [
+        _COMPARISON,
         "La squad responsable vient des informations enregistrées dans Créer un data dictionnary. Renseignez Squad responsable avant de compter, sinon la colonne Non renseigné regroupe les écrans.",
         "Un objet socle (squad consommatrice renseignée) ne décide que s'il est le seul objet de l'écran à porter une squad. InsurancePolicy, lorsqu'il est Vision Client | Parcours de vente, donne Plusieurs squads.",
     ]

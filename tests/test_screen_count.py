@@ -102,9 +102,11 @@ def test_workbook_counts_screens_with_both_squad_methods(tmp_path: Path) -> None
     assert _row(summary, "Lightning Page") == [2, 0, 1, 0, 3]
     assert _row(summary, "Screen Flow") == [2, 0, 1, 1, 4]
     assert _row(summary, "OmniScript") == [3, 0, 0, 0, 3]
+    assert _row(summary, "FlexCard") == [1, 0, 0, 0, 1]
     assert _row(summary, "LWC") == [1, 1, 0, 0, 2]
-    assert _row(summary, "Total") == [8, 1, 2, 1, 12]
+    assert _row(summary, "Total") == [9, 1, 2, 1, 13]
     assert summary._charts
+    assert _sheet_text(summary).count("Différence entre les deux synthèses") == 1
 
     dictionary = workbook["Synthese dictionnaire"]
     assert [dictionary.cell(4, col).value for col in range(1, 7)] == [
@@ -118,8 +120,10 @@ def test_workbook_counts_screens_with_both_squad_methods(tmp_path: Path) -> None
     assert _row(dictionary, "Lightning Page") == [1, 1, 1, 1, 4]
     assert _row(dictionary, "Screen Flow") == [2, 1, 1, 0, 4]
     assert _row(dictionary, "OmniScript") == [3, 0, 0, 0, 3]
+    assert _row(dictionary, "FlexCard") == [1, 0, 0, 0, 1]
     assert _row(dictionary, "LWC") == [1, 1, 0, 1, 3]
-    assert _row(dictionary, "Total") == [7, 3, 2, 2, 14]
+    assert _row(dictionary, "Total") == [8, 3, 2, 2, 15]
+    assert _sheet_text(dictionary).count("Différence entre les deux synthèses") == 1
 
     details = _indexed(workbook["Detail dictionnaire"])
     assert details["sfSocle"][4] == "Parcours de vente"
@@ -129,7 +133,7 @@ def test_workbook_counts_screens_with_both_squad_methods(tmp_path: Path) -> None
     assert not details["noiseLwc"][3]
 
     outside = {row[1] for row in workbook["Hors perimetre"].iter_rows(min_row=2, values_only=True)}
-    assert {"Util_Bar", "sfDraft", "internalLwc", "utilityLwc", "headlessLwc", "PV_Demo_1"} <= outside
+    assert {"Util_Bar", "sfDraft", "internalLwc", "utilityLwc", "headlessLwc", "PV_Demo_1", "CAParent_1", "CAChild_1", "CAOff_1"} <= outside
     assert "sfAuto" not in outside
 
 
@@ -144,10 +148,14 @@ def test_menu_entry_follows_the_data_dictionary() -> None:
 
 
 def _row(worksheet, label: str) -> list[int]:
-    for row in worksheet.iter_rows(min_row=5, max_row=9, values_only=True):
+    for row in worksheet.iter_rows(min_row=5, max_row=12, values_only=True):
         if row[0] == label:
             return list(row[1:])
     raise AssertionError(label)
+
+
+def _sheet_text(worksheet) -> str:
+    return "\n".join(str(cell.value) for row in worksheet.iter_rows() for cell in row if cell.value)
 
 
 def _indexed(worksheet) -> dict[str, tuple]:
@@ -181,6 +189,10 @@ def _build_package(tmp_path: Path) -> Path:
     _write(root / "omniScripts" / "EV_Host_fr_1.os-meta.xml", _omni(1, "", "", embed="PV|Demo|fr", os_type="EV", subtype="Host"))
     _write(root / "omniScripts" / "PV_ViaIp_fr_1.os-meta.xml", _omni(1, "", "PV_Create", os_type="PV", subtype="ViaIp"))
     _write(root / "omniScripts" / "PV_NoStep_fr_1.os-meta.xml", _omni(1, "DR_Opp", "", subtype="NoStep", step=False))
+    _write(root / "omniUiCard" / "CAParent_PV_1.ouc-meta.xml", _flexcard("CAParent", 1, True, "Parent", "Account"))
+    _write(root / "omniUiCard" / "CAParent_PV_2.ouc-meta.xml", _flexcard("CAParent", 2, True, "Parent", "Opportunity"))
+    _write(root / "omniUiCard" / "CAChild_PV_1.ouc-meta.xml", _flexcard("CAChild", 1, True, "Child", "Contact"))
+    _write(root / "omniUiCard" / "CAOff_PV_1.ouc-meta.xml", _flexcard("CAOff", 1, False, "Parent", "Opportunity"))
 
     _lwc(root, "oppLwc", exposed=True, targets=["lightning__RecordPage"], schema="Opportunity")
     _lwc(root, "contactLwc", exposed=True, targets=["lightning__RecordAction"], action="ScreenAction", sobject="Contact")
@@ -253,6 +265,16 @@ def _omni(
         f"<language>fr</language><name>{subtype}</name>{step_xml}{embed_xml}"
         f"<propertySetConfig>{config}</propertySetConfig><subType>{subtype}</subType><type>{os_type}</type>"
         f"<versionNumber>{version}.0</versionNumber></OmniScript>"
+    )
+
+
+def _flexcard(name: str, version: int, active: bool, card_type: str, source: str) -> str:
+    query = f"&quot;query&quot; : &quot;SELECT Id FROM {source}&quot;"
+    return (
+        f"<OmniUiCard {NS}><isActive>{str(active).lower()}</isActive><name>{name}</name>"
+        f"<description>{name}</description><omniUiCardType>{card_type}</omniUiCardType>"
+        f"<dataSourceConfig>{{{query}}}</dataSourceConfig>"
+        f"<versionNumber>{version}.0</versionNumber></OmniUiCard>"
     )
 
 
