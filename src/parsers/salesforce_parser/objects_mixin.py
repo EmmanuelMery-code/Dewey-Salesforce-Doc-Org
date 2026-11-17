@@ -42,6 +42,7 @@ class _ObjectsMixin(_ParserState):
                 info.deployment_status = child_text(root, "deploymentStatus")
                 info.sharing_model = child_text(root, "sharingModel") or child_text(root, "externalSharingModel")
                 info.visibility = child_text(root, "visibility")
+                info.custom_settings_type = child_text(root, "customSettingsType")
                 # Sometimes apiVersion is in the object file (though rare)
                 info.api_version = child_text(root, "apiVersion")
 

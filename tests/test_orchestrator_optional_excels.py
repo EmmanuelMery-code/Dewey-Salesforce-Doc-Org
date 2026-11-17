@@ -238,3 +238,35 @@ class TestFindingsExcel:
 
         assert result.selected_data_dictionary_excels[0].name in html
         assert result.findings_excel.name in html
+
+
+class TestDiagramsOnlyGeneration:
+    def test_writes_the_drawio_and_skips_the_analyzer(self, tmp_path: Path) -> None:
+        generator = _generator(
+            tmp_path,
+            data_dictionary_selection=DataDictionarySelection(objects={"Account", "Lead"}),
+            generate_excels=False,
+            generate_html=False,
+            generate_data_dictionary_word=False,
+            generate_summary_word=False,
+            generate_data_dictionary_excel=False,
+            generate_findings_excel=False,
+            generate_data_model_diagram_only=True,
+        )
+
+        with patch(
+            "src.core.orchestrator.generator.SalesforceMetadataParser"
+        ) as parser_cls, patch(
+            "src.core.orchestrator.generator.AnalyzerEngine"
+        ) as analyzer:
+            parser_cls.return_value.parse.return_value = _snapshot(tmp_path)
+            result = generator.generate()
+
+        analyzer.assert_not_called()
+        path = tmp_path / "out" / "diagrams" / "data_model.drawio"
+        assert result.data_model_drawio == path
+        content = path.read_text(encoding="utf-8")
+        assert "Account" in content
+        assert "Lead" in content
+        assert not (tmp_path / "out" / "excel").exists()
+        assert not (tmp_path / "out" / "html").exists()

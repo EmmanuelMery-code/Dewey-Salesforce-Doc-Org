@@ -10,8 +10,10 @@ from src.ai import build_system_prompt
 from src.ui import (
     ai_tags_panel,
     analyzer_rules_panel,
+    nebula_panel,
     posture_capability_panel,
 )
+from src.analyzer.nebula_config import DEFAULT_NEBULA_LOG_FORMAT, DEFAULT_NEBULA_TAGS
 from src.ui.settings import DEFAULT_AI_USAGE_TAGS, parse_coverage_threshold
 
 if TYPE_CHECKING:
@@ -32,6 +34,11 @@ def _canonical_comparison_target(display: str) -> str:
 
 
 def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variable], window: tk.Toplevel) -> None:
+    nebula_values = nebula_panel.collect(app)
+    if nebula_values is None:
+        return
+    nebula_enabled, nebula_format, nebula_tags = nebula_values
+
     new_language = app._language_code_from_display(edit_vars["language"].get())
     language_changed = new_language != app.language
     app.language = new_language
@@ -210,6 +217,11 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
         app.system_prompt = prompt_text or build_system_prompt(app.language)
     app._config_system_prompt_widget = None
 
+    app.nebula_rules_enabled = nebula_enabled
+    app.nebula_log_format = nebula_format or DEFAULT_NEBULA_LOG_FORMAT
+    app.nebula_tags = nebula_tags or list(DEFAULT_NEBULA_TAGS)
+    nebula_panel.apply_disabled_rules(app)
+
     analyzer_rules_panel.persist_changes(app)
     analyzer_rules_panel.reset_state(app)
 
@@ -227,6 +239,7 @@ def apply_configuration_changes(app: Application, edit_vars: dict[str, tk.Variab
         cleaned_tags.append(text)
     app.ai_usage_tags = cleaned_tags or list(DEFAULT_AI_USAGE_TAGS)
     ai_tags_panel.reset_state(app)
+    nebula_panel.reset_state(app)
 
     app.posture_config = posture_capability_panel.collect_config(app)
     posture_capability_panel.reset_state(app)

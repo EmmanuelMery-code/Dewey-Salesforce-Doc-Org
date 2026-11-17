@@ -33,6 +33,10 @@ class _AppUiMenuMixin:
             label=self._t("menu_generate_word"),
             command=self._menu_generate_word,
         )
+        documentation_menu.add_command(
+            label=self._t("menu_generate_diagrams"),
+            command=self._menu_generate_diagrams,
+        )
         documentation_menu.add_separator()
         documentation_menu.add_command(
             label=self._t("menu_create_data_dictionary"),

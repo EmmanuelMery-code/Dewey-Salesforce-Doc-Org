@@ -73,6 +73,7 @@ class AppGenerationMixin:
         generate_excels_override: bool | None = None,
         generate_data_dictionary_word_override: bool | None = None,
         generate_summary_word_override: bool | None = None,
+        generate_data_model_diagram_only: bool = False,
     ) -> None:
         if not self._apply_source_dir_policy():
             return
@@ -120,6 +121,7 @@ class AppGenerationMixin:
             generate_excels_override=generate_excels_override,
             generate_data_dictionary_word_override=generate_data_dictionary_word_override,
             generate_summary_word_override=generate_summary_word_override,
+            generate_data_model_diagram_only=generate_data_model_diagram_only,
         )
 
         self.task_manager.start_task(
@@ -154,6 +156,16 @@ class AppGenerationMixin:
             generate_excels_override=False,
             generate_data_dictionary_word_override=True,
             generate_summary_word_override=True,
+        )
+
+    def _menu_generate_diagrams(self) -> None:
+        """Write only the draw.io data model diagram of the selected objects."""
+        self._start_generation(
+            generate_html_override=False,
+            generate_excels_override=False,
+            generate_data_dictionary_word_override=False,
+            generate_summary_word_override=False,
+            generate_data_model_diagram_only=True,
         )
 
     # ------------------------------------------------------------------ coverage

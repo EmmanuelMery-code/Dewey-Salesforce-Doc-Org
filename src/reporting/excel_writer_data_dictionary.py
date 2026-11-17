@@ -246,7 +246,7 @@ class _ExcelDataDictionaryMixin:
                 obj.api_name,
                 obj.label,
                 obj.plural_label,
-                "Oui" if obj.custom else "Non",
+                obj.custom_kind,
                 obj.sharing_model,
                 obj.deployment_status,
                 obj.visibility,

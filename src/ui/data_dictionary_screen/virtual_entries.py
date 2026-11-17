@@ -325,7 +325,9 @@ class _DataDictionaryVirtualEntriesMixin:
         ):
             _move_key(mapping.get(obj, {}), field_api_name, api_name)
 
-        self.virtual_fields.setdefault(obj, {})[api_name] = {
+        stored = self.virtual_fields.setdefault(obj, {})
+        stored[api_name] = {
+            **stored.get(api_name, {}),
             "label": label,
             "type": field_type,
         }

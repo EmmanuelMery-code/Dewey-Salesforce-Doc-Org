@@ -16,8 +16,9 @@ Contrats testes :
     un objet peut apparaitre sur plusieurs onglets.
 
   DrawioDiagramWriter().write_data_model_diagram(...) -> Path | None
-    ecrit un ``.drawio`` valide, un ``<diagram>`` par onglet, les hubs portant
-    un style distinctif et les Master-Detail se distinguant des Lookup.
+    ecrit un ``.drawio`` valide au style ERD du comite DA : page 16:9, hubs
+    de contexte en gris pointille hors de la vue d'ensemble, lookup et
+    master-detail en trait plein distingues par la cardinalite.
 
   render_diagram_exports(...) -> str
     liste les diagrammes generes et les onglets qu'ils contiennent.
@@ -37,8 +38,8 @@ from src.core.data_model_graph import (
     normalise_squad,
     plan_data_model_tabs,
 )
-from src.core.models import ObjectInfo, RelationshipInfo
-from src.reporting.drawio_writer import HUB_STROKE, DrawioDiagramWriter
+from src.core.models import FieldInfo, ObjectInfo, RelationshipInfo
+from src.reporting.drawio_writer import DrawioDiagramWriter
 from src.reporting.html.renderers.index_panels import render_diagram_exports
 
 SALES_SQUAD = "Parcours de vente"
@@ -262,28 +263,94 @@ class TestDrawioWriter:
 
         assert len(drawn) == 3
 
-    def test_a_shared_object_carries_a_distinctive_style(self, tmp_path: Path) -> None:
+    def test_a_shared_object_is_context_outside_the_overview(self, tmp_path: Path) -> None:
         domain = self._diagrams(self._write(tmp_path))[f"Domaine 1 - {SALES_SQUAD}"]
-        boxes = {
-            (cell.get("value") or "").split("</b>")[0].removeprefix("<b>"): cell
-            for cell in domain.iter("mxCell")
-            if cell.get("vertex")
-        }
 
-        assert HUB_STROKE in boxes["Account"].get("style", "")
-        assert "strokeWidth=3" in boxes["Account"].get("style", "")
-        assert HUB_STROKE not in boxes["Quote__c"].get("style", "")
+        def style_of(api_name: str) -> str:
+            cell = next(
+                item
+                for item in domain.iter("mxCell")
+                if f"<b>{api_name}</b>" in (item.get("value") or "")
+            )
+            return cell.get("style") or ""
 
-    def test_master_detail_and_lookup_links_are_told_apart(self, tmp_path: Path) -> None:
+        account = style_of("Account")
+        quote = style_of("Quote__c")
+
+        assert "strokeColor=#666666" in account
+        assert "dashed=1" in account
+        assert "strokeColor=#82B366" in quote
+        assert "dashed=1" not in quote
+
+    def test_lookup_and_master_detail_are_solid_and_carry_cardinality(
+        self, tmp_path: Path
+    ) -> None:
         domain = self._diagrams(self._write(tmp_path))[f"Domaine 1 - {SALES_SQUAD}"]
         edges = {
             cell.get("value"): cell.get("style", "")
             for cell in domain.iter("mxCell")
             if cell.get("edge")
         }
+        labels = {cell.get("value") for cell in domain.iter("mxCell")}
 
         assert "dashed=0" in edges["Quote__c"]
-        assert "dashed=1" in edges["Account__c"]
+        assert "dashed=0" in edges["Account__c"]
+        assert "0..*" in labels
+        assert "1" in labels
+        assert "0..1" in labels
+
+    def test_the_page_is_16_9_and_the_legend_lists_only_used_colors(
+        self, tmp_path: Path
+    ) -> None:
+        diagrams = self._diagrams(self._write(tmp_path))
+        model = next(iter(diagrams.values())).find("mxGraphModel")
+        domain = diagrams[f"Domaine 1 - {SALES_SQUAD}"]
+        domain_text = ElementTree.tostring(domain, encoding="unicode")
+
+        assert model is not None
+        assert model.get("pageWidth") == "1280"
+        assert model.get("pageHeight") == "720"
+        assert model.get("gridSize") == "10"
+        assert "fontSize=22" not in ElementTree.tostring(
+            next(iter(diagrams.values())), encoding="unicode"
+        )
+        assert "Custom" in domain_text
+        assert "Contexte" in domain_text
+        assert "Standard Salesforce" not in domain_text
+
+    def test_a_standard_object_stays_blue_and_lists_its_custom_fields(
+        self, tmp_path: Path
+    ) -> None:
+        path = self._write(
+            tmp_path,
+            [
+                ObjectInfo(
+                    api_name="Account",
+                    custom=False,
+                    fields=[
+                        FieldInfo(api_name="Industry", data_type="Picklist"),
+                        FieldInfo(api_name="Segment__c", data_type="Text"),
+                    ],
+                    relationships=[
+                        RelationshipInfo("OwnerId", "Lookup", ["User"]),
+                    ],
+                ),
+                ObjectInfo(api_name="User", custom=False),
+            ],
+        )
+        overview = self._diagrams(path)["Vue d'ensemble"]
+        account = next(
+            cell
+            for cell in overview.iter("mxCell")
+            if "<b>Account</b>" in (cell.get("value") or "")
+        )
+
+        assert "strokeColor=#6C8EBF" in (account.get("style") or "")
+        assert "#3A6FC4" in (account.get("value") or "")
+        assert "Id (PK)" in (account.get("value") or "")
+        assert "OwnerId (FK)" in (account.get("value") or "")
+        assert "Segment__c" in (account.get("value") or "")
+        assert "Industry" not in (account.get("value") or "")
 
     def test_an_edge_is_labelled_with_the_field_carrying_the_relation(
         self, tmp_path: Path

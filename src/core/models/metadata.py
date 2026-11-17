@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+_CUSTOM_SETTINGS_TYPES = frozenset({"list", "hierarchy"})
+
 
 @dataclass(slots=True)
 class FieldInfo:
@@ -116,6 +118,11 @@ class ObjectInfo:
     sharing_model: str = ""
     visibility: str = ""
     custom: bool = False
+    #: ``customSettingsType`` of the object metadata (``List`` or ``Hierarchy``
+    #: for a custom setting). Empty when the element is absent. The ``custom``
+    #: flag stays a boolean: this value is what tells a custom setting from a
+    #: custom object, both of which end with ``__c``.
+    custom_settings_type: str = ""
     api_version: str = ""
     fields: list[FieldInfo] = field(default_factory=list)
     record_types: list[RecordTypeInfo] = field(default_factory=list)
@@ -131,6 +138,30 @@ class ObjectInfo:
     #: metadata. Never infer this from ``dewey_status``: a real object can be
     #: set to "En conception" by hand and must keep its normal treatment.
     is_virtual: bool = False
+
+    @property
+    def custom_kind(self) -> str:
+        """Label of the Data Dictionary "Custom" column.
+
+        * ``standard`` — the API name ends with neither ``__c`` nor ``__mdt``.
+        * ``custom metadata`` — the API name ends with ``__mdt``.
+        * ``custom settings`` — the API name ends with ``__c`` and
+          ``custom_settings_type`` is ``List`` or ``Hierarchy``.
+        * ``custom object`` — the API name ends with ``__c`` and
+          ``custom_settings_type`` is absent, or neither of those two values.
+
+        A package prefix (``ns__Foo__c``, ``ns__Foo__mdt``) does not change
+        the rule: only the suffix and ``customSettingsType`` are read.
+        """
+        name = self.api_name or ""
+        if name.endswith("__mdt"):
+            return "custom metadata"
+        if name.endswith("__c"):
+            settings = (self.custom_settings_type or "").strip().lower()
+            if settings in _CUSTOM_SETTINGS_TYPES:
+                return "custom settings"
+            return "custom object"
+        return "standard"
 
     @property
     def dewey_comment_combined(self) -> str:

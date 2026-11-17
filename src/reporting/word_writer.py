@@ -273,7 +273,7 @@ class WordReportWriter(_WordAdviceMixin):
             ),
             (
                 self._t("info_custom"),
-                self._t("yes") if obj.custom else self._t("no"),
+                obj.custom_kind,
             ),
             (
                 self._t("info_sharing_model"),

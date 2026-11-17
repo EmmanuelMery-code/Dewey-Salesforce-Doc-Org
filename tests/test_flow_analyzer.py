@@ -274,3 +274,138 @@ class TestFlowAnalyzerFlowRel001:
     def test_flow_without_fault_capable_element_is_not_flagged(self) -> None:
         flow = FlowInfo(name="Flow_Screens_Only", description="Un flow de test.")
         assert self._analyze(flow) == []
+
+    def test_before_save_record_update_without_fault_is_not_an_error(self, tmp_path: Path) -> None:
+        """RecordBeforeSave ne peut pas poser de fault path sur un Update Records."""
+        content = _triggered_flow(
+            "RecordBeforeSave",
+            """
+    <recordUpdates>
+        <name>Update_Triggering</name>
+        <label>Update Triggering</label>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <recordLookups>
+        <name>Get_Account</name>
+        <label>Get Account</label>
+        <object>Account</object>
+    </recordLookups>
+    <recordCreates>
+        <name>Create_Task</name>
+        <label>Create Task</label>
+        <object>Task</object>
+    </recordCreates>
+""",
+        )
+        flow = _parse_single_flow(tmp_path, "Flow_Before_Save", content)
+        matches = self._analyze(flow)
+        assert len(matches) == 1
+        details = " | ".join(matches[0].details)
+        assert "Update Triggering" not in details
+        assert "Get Account" in details
+        assert "Create Task" in details
+        # L'update before-save ne compte ni comme erreur ni dans le total.
+        assert "2 element(s) sur 2" in matches[0].message
+
+    def test_after_save_record_update_without_fault_stays_an_error(self, tmp_path: Path) -> None:
+        content = _triggered_flow(
+            "RecordAfterSave",
+            """
+    <recordUpdates>
+        <name>Update_Account</name>
+        <label>Update Account</label>
+        <object>Account</object>
+    </recordUpdates>
+""",
+        )
+        flow = _parse_single_flow(tmp_path, "Flow_After_Save", content)
+        matches = self._analyze(flow)
+        assert len(matches) == 1
+        assert "Update Account" in matches[0].details[0]
+        assert "1 element(s) sur 1" in matches[0].message
+
+    def test_nebula_elements_are_ignored_for_fault_paths(self, tmp_path: Path) -> None:
+        """Une action ou un sous-flux Nebula ne fonde pas FLOW-REL-001."""
+        content = _triggered_flow(
+            "RecordAfterSave",
+            """
+    <actionCalls>
+        <name>Add_Log_Entry</name>
+        <label>Add Log Entry</label>
+        <actionName>nebula__FlowLogEntry</actionName>
+        <actionType>apex</actionType>
+    </actionCalls>
+    <actionCalls>
+        <name>Save_Log</name>
+        <label>Save Log</label>
+        <actionName>FlowLogger</actionName>
+        <actionType>apex</actionType>
+    </actionCalls>
+    <subflows>
+        <name>Call_Nebula</name>
+        <label>Call Nebula</label>
+        <flowName>nebula__Logger</flowName>
+    </subflows>
+    <recordUpdates>
+        <name>Update_Nebula_Shadow</name>
+        <label>Update shadow</label>
+        <object>Account</object>
+    </recordUpdates>
+    <actionCalls>
+        <name>Call_Erp</name>
+        <label>Call Erp</label>
+        <actionName>SyncAccountToErp</actionName>
+        <actionType>apex</actionType>
+    </actionCalls>
+    <recordUpdates>
+        <name>Update_Account</name>
+        <label>Update Account</label>
+        <object>Account</object>
+    </recordUpdates>
+""",
+        )
+        flow = _parse_single_flow(tmp_path, "Flow_Nebula_Fault", content)
+        matches = self._analyze(flow)
+        assert len(matches) == 1
+        details = " | ".join(matches[0].details)
+        assert "Call Erp" in details
+        assert "Update Account" in details
+        assert "Add Log Entry" not in details
+        assert "Save Log" not in details
+        assert "Call Nebula" not in details
+        assert "Update shadow" not in details
+        assert "Nebula" not in details
+        # Quatre elements Nebula exclus du perimetre, deux vrais elements non proteges.
+        assert "2 element(s) sur 2" in matches[0].message
+
+    def test_only_nebula_action_does_not_raise_fault_path(self, tmp_path: Path) -> None:
+        content = _triggered_flow(
+            "RecordAfterSave",
+            """
+    <actionCalls>
+        <name>Add_Log_Entry</name>
+        <label>Add Log Entry</label>
+        <actionName>FlowLogEntry</actionName>
+        <actionType>apex</actionType>
+    </actionCalls>
+""",
+        )
+        flow = _parse_single_flow(tmp_path, "Flow_Nebula_Only", content)
+        assert self._analyze(flow) == []
+
+
+def _triggered_flow(trigger_type: str, body: str) -> str:
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>60.0</apiVersion>
+    <label>Triggered flow</label>
+    <processType>AutoLaunchedFlow</processType>
+    <status>Active</status>
+    <start>
+        <object>Account</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>{trigger_type}</triggerType>
+    </start>
+    {body}
+</Flow>
+"""

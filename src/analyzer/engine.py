@@ -9,6 +9,10 @@ from src.analyzer.flow_analyzer import analyze_flow
 from src.analyzer.lwc_analyzer import analyze_lwc
 from src.analyzer.aura_analyzer import analyze_aura
 from src.analyzer.models import Finding, SEVERITY_ORDER
+from src.analyzer.nebula_apex import analyze_nebula_apex
+from src.analyzer.nebula_config import NebulaConfig
+from src.analyzer.nebula_flow import analyze_nebula_flow
+from src.analyzer.nebula_lwc import analyze_nebula_lwc
 from src.analyzer.object_analyzer import analyze_object, analyze_validation_rule, analyze_duplicate_rule
 from src.analyzer.omni_analyzer import analyze_data_transform
 from src.analyzer.rule_catalog import RuleCatalog
@@ -35,8 +39,14 @@ from src.core.models import (
 class AnalyzerEngine(RuleExclusionMixin):
     """Orchestrateur de l'analyse statique ; retourne un ensemble de findings par artefact."""
 
-    def __init__(self, catalog: RuleCatalog | None = None, exclusion_path: Path | str | None = None) -> None:
+    def __init__(
+        self,
+        catalog: RuleCatalog | None = None,
+        exclusion_path: Path | str | None = None,
+        nebula: NebulaConfig | None = None,
+    ) -> None:
         self.catalog = catalog or RuleCatalog.load()
+        self.nebula = nebula or NebulaConfig.disabled()
         self.rule_exclusions: dict[str, set[str]] = {}  # rule_id -> set of metadata names
         
         if exclusion_path:
@@ -60,11 +70,15 @@ class AnalyzerEngine(RuleExclusionMixin):
 
     def analyze_apex(self, artifact: ApexArtifact) -> list[Finding]:
         findings = analyze_apex_artifact(artifact, self.catalog)
+        if self.nebula.enabled:
+            findings.extend(analyze_nebula_apex(artifact, self.catalog, self.nebula))
         filtered = [f for f in findings if self._is_rule_applicable(f.rule, artifact.name, artifact.api_version)]
         return _sorted(filtered)
 
     def analyze_flow(self, flow: FlowInfo) -> list[Finding]:
         findings = analyze_flow(flow, self.catalog)
+        if self.nebula.enabled:
+            findings.extend(analyze_nebula_flow(flow, self.catalog, self.nebula))
         filtered = [f for f in findings if self._is_rule_applicable(f.rule, flow.name, flow.api_version)]
         return _sorted(filtered)
 
@@ -144,6 +158,8 @@ class AnalyzerEngine(RuleExclusionMixin):
 
     def analyze_lwc(self, lwc: LwcInfo) -> list[Finding]:
         findings = analyze_lwc(lwc, self.catalog)
+        if self.nebula.enabled:
+            findings.extend(analyze_nebula_lwc(lwc, self.catalog, self.nebula))
         filtered = [f for f in findings if self._is_rule_applicable(f.rule, lwc.name)]
         return _sorted(filtered)
 

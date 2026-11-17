@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from src.ui import (
     ai_tags_panel,
     analyzer_rules_panel,
+    nebula_panel,
     posture_capability_panel,
     theme,
 )
@@ -75,6 +76,7 @@ def show_configuration_screen(app: Application) -> None:
     doc_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
     discussion_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
     rules_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
+    nebula_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
     ai_tags_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
     index_cards_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
     posture_tab = ttk.Frame(notebook, padding=theme.SPACE_MD)
@@ -82,6 +84,7 @@ def show_configuration_screen(app: Application) -> None:
     notebook.add(doc_tab, text=app._t("configuration_tab_documentation"))
     notebook.add(discussion_tab, text=app._t("configuration_tab_discussion"))
     notebook.add(rules_tab, text=app._t("configuration_tab_rules"))
+    notebook.add(nebula_tab, text=app._t("configuration_tab_nebula"))
     notebook.add(ai_tags_tab, text=app._t("configuration_tab_ai_tags"))
     notebook.add(index_cards_tab, text=app._t("configuration_tab_index_cards"))
     notebook.add(posture_tab, text=app._t("configuration_tab_posture"))
@@ -236,6 +239,7 @@ def show_configuration_screen(app: Application) -> None:
     build_documentation_tab(app, doc_tab, edit_vars)
     build_discussion_tab(app, discussion_tab, edit_vars)
     analyzer_rules_panel.build_panel(app, rules_tab)
+    nebula_panel.build_panel(app, nebula_tab)
     ai_tags_panel.build_panel(app, ai_tags_tab)
     build_index_cards_tab(app, index_cards_tab, edit_vars)
     posture_capability_panel.build_panel(app, posture_tab)

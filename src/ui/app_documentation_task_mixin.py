@@ -41,6 +41,7 @@ class AppDocumentationTaskMixin:
         generate_excels_override: bool | None = None,
         generate_data_dictionary_word_override: bool | None = None,
         generate_summary_word_override: bool | None = None,
+        generate_data_model_diagram_only: bool = False,
         reset_command_stats: bool = True,
     ) -> Callable[[], GenerationResult]:
         """Return the task generating the documentation of ``source``.
@@ -78,6 +79,15 @@ class AppDocumentationTaskMixin:
         generate_sarif = bool(self.generate_sarif_var.get())
         generate_dd_excel = bool(self.generate_data_dictionary_excel_var.get())
         generate_findings_excel = bool(self.generate_findings_excel_var.get())
+        if generate_data_model_diagram_only:
+            generate_excels = False
+            generate_html = False
+            generate_dd_word = False
+            generate_summary_word = False
+            generate_audit_summary_rtf = False
+            generate_sarif = False
+            generate_dd_excel = False
+            generate_findings_excel = False
         # Always read the Data Dictionary screen selection: the flag only
         # drives the extra workbook, while the HTML index uses the picked
         # objects to offer its "selected objects only" filters.
@@ -94,7 +104,7 @@ class AppDocumentationTaskMixin:
             if reset_command_stats:
                 self.cli_service.reset_command_stats()
             test_coverage = None
-            if has_org:
+            if has_org and not generate_data_model_diagram_only:
                 if self.run_tests_var.get():
                     self.task_manager.queue_log("")
                     self.task_manager.queue_log("=" * 80)
@@ -114,12 +124,16 @@ class AppDocumentationTaskMixin:
                     self.task_manager.queue_log("Recuperation de la couverture de tests...")
                     test_coverage = self._fetch_test_coverage(org_ref)
 
-            self._run_org_check_pre_step(output, generate_org_check, org_check_choice, org_ref)
+            if not generate_data_model_diagram_only:
+                self._run_org_check_pre_step(
+                    output, generate_org_check, org_check_choice, org_ref
+                )
             generator = SalesforceDocumentationGenerator(
                 source,
                 output,
                 exclusion_config_path=exclusion_file,
-                pmd_enabled=bool(self.pmd_enabled_var.get()),
+                pmd_enabled=bool(self.pmd_enabled_var.get())
+                and not generate_data_model_diagram_only,
                 pmd_ruleset_path=pmd_ruleset,
                 generate_excels=generate_excels,
                 generate_html=generate_html,
@@ -129,6 +143,7 @@ class AppDocumentationTaskMixin:
                 generate_sarif=generate_sarif,
                 generate_data_dictionary_excel=generate_dd_excel,
                 generate_findings_excel=generate_findings_excel,
+                generate_data_model_diagram_only=generate_data_model_diagram_only,
                 **findings_paths,
                 data_dictionary_selection=dd_selection,
                 scoring_weights=dict(self.scoring_weights),
@@ -152,6 +167,9 @@ class AppDocumentationTaskMixin:
                 language=self.language,
                 include_comparison=bool(self.include_comparison_var.get()),
                 comparison_target=self.comparison_target_var.get().strip() or "auto",
+                nebula_rules_enabled=bool(self.nebula_rules_enabled),
+                nebula_log_format=self.nebula_log_format,
+                nebula_tags=list(self.nebula_tags),
                 log_callback=self.task_manager.queue_log,
             )
             generator.alias = run_alias

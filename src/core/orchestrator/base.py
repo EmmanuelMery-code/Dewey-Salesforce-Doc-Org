@@ -12,6 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable
 
+from src.analyzer.nebula_config import NebulaConfig
 from src.core.customization_metrics import PostureCapabilityConfig
 from src.core.data_dictionary_selection import DataDictionarySelection
 from src.core.index_card_visibility import IndexCardVisibility
@@ -40,6 +41,7 @@ class _OrchestratorState:
     generate_sarif: bool
     generate_data_dictionary_excel: bool
     generate_findings_excel: bool
+    generate_data_model_diagram_only: bool
     findings_qualifications_path: Path | None
     findings_history_path: Path | None
     data_dictionary_selection: DataDictionarySelection | None
@@ -51,6 +53,7 @@ class _OrchestratorState:
     profiles_thresholds: tuple[int, int, int] | None
     profiles_ps_ratio_thresholds: tuple[int, int, int] | None
     analyzer_rules_path: Path | None
+    nebula: NebulaConfig
     ai_usage_tags: list[str]
     posture_config: list[PostureCapabilityConfig]
     test_coverage_data: dict

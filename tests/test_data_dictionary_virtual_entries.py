@@ -741,6 +741,34 @@ class TestSelectionSynthesis:
         assert [field.api_name for field in account.fields] == ["Name", "Segment__c"]
         assert account.fields[1].dewey_status == IN_DESIGN_STATUS
 
+    def test_a_virtual_field_keeps_its_description_and_required_flag(self) -> None:
+        selection = DataDictionarySelection(
+            objects={"Account"},
+            virtual_fields={
+                "Account": {
+                    "Name": {
+                        "label": "Nom",
+                        "type": "Text",
+                        "description": "Nom du compte",
+                        "required": "Oui",
+                    },
+                    "Code__c": {"label": "Code", "type": "Text", "required": "Système"},
+                }
+            },
+        )
+
+        fields = {
+            field.api_name: field
+            for field in selection.apply(
+                [ObjectInfo(api_name="Account", label="Account")]
+            )[0].fields
+        }
+
+        assert fields["Name"].description == "Nom du compte"
+        assert fields["Name"].required is True
+        assert fields["Code__c"].required is True
+        assert fields["Code__c"].description == ""
+
     def test_an_unselected_virtual_object_is_not_synthesized(self) -> None:
         selection = DataDictionarySelection(
             objects=set(), virtual_objects={"Projet__c": {"label": "Projet"}}
@@ -1112,8 +1140,7 @@ class TestGeneratedDeliverables:
         assert "Account" in content
         assert "Compte_Parent__c" in content
         assert "ParentId" in content
-        # The header counts are computed after filtering.
-        assert "2 objet(s), 1 relation(s)" in content
+        assert "Id (PK)" in content
 
     def test_a_real_object_with_no_field_is_still_skipped_in_word(self, tmp_path) -> None:
         """Long-standing behaviour, unrelated to the design entries."""

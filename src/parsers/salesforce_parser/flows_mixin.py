@@ -156,6 +156,9 @@ class _FlowsMixin(_ParserState):
                             connectors=element_connectors,
                             targets=element_targets,
                             target=target,
+                            action_name=child_text(node, "actionName"),
+                            action_type=child_text(node, "actionType"),
+                            called_flow_name=child_text(node, "flowName"),
                         )
                     )
 

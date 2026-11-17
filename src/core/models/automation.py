@@ -38,6 +38,9 @@ class ApexArtifact:
 
 # Elements exposant un <faultConnector> dans la Metadata API : ce sont les seuls
 # pour lesquels l'absence de chemin d'erreur constitue un defaut.
+# Deux cas n'en font pas partie (cf. FlowInfo.fault_capable_elements) :
+# - recordUpdates d'un flow before-save (la plateforme interdit le fault path) ;
+# - elements Nebula (action, sous-flux, ou nom / action / flux appele / type).
 FAULT_CAPABLE_ELEMENTS: dict[str, str] = {
     "actionCalls": "Action",
     "recordCreates": "Create Records",
@@ -46,6 +49,55 @@ FAULT_CAPABLE_ELEMENTS: dict[str, str] = {
     "recordUpdates": "Update Records",
     "waits": "Pause",
 }
+
+# Actions Apex du logger Nebula, prefixe de package retire (nebula__FlowLogEntry
+# -> FlowLogEntry), comme dans src/analyzer/nebula_flow.py.
+_NEBULA_LOGGER_ACTIONS = frozenset({
+    "FlowLogEntry",
+    "FlowRecordLogEntry",
+    "FlowCollectionLogEntry",
+    "FlowLogger",
+})
+_NEBULA_MARKER = "nebula"
+_BEFORE_SAVE_TRIGGERS = frozenset({"recordbeforesave", "before", "beforesave"})
+
+
+def _compact_token(value: str) -> str:
+    return "".join(ch for ch in (value or "").casefold() if ch.isalnum())
+
+
+def _namespace_short_name(value: str) -> str:
+    """Dernier segment apres '.' puis apres le prefixe de namespace '__'."""
+    return (value or "").split(".")[-1].split("__")[-1]
+
+
+def is_before_save_trigger(trigger_type: str) -> bool:
+    """RecordBeforeSave, ou un equivalent explicite before / before-save."""
+    token = _compact_token(trigger_type)
+    return token in _BEFORE_SAVE_TRIGGERS or token.endswith("beforesave")
+
+
+def is_nebula_flow_element(element: FlowElementInfo) -> bool:
+    """Element Nebula : nom, libelle, type, action ou flux appele evoque Nebula.
+
+    Couvre aussi les actions Apex du logger deja reconnues par nebula_flow
+    (FlowLogEntry, FlowRecordLogEntry, FlowCollectionLogEntry, FlowLogger),
+    avec ou sans prefixe de package.
+    """
+    fields = (
+        element.name,
+        element.label,
+        element.element_type,
+        element.action_name,
+        element.action_type,
+        element.called_flow_name,
+    )
+    if any(_NEBULA_MARKER in (field or "").casefold() for field in fields):
+        return True
+    return (
+        _namespace_short_name(element.action_name) in _NEBULA_LOGGER_ACTIONS
+        or _namespace_short_name(element.called_flow_name) in _NEBULA_LOGGER_ACTIONS
+    )
 
 
 @dataclass(slots=True)
@@ -64,6 +116,9 @@ class FlowElementInfo:
     targets: list[str] = field(default_factory=list)
     target: str = ""  # Legacy, for backward compatibility if needed
     covered_by: list[str] = field(default_factory=list)  # Apex test class names
+    action_name: str = ""  # <actionName> des actionCalls
+    action_type: str = ""  # <actionType> des actionCalls
+    called_flow_name: str = ""  # <flowName> des sous-flux
 
 
 @dataclass(slots=True)
@@ -120,13 +175,20 @@ class FlowInfo:
             + self.undocumented_elements
         )
 
+    def _requires_fault_path(self, element: FlowElementInfo) -> bool:
+        if element.element_type not in FAULT_CAPABLE_ELEMENTS:
+            return False
+        # Before-save : la plateforme interdit un fault path sur Update Records.
+        if element.element_type == "recordUpdates" and is_before_save_trigger(self.trigger_type):
+            return False
+        # Nebula : ni signalé, ni compté dans le total de cette règle.
+        if is_nebula_flow_element(element):
+            return False
+        return True
+
     @property
     def fault_capable_elements(self) -> list[FlowElementInfo]:
-        return [
-            element
-            for element in self.elements
-            if element.element_type in FAULT_CAPABLE_ELEMENTS
-        ]
+        return [element for element in self.elements if self._requires_fault_path(element)]
 
     @property
     def unprotected_fault_elements(self) -> list[FlowElementInfo]:

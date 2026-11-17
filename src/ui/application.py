@@ -30,6 +30,11 @@ from src.ai import (
     create_service,
 )
 from src.analyzer.models import Rule
+from src.analyzer.nebula_config import (
+    parse_nebula_enabled,
+    parse_nebula_format,
+    parse_nebula_tags,
+)
 from src.analyzer.rule_catalog import DEFAULT_RULES_PATH
 from src.core.customization_metrics import PostureCapabilityConfig
 from src.core.index_card_visibility import parse_index_card_visibility
@@ -436,6 +441,12 @@ class Application(
         )
 
         self.ai_usage_tags: list[str] = parse_ai_tags(self.settings)
+        self.nebula_rules_enabled = parse_nebula_enabled(self.settings)
+        self.nebula_log_format = parse_nebula_format(self.settings)
+        self.nebula_tags: list[str] = parse_nebula_tags(self.settings)
+        self._nebula_enabled_var: tk.BooleanVar | None = None
+        self._nebula_format_var: tk.StringVar | None = None
+        self._nebula_tags_listbox: tk.Listbox | None = None
         self._ai_tags_listbox: tk.Listbox | None = None
         self.posture_config: list[PostureCapabilityConfig] = parse_posture_config(self.settings)
         self._posture_panel_state: dict[str, object] | None = None

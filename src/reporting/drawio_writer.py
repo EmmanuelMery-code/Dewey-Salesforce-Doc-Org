@@ -1,23 +1,23 @@
 """Diagramme du modele de donnees au format draw.io (``.drawio``).
 
-Un fichier ``.drawio`` non compresse est du XML mxGraph : il suffit de
-l'ecrire, sans dependance. Chaque onglet du fichier est un ``<diagram>``, ce
-qui permet de repartir le modele en vues lisibles plutot qu'en une planche
-unique : vue d'ensemble, un onglet par domaine, puis les objets sans relation.
+Le rendu suit les consignes ERD du comite DA, de facon algorithmique :
+page 16:9, grille de 10 px, une couleur par sens, boite a en-tete (nom API)
+et corps limite aux champs utiles, liens orthogonaux avec cardinalite,
+legende compacte des seules couleurs utilisees. Pas de titre dans le
+schema : il vit dans le slide.
 
-Le decoupage lui-meme vit dans :mod:`src.core.data_model_graph`, partage avec
-les tests, de sorte que ce module ne s'occupe que du rendu et du placement.
+Le decoupage en onglets vit dans :mod:`src.core.data_model_graph`.
 """
 
 from __future__ import annotations
 
+import html
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Callable, Sequence
 
 from src.core.data_model_graph import (
-    DOMAIN,
-    SATELLITE,
+    OVERVIEW,
     UNRELATED,
     DataModelCluster,
     DataModelLink,
@@ -29,86 +29,146 @@ from src.core.utils import safe_slug
 
 LogCallback = Callable[[str], None]
 
-# --- Styles mxGraph ---------------------------------------------------------
+#: Page 16:9 demandee pour l'export PNG du comite.
+PAGE_WIDTH = 1280
+PAGE_HEIGHT = 720
+GRID = 10
 
-ZONE_STYLE = (
-    "rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor={fill};dashed=1;"
-    "dashPattern=4 4;strokeColor={stroke};verticalAlign=top;align=left;"
-    "spacingLeft=8;spacingTop=6;fontStyle=1;fontSize=13;"
+#: Au-dela, la zone est scindee : la consigne limite une zone a 10 elements.
+MAX_OBJECTS_PER_ZONE = 10
+#: Id, FK, puis champs custom d'un objet standard. Pas tous les champs.
+MAX_BODY_LINES = 6
+
+MARGIN = 20
+NODE_WIDTH = 240
+NODE_GAP = 20
+ZONE_GAP = 30
+LABEL_HEIGHT = 20
+HEADER_HEIGHT = 30
+LINE_HEIGHT = 20
+BODY_PADDING = 10
+LEGEND_SWATCH = 20
+LEGEND_GAP = 16
+
+_DIRECT_MARKERS = ("lookup", "master", "hierarchy")
+
+#: (cle, libelle, bordure, fond, en-tete). Le texte d'en-tete est blanc.
+_PALETTE = {
+    "standard": ("Standard Salesforce", "#6C8EBF", "#DAE8FC", "#3A6FC4"),
+    "custom": ("Custom", "#82B366", "#D5E8D4", "#5E8F45"),
+    "context": ("Contexte", "#666666", "#F5F5F5", "#8C8C8C"),
+}
+_LEGEND_ORDER = ("standard", "custom", "context")
+
+_BOX_STYLE = (
+    "rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=0;"
+    "fontFamily=Arial;fontSize=12;strokeWidth=1;fillColor={fill};"
+    "strokeColor={stroke};dashed={dashed};"
 )
-NODE_STYLE = (
-    "rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor={fill};"
-    "strokeColor={stroke};fontColor=#FFFFFF;fontStyle=1;align=center;"
-    "verticalAlign=middle;shadow=1;strokeWidth={width};fontSize=12;"
-)
-EDGE_STYLE = (
+_EDGE_STYLE = (
     "edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;"
-    "html=1;strokeColor={stroke};strokeWidth={width};dashed={dashed};"
-    "fontSize=9;fontColor=#6B6B6B;startArrow=ERmany;startFill=0;"
-    "endArrow=ERone;endFill=0;"
+    "html=1;fontFamily=Arial;fontSize=12;fontColor=#1A1A1A;endArrow=open;"
+    "endFill=0;startArrow=none;strokeColor=#666666;strokeWidth=1;"
+    "dashed={dashed};"
 )
-TITLE_STYLE = "text;html=1;strokeColor=none;fillColor=none;fontSize=22;fontStyle=1;"
-SUBTITLE_STYLE = (
-    "text;html=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#5A6470;"
-    "align=left;verticalAlign=top;"
+_EDGE_LABEL_STYLE = (
+    "edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];"
+    "fontFamily=Arial;fontSize=12;fontColor=#1A1A1A;"
+)
+_CAPTION_STYLE = (
+    "text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;"
+    "fontFamily=Arial;fontSize=12;fontColor=#1A1A1A;fontStyle=1;"
+)
+_LEGEND_TEXT_STYLE = (
+    "text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;"
+    "fontFamily=Arial;fontSize=12;fontColor=#1A1A1A;"
 )
 
-#: Remplissage et bordure d'une boite selon la nature de l'objet.
-STANDARD_COLORS = ("#1F3864", "#0D1B33")
-CUSTOM_COLORS = ("#B5651D", "#7A4514")
-#: Bordure doree des hubs, qui signale un objet duplique sur plusieurs onglets.
-HUB_STROKE = "#E8A33D"
 
-#: Palette des cadres de zone, parcourue dans l'ordre puis rebouclee.
-ZONE_COLORS = (
-    ("#dae8fc", "#6c8ebf"),
-    ("#ffe6cc", "#d79b00"),
-    ("#d5e8d4", "#82b366"),
-    ("#fff2cc", "#d6b656"),
-    ("#f8cecc", "#b85450"),
-    ("#d0cee2", "#56517e"),
-    ("#bac8d3", "#23445d"),
-)
-#: Les objets partages sont toujours encadres de la meme couleur neutre.
-SHARED_ZONE_COLORS = ("#f5f5f5", "#666666")
-SHARED_ZONE_LABEL = "Objets partages"
-
-# --- Geometrie --------------------------------------------------------------
-
-NODE_WIDTH = 300
-NODE_HEIGHT = 60
-NODE_GAP = 18
-ZONE_PADDING_X = 25
-ZONE_HEADER = 34
-ZONE_PADDING_BOTTOM = 22
-ZONE_GAP = 44
-CANVAS_LEFT = 40
-CANVAS_TOP = 130
-#: Au-dela, une zone se replie sur plusieurs colonnes plutot que de s'etirer
-#: sur une hauteur que personne ne peut parcourir.
-MAX_ROWS_PER_COLUMN = 14
+def _is_custom_object(obj: ObjectInfo) -> bool:
+    return obj.custom or obj.api_name.endswith("__c")
 
 
-def _node_value(obj: ObjectInfo, is_hub: bool) -> str:
-    """Libelle HTML d'une boite : nom API, puis nature et role en petit."""
+def _is_direct(link: DataModelLink) -> bool:
+    kind = (link.relationship_type or "").lower()
+    return any(marker in kind for marker in _DIRECT_MARKERS)
 
-    nature = "Custom" if obj.custom else "Standard SF"
-    if is_hub:
-        nature = f"{nature} - partage"
+
+def _target_cardinality(link: DataModelLink, by_name: dict[str, ObjectInfo]) -> str:
+    """Cardinalite cote objet reference : 1 si le lien est obligatoire, sinon 0..1."""
+
+    if link.is_master_detail:
+        return "1"
+    source = by_name.get(link.source)
+    field = next(
+        (
+            field_info
+            for field_info in (source.fields if source else [])
+            if field_info.api_name == link.field_name
+        ),
+        None,
+    )
+    if field is not None and field.required:
+        return "1"
+    return "0..1"
+
+
+def _field_lines(obj: ObjectInfo, fk_names: Sequence[str]) -> list[str]:
+    """Champs utiles : Id (PK), les FK du schema, puis les champs custom d'un standard.
+
+    Un objet standard reste bleu ; ses champs custom sont cites avec leur
+    suffixe ``__c``. Le corps est tronque : le schema ne liste pas tous les
+    champs de l'objet.
+    """
+
+    lines = ["Id (PK)", *[f"{name} (FK)" for name in fk_names]]
+    if not _is_custom_object(obj):
+        foreign_keys = set(fk_names)
+        lines.extend(
+            field_info.api_name
+            for field_info in obj.fields
+            if field_info.api_name.endswith("__c") and field_info.api_name not in foreign_keys
+        )
+    if len(lines) <= MAX_BODY_LINES:
+        return lines
+    hidden = len(lines) - (MAX_BODY_LINES - 1)
+    return [*lines[: MAX_BODY_LINES - 1], f"+ {hidden} champ(s)"]
+
+
+def _box_height(line_count: int) -> int:
+    return HEADER_HEIGHT + BODY_PADDING + LINE_HEIGHT * line_count
+
+
+def _box_value(api_name: str, lines: Sequence[str], header: str, body: str) -> str:
+    rows = "<br>".join(html.escape(line) for line in lines)
     return (
-        f"<b>{obj.api_name}</b><br>"
-        f'<i style="font-size:10px;opacity:0.85">{nature}</i>'
+        f'<div style="background-color:{header};color:#FFFFFF;font-weight:bold;'
+        f'text-align:center;padding:4px 6px;"><b>{html.escape(api_name)}</b></div>'
+        f'<div style="background-color:{body};color:#1A1A1A;font-weight:normal;'
+        f'text-align:left;padding:4px 8px;">{rows}</div>'
     )
 
 
-def _zone_colors(index: int, label: str) -> tuple[str, str]:
-    if label == SHARED_ZONE_LABEL:
-        return SHARED_ZONE_COLORS
-    return ZONE_COLORS[index % len(ZONE_COLORS)]
+def _split_zones(zones: Sequence[tuple[str, list[str]]]) -> list[tuple[str, list[str]]]:
+    """Decoupe toute zone de plus de 10 objets, sans melanger les squads."""
+
+    split: list[tuple[str, list[str]]] = []
+    for label, names in zones:
+        if len(names) <= MAX_OBJECTS_PER_ZONE:
+            split.append((label, names))
+            continue
+        chunks = [
+            names[start : start + MAX_OBJECTS_PER_ZONE]
+            for start in range(0, len(names), MAX_OBJECTS_PER_ZONE)
+        ]
+        total = len(chunks)
+        for index, chunk in enumerate(chunks, start=1):
+            split.append((f"{label} ({index}/{total})", chunk))
+    return split
 
 
-def _cell(root: ET.Element, cell_id: str, **attributes: str) -> ET.Element:
-    return ET.SubElement(root, "mxCell", id=cell_id, parent="1", **attributes)
+def _cell(root: ET.Element, cell_id: str, parent: str = "1", **attributes: str) -> ET.Element:
+    return ET.SubElement(root, "mxCell", id=cell_id, parent=parent, **attributes)
 
 
 def _geometry(cell: ET.Element, x: int, y: int, width: int, height: int) -> None:
@@ -121,20 +181,6 @@ def _geometry(cell: ET.Element, x: int, y: int, width: int, height: int) -> None
         height=str(height),
         **{"as": "geometry"},
     )
-
-
-def _column_count(size: int) -> int:
-    return max(1, -(-size // MAX_ROWS_PER_COLUMN))
-
-
-def _zone_size(size: int) -> tuple[int, int]:
-    """Largeur et hauteur d'un cadre de zone contenant ``size`` boites."""
-
-    columns = _column_count(size)
-    rows = -(-size // columns)
-    width = ZONE_PADDING_X * 2 + columns * NODE_WIDTH + (columns - 1) * NODE_GAP
-    height = ZONE_HEADER + rows * NODE_HEIGHT + (rows - 1) * NODE_GAP + ZONE_PADDING_BOTTOM
-    return width, height
 
 
 class DrawioDiagramWriter:
@@ -193,10 +239,10 @@ class DrawioDiagramWriter:
         model = ET.SubElement(
             diagram,
             "mxGraphModel",
-            dx="1600",
-            dy="1000",
+            dx="1280",
+            dy="720",
             grid="1",
-            gridSize="10",
+            gridSize=str(GRID),
             guides="1",
             tooltips="1",
             connect="1",
@@ -204,8 +250,8 @@ class DrawioDiagramWriter:
             fold="1",
             page="1",
             pageScale="1",
-            pageWidth="1900",
-            pageHeight="1500",
+            pageWidth=str(PAGE_WIDTH),
+            pageHeight=str(PAGE_HEIGHT),
             math="0",
             shadow="0",
         )
@@ -213,40 +259,11 @@ class DrawioDiagramWriter:
         ET.SubElement(root, "mxCell", id="0")
         ET.SubElement(root, "mxCell", id="1", parent="0")
 
-        self._render_header(root, slug, cluster)
-        positions = self._render_zones(root, slug, cluster, by_name)
+        positions, bottom, used = self._render_zones(root, slug, cluster, by_name)
         if cluster.kind != UNRELATED:
-            self._render_links(root, slug, cluster.links, positions)
+            self._render_links(root, slug, cluster.links, positions, by_name)
+        self._render_legend(root, slug, used, bottom)
         return diagram
-
-    def _render_header(self, root: ET.Element, slug: str, cluster: DataModelCluster) -> None:
-        title = _cell(root, f"{slug}-title", style=TITLE_STYLE, value=cluster.label, vertex="1")
-        _geometry(title, CANVAS_LEFT, 30, 900, 34)
-
-        counts = f"{len(cluster.object_names)} objet(s)"
-        if cluster.kind != UNRELATED:
-            counts += f", {len(cluster.links)} relation(s)"
-        hint = {
-            UNRELATED: "Objets selectionnes qui ne portent aucune relation vers un "
-            "autre objet du perimetre.",
-            DOMAIN: "Objets lies entre eux. Les objets partages sont references "
-            "par plusieurs domaines et reapparaissent sur leurs onglets.",
-            SATELLITE: "Objets accroches a un seul objet partage : trop isoles pour "
-            "meriter leur propre domaine, ils sont regroupes ici.",
-        }.get(cluster.kind, "Tous les objets selectionnes portant au moins une relation.")
-        legend = (
-            "Boite bleue = objet standard, orange = custom, bordure doree = objet "
-            "partage. Trait plein = Master-Detail, pointille = Lookup, le libelle "
-            "portant le champ qui porte la relation."
-        )
-        subtitle = _cell(
-            root,
-            f"{slug}-subtitle",
-            style=SUBTITLE_STYLE,
-            value=f"{counts}. {hint}<br>{legend}",
-            vertex="1",
-        )
-        _geometry(subtitle, CANVAS_LEFT, 68, 1200, 50)
 
     def _render_zones(
         self,
@@ -254,57 +271,68 @@ class DrawioDiagramWriter:
         slug: str,
         cluster: DataModelCluster,
         by_name: dict[str, ObjectInfo],
-    ) -> dict[str, str]:
-        """Dessine un cadre par Squad, puis ses boites. Renvoie l'id des boites."""
+    ) -> tuple[dict[str, str], int, set[str]]:
+        """Place chaque squad, scindee au dela de 10 objets. Renvoie les boites."""
 
         positions: dict[str, str] = {}
-        x = CANVAS_LEFT
-        for zone_index, (label, names) in enumerate(cluster.zones):
+        used: set[str] = set()
+        foreign_keys = _foreign_keys(cluster)
+        y = MARGIN
+        columns = max(1, (PAGE_WIDTH - 2 * MARGIN + NODE_GAP) // (NODE_WIDTH + NODE_GAP))
+
+        for zone_index, (label, names) in enumerate(_split_zones(cluster.zones)):
             if not names:
                 continue
-            fill, stroke = _zone_colors(zone_index, label)
-            width, height = _zone_size(len(names))
-            frame = _cell(
+            caption = _cell(
                 root,
                 f"{slug}-zone-{zone_index}",
-                style=ZONE_STYLE.format(fill=fill, stroke=stroke),
-                value=f"{label} ({len(names)})",
+                style=_CAPTION_STYLE,
+                value=html.escape(label),
                 vertex="1",
             )
-            _geometry(frame, x, CANVAS_TOP, width, height)
+            _geometry(caption, MARGIN, y, PAGE_WIDTH - 2 * MARGIN, LABEL_HEIGHT)
+            y += LABEL_HEIGHT + GRID
 
-            columns = _column_count(len(names))
-            rows = -(-len(names) // columns)
-            for position, name in enumerate(names):
-                column, row = divmod(position, rows)
-                obj = by_name.get(name)
-                if obj is None:
-                    continue
-                is_hub = name in cluster.hub_names
-                fill_color, stroke_color = CUSTOM_COLORS if obj.custom else STANDARD_COLORS
+            placed = [name for name in names if name in by_name]
+            if not placed:
+                continue
+            heights = [
+                _box_height(len(_field_lines(by_name[name], foreign_keys.get(name, []))))
+                for name in placed
+            ]
+            row_height = max(heights) + NODE_GAP
+            for position, name in enumerate(placed):
+                column, row = position % columns, position // columns
+                obj = by_name[name]
+                kind = _object_kind(name, obj, cluster)
+                used.add(kind)
+                _label, stroke, fill, header = _PALETTE[kind]
+                lines = _field_lines(obj, foreign_keys.get(name, []))
                 node_id = f"{slug}-{safe_slug(name)}"
                 box = _cell(
                     root,
                     node_id,
-                    style=NODE_STYLE.format(
-                        fill=fill_color,
-                        stroke=HUB_STROKE if is_hub else stroke_color,
-                        width="3" if is_hub else "1",
+                    style=_BOX_STYLE.format(
+                        fill=fill,
+                        stroke=stroke,
+                        dashed="1" if kind == "context" else "0",
                     ),
-                    value=_node_value(obj, is_hub),
+                    value=_box_value(name, lines, header, fill),
                     vertex="1",
                 )
                 _geometry(
                     box,
-                    x + ZONE_PADDING_X + column * (NODE_WIDTH + NODE_GAP),
-                    CANVAS_TOP + ZONE_HEADER + row * (NODE_HEIGHT + NODE_GAP),
+                    MARGIN + column * (NODE_WIDTH + NODE_GAP),
+                    y + row * row_height,
                     NODE_WIDTH,
-                    NODE_HEIGHT,
+                    _box_height(len(lines)),
                 )
                 positions[name] = node_id
 
-            x += width + ZONE_GAP
-        return positions
+            rows = -(-len(placed) // columns)
+            y += rows * row_height + ZONE_GAP
+
+        return positions, y, used
 
     def _render_links(
         self,
@@ -312,24 +340,125 @@ class DrawioDiagramWriter:
         slug: str,
         links: Sequence[DataModelLink],
         positions: dict[str, str],
+        by_name: dict[str, ObjectInfo],
     ) -> None:
         for index, link in enumerate(links):
             source = positions.get(link.source)
             target = positions.get(link.target)
             if source is None or target is None:
                 continue
-            style = EDGE_STYLE.format(
-                stroke="#B85450" if link.is_master_detail else "#8C8C8C",
-                width="2.5" if link.is_master_detail else "1.5",
-                dashed="0" if link.is_master_detail else "1",
-            )
+            edge_id = f"{slug}-e{index}"
             edge = _cell(
                 root,
-                f"{slug}-e{index}",
-                style=style,
-                value=link.field_name,
+                edge_id,
+                style=_EDGE_STYLE.format(dashed="0" if _is_direct(link) else "1"),
+                value=html.escape(link.field_name),
                 edge="1",
                 source=source,
                 target=target,
             )
             ET.SubElement(edge, "mxGeometry", relative="1", **{"as": "geometry"})
+            self._cardinality(
+                root,
+                f"{edge_id}-source",
+                edge_id,
+                "0..*",
+                "-0.8",
+            )
+            self._cardinality(
+                root,
+                f"{edge_id}-target",
+                edge_id,
+                _target_cardinality(link, by_name),
+                "0.8",
+            )
+
+    def _cardinality(
+        self,
+        root: ET.Element,
+        cell_id: str,
+        edge_id: str,
+        value: str,
+        relative_x: str,
+    ) -> None:
+        label = _cell(
+            root,
+            cell_id,
+            parent=edge_id,
+            style=_EDGE_LABEL_STYLE,
+            value=value,
+            vertex="1",
+            connectable="0",
+        )
+        geometry = ET.SubElement(
+            label,
+            "mxGeometry",
+            x=relative_x,
+            y="0",
+            relative="1",
+            **{"as": "geometry"},
+        )
+        ET.SubElement(geometry, "mxPoint", **{"as": "offset"})
+
+    def _render_legend(
+        self,
+        root: ET.Element,
+        slug: str,
+        used: set[str],
+        top: int,
+    ) -> None:
+        """Legende compacte, limitee aux couleurs reellement presentes."""
+
+        x = MARGIN
+        y = top
+        for key in _LEGEND_ORDER:
+            if key not in used:
+                continue
+            label, stroke, fill, _header = _PALETTE[key]
+            swatch = _cell(
+                root,
+                f"{slug}-legend-{key}",
+                style=_BOX_STYLE.format(
+                    fill=fill,
+                    stroke=stroke,
+                    dashed="1" if key == "context" else "0",
+                ),
+                value="",
+                vertex="1",
+            )
+            _geometry(swatch, x, y, LEGEND_SWATCH, LEGEND_SWATCH)
+            caption = _cell(
+                root,
+                f"{slug}-legend-{key}-label",
+                style=_LEGEND_TEXT_STYLE,
+                value=label,
+                vertex="1",
+            )
+            _geometry(caption, x + LEGEND_SWATCH + GRID, y, 180, LEGEND_SWATCH)
+            x += LEGEND_SWATCH + GRID + 180 + LEGEND_GAP
+
+
+def _foreign_keys(cluster: DataModelCluster) -> dict[str, list[str]]:
+    """Champs de relation portes par chaque objet de l'onglet, sans doublon."""
+
+    keys: dict[str, list[str]] = {}
+    for link in cluster.links:
+        names = keys.setdefault(link.source, [])
+        if link.field_name not in names:
+            names.append(link.field_name)
+    return keys
+
+
+def _object_kind(name: str, obj: ObjectInfo, cluster: DataModelCluster) -> str:
+    """Sens de la couleur. Un hub n'est contexte que hors de la vue d'ensemble.
+
+    Sur un onglet de domaine il est hors du sujet, donc gris pointille.
+    Dans la vue d'ensemble il fait partie du perimetre et garde sa couleur
+    d'objet standard ou custom.
+    """
+
+    if name in cluster.hub_names and cluster.kind != OVERVIEW:
+        return "context"
+    if _is_custom_object(obj):
+        return "custom"
+    return "standard"

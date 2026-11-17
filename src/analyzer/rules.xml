@@ -622,7 +622,7 @@
         severity="Major" source="Salesforce Flow Fault Paths + Well-Architected Reliable"
         reference="https://help.salesforce.com/s/articleView?id=sf.flow_ref_elements_faultconnectors.htm" min_api_version="10.0" max_api_version="100.0">
     <title>Element de Flow sans chemin d'erreur (fault path)</title>
-    <description>Detecte les elements susceptibles d'echouer a l'execution (Get/Create/Update/Delete Records, Action, Pause) qui ne declarent pas de faultConnector.</description>
+    <description>Detecte les elements susceptibles d'echouer a l'execution (Get/Create/Update/Delete Records, Action, Pause) qui ne declarent pas de faultConnector. Hors perimetre : Update Records d'un flow before-save (RecordBeforeSave) et elements Nebula (nom, action, flux appele ou type).</description>
     <rationale>
       Sans chemin d'erreur, une exception non geree interrompt la transaction : l'utilisateur d'un screen flow
       recoit un message technique illisible et, en mode autolaunched, l'erreur n'est visible que dans l'e-mail
@@ -632,7 +632,7 @@
 
     <translation lang="en">
       <title>Flow element without a fault path</title>
-      <description>Detects the elements that can fail at runtime (Get/Create/Update/Delete Records, Action, Pause) and declare no faultConnector.</description>
+      <description>Detects the elements that can fail at runtime (Get/Create/Update/Delete Records, Action, Pause) and declare no faultConnector. Out of scope: Update Records on a before-save flow (RecordBeforeSave), and Nebula elements (name, action, called flow, or type).</description>
       <rationale>
           Without a fault path, an unhandled exception aborts the transaction: a screen flow user gets
       an unreadable technical message and, in autolaunched mode, the error is only visible in the
@@ -1209,4 +1209,545 @@
     </translation>
   </rule>
 
+  <!-- ==================== NEBULA LOGGER ==================== -->
+
+  <rule id="NEBULA-APEX-001" enabled="true" scope="apex_class" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Appel System.debug</title>
+    <description>Detecte un appel System.debug. Le standard impose Logger comme seul point d'entree.</description>
+    <rationale>System.debug ne porte ni le format, ni le niveau, ni la retention Nebula.</rationale>
+    <remediation>Remplacer System.debug par Logger, avec un message au format [Classe.methode].</remediation>
+    <translation lang="en">
+      <title>System.debug call</title>
+      <description>Detects a System.debug call. The standard requires Logger as the only entry point.</description>
+      <rationale>System.debug carries neither the Nebula format, nor the level, nor the retention.</rationale>
+      <remediation>Replace System.debug with Logger and a message in the [Class.method] format.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-001" enabled="true" scope="apex_trigger" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Appel System.debug dans un trigger</title>
+    <description>Detecte un appel System.debug dans un trigger. Le standard impose Logger comme seul point d'entree.</description>
+    <rationale>Un trigger qui appelle System.debug echappe au format et a la retention Nebula.</rationale>
+    <remediation>Remplacer System.debug par Logger, avec un message au format [Trigger.contexte].</remediation>
+    <translation lang="en">
+      <title>System.debug call in a trigger</title>
+      <description>Detects a System.debug call in a trigger. The standard requires Logger as the only entry point.</description>
+      <rationale>A trigger that calls System.debug bypasses the Nebula format and retention.</rationale>
+      <remediation>Replace System.debug with Logger and a message in the [Trigger.context] format.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-002" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Exception non journalisee</title>
+    <description>Detecte un catch qui n'appelle pas Logger.error avec l'exception capturee.</description>
+    <rationale>Chaque catch doit journaliser l'exception. Une exception avalee disparait du diagnostic.</rationale>
+    <remediation>Appeler Logger.error('[Classe.methode] ...', exception) dans chaque catch.</remediation>
+    <translation lang="en">
+      <title>Unlogged exception</title>
+      <description>Detects a catch that does not call Logger.error with the caught exception.</description>
+      <rationale>Every catch must log the exception. A swallowed exception disappears from diagnosis.</rationale>
+      <remediation>Call Logger.error('[Class.method] ...', exception) in every catch.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-002" enabled="true" scope="apex_trigger" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Exception non journalisee dans un trigger</title>
+    <description>Detecte un catch de trigger qui n'appelle pas Logger.error avec l'exception capturee.</description>
+    <rationale>Un trigger qui avale une exception empeche le diagnostic de l'echec.</rationale>
+    <remediation>Appeler Logger.error avec l'exception dans chaque catch du trigger.</remediation>
+    <translation lang="en">
+      <title>Unlogged exception in a trigger</title>
+      <description>Detects a trigger catch that does not call Logger.error with the caught exception.</description>
+      <rationale>A trigger that swallows an exception blocks diagnosis of the failure.</rationale>
+      <remediation>Call Logger.error with the exception in every catch of the trigger.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-003" enabled="true" scope="apex_class" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>saveLog absent du finally</title>
+    <description>Detecte une methode qui appelle Logger sans Logger.saveLog() dans un bloc finally.</description>
+    <rationale>Le standard place un seul saveLog dans le finally, y compris sur le chemin d'erreur.</rationale>
+    <remediation>Ajouter Logger.saveLog() dans le finally de la methode.</remediation>
+    <translation lang="en">
+      <title>saveLog missing from finally</title>
+      <description>Detects a method that calls Logger without Logger.saveLog() in a finally block.</description>
+      <rationale>The standard places a single saveLog in the finally block, including on the error path.</rationale>
+      <remediation>Add Logger.saveLog() to the finally block of the method.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-003" enabled="true" scope="apex_trigger" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>saveLog absent du finally d'un trigger</title>
+    <description>Detecte un trigger qui appelle Logger sans Logger.saveLog() dans un bloc finally.</description>
+    <rationale>Sans saveLog dans le finally, les entrees de log du trigger ne sont pas persistees.</rationale>
+    <remediation>Ajouter Logger.saveLog() dans le finally du trigger.</remediation>
+    <translation lang="en">
+      <title>saveLog missing from a trigger finally</title>
+      <description>Detects a trigger that calls Logger without Logger.saveLog() in a finally block.</description>
+      <rationale>Without saveLog in the finally block, the trigger log entries are not persisted.</rationale>
+      <remediation>Add Logger.saveLog() to the finally block of the trigger.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-004" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Plusieurs saveLog dans une methode</title>
+    <description>Detecte plus d'un Logger.saveLog() dans la meme methode.</description>
+    <rationale>Chaque saveLog consomme un DML. Le standard en autorise un par transaction.</rationale>
+    <remediation>Conserver un seul Logger.saveLog(), place dans le finally.</remediation>
+    <translation lang="en">
+      <title>Several saveLog calls in one method</title>
+      <description>Detects more than one Logger.saveLog() in the same method.</description>
+      <rationale>Each saveLog consumes a DML. The standard allows one per transaction.</rationale>
+      <remediation>Keep a single Logger.saveLog(), placed in the finally block.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-004" enabled="true" scope="apex_trigger" category="Easy" subcategory="Efficiency"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Plusieurs saveLog dans un trigger</title>
+    <description>Detecte plus d'un Logger.saveLog() dans le meme trigger.</description>
+    <rationale>Des saveLog repetes dans un trigger multiplient les DML de la transaction.</rationale>
+    <remediation>Conserver un seul Logger.saveLog() dans le finally du trigger.</remediation>
+    <translation lang="en">
+      <title>Several saveLog calls in a trigger</title>
+      <description>Detects more than one Logger.saveLog() in the same trigger.</description>
+      <rationale>Repeated saveLog calls in a trigger multiply the transaction DML.</rationale>
+      <remediation>Keep a single Logger.saveLog() in the finally block of the trigger.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-005" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Log dans une boucle</title>
+    <description>Detecte un appel Logger place dans un for ou un while.</description>
+    <rationale>Le standard interdit les logs en boucle et demande un compteur suivi d'un resume.</rationale>
+    <remediation>Retirer le log de la boucle et journaliser un compteur plus un resume apres la boucle.</remediation>
+    <translation lang="en">
+      <title>Log inside a loop</title>
+      <description>Detects a Logger call placed in a for or while loop.</description>
+      <rationale>The standard forbids logs inside loops and asks for a counter followed by a summary.</rationale>
+      <remediation>Remove the log from the loop and log a counter plus a summary after the loop.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-005" enabled="true" scope="apex_trigger" category="Easy" subcategory="Efficiency"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Log dans une boucle de trigger</title>
+    <description>Detecte un appel Logger place dans un for ou un while d'un trigger.</description>
+    <rationale>Un log par iteration de trigger augmente le volume stocke et les DML.</rationale>
+    <remediation>Agreger les iterations dans un compteur et journaliser un resume hors de la boucle.</remediation>
+    <translation lang="en">
+      <title>Log inside a trigger loop</title>
+      <description>Detects a Logger call placed in a for or while loop of a trigger.</description>
+      <rationale>A log per trigger iteration increases stored volume and DML usage.</rationale>
+      <remediation>Aggregate the iterations into a counter and log a summary outside the loop.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-006" enabled="true" scope="apex_class" category="Easy" subcategory="Efficiency"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>JSON.serialize dans un log</title>
+    <description>Detecte JSON.serialize passe a Logger.error, warn, info ou debug.</description>
+    <rationale>Serialiser un gros objet dans un log coute cher. Le standard le reserve au niveau FINE.</rationale>
+    <remediation>Passer des paires cle=valeur, ou deplacer la serialisation vers Logger.fine.</remediation>
+    <translation lang="en">
+      <title>JSON.serialize inside a log</title>
+      <description>Detects JSON.serialize passed to Logger.error, warn, info or debug.</description>
+      <rationale>Serializing a large object in a log is expensive. The standard reserves it for FINE.</rationale>
+      <remediation>Pass key=value pairs, or move the serialization to Logger.fine.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-006" enabled="true" scope="apex_trigger" category="Easy" subcategory="Efficiency"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>JSON.serialize dans un log de trigger</title>
+    <description>Detecte JSON.serialize passe a un log de trigger qui n'est pas de niveau FINE.</description>
+    <rationale>La serialisation dans un trigger amplifie le cout CPU sur chaque enregistrement.</rationale>
+    <remediation>Journaliser des compteurs ou deplacer la serialisation vers Logger.fine.</remediation>
+    <translation lang="en">
+      <title>JSON.serialize inside a trigger log</title>
+      <description>Detects JSON.serialize passed to a trigger log that is not at FINE level.</description>
+      <rationale>Serialization inside a trigger amplifies CPU cost on every record.</rationale>
+      <remediation>Log counters, or move the serialization to Logger.fine.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-007" enabled="true" scope="apex_class" category="Easy" subcategory="Readability"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message de log hors format</title>
+    <description>Detecte un message Logger dont le libelle ne respecte pas le format configure.</description>
+    <rationale>Le format commun [Classe.methode] action | cle=valeur permet de filtrer les journaux.</rationale>
+    <remediation>Reecrire le message selon le format defini dans la configuration Nebula.</remediation>
+    <translation lang="en">
+      <title>Log message outside the format</title>
+      <description>Detects a Logger message whose text does not match the configured format.</description>
+      <rationale>The shared [Class.method] action | key=value format makes journals filterable.</rationale>
+      <remediation>Rewrite the message using the format defined in the Nebula configuration.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-007" enabled="true" scope="apex_trigger" category="Easy" subcategory="Readability"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message de log de trigger hors format</title>
+    <description>Detecte un message Logger de trigger dont le libelle ne respecte pas le format configure.</description>
+    <rationale>Un trigger doit utiliser le meme format que les classes pour rester filtrable.</rationale>
+    <remediation>Reecrire le message du trigger selon le format configure.</remediation>
+    <translation lang="en">
+      <title>Trigger log message outside the format</title>
+      <description>Detects a trigger Logger message whose text does not match the configured format.</description>
+      <rationale>A trigger must use the same format as classes so it stays filterable.</rationale>
+      <remediation>Rewrite the trigger message using the configured format.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-008" enabled="true" scope="apex_class" category="Trusted" subcategory="Secure"
+        severity="Critical" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Donnee sensible dans un log</title>
+    <description>Detecte un mot de passe, un jeton, un secret ou une donnee bancaire dans un appel Logger.</description>
+    <rationale>Les logs sont conserves et consultes. Ils ne doivent contenir ni PII secrete, ni donnee bancaire.</rationale>
+    <remediation>Retirer la valeur sensible et ne conserver qu'un identifiant non sensible.</remediation>
+    <translation lang="en">
+      <title>Sensitive data in a log</title>
+      <description>Detects a password, token, secret or banking datum inside a Logger call.</description>
+      <rationale>Logs are retained and read. They must not contain secrets or banking data.</rationale>
+      <remediation>Remove the sensitive value and keep only a non-sensitive identifier.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-008" enabled="true" scope="apex_trigger" category="Trusted" subcategory="Secure"
+        severity="Critical" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Donnee sensible dans un log de trigger</title>
+    <description>Detecte un mot de passe, un jeton, un secret ou une donnee bancaire dans un log de trigger.</description>
+    <rationale>Un trigger journalise souvent des champs d'enregistrement : les secrets ne doivent pas y figurer.</rationale>
+    <remediation>Retirer la valeur sensible du message de log du trigger.</remediation>
+    <translation lang="en">
+      <title>Sensitive data in a trigger log</title>
+      <description>Detects a password, token, secret or banking datum inside a trigger log.</description>
+      <rationale>A trigger often logs record fields: secrets must not appear there.</rationale>
+      <remediation>Remove the sensitive value from the trigger log message.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-009" enabled="true" scope="apex_class" category="Easy" subcategory="Readability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message de log non anglais</title>
+    <description>Detecte un message Logger en francais ou termine par une ponctuation.</description>
+    <rationale>Le standard demande des messages anglais, factuels, sans ponctuation superflue.</rationale>
+    <remediation>Reecrire le message en anglais, au present, sans point final.</remediation>
+    <translation lang="en">
+      <title>Non-English log message</title>
+      <description>Detects a Logger message written in French or ending with punctuation.</description>
+      <rationale>The standard asks for English, factual messages without superfluous punctuation.</rationale>
+      <remediation>Rewrite the message in English, in the present tense, without a final period.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-009" enabled="true" scope="apex_trigger" category="Easy" subcategory="Readability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message de trigger non anglais</title>
+    <description>Detecte un message de trigger en francais ou termine par une ponctuation.</description>
+    <rationale>Les messages de trigger suivent la meme convention linguistique que les classes.</rationale>
+    <remediation>Reecrire le message du trigger en anglais, sans ponctuation finale.</remediation>
+    <translation lang="en">
+      <title>Non-English trigger message</title>
+      <description>Detects a trigger message written in French or ending with punctuation.</description>
+      <rationale>Trigger messages follow the same language convention as classes.</rationale>
+      <remediation>Rewrite the trigger message in English, without trailing punctuation.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-010" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Mauvais niveau dans un catch</title>
+    <description>Detecte un catch qui journalise en info, warn, debug ou fine au lieu de error.</description>
+    <rationale>Une exception capturee est un echec : le niveau attendu est ERROR.</rationale>
+    <remediation>Remplacer l'appel par Logger.error dans le catch.</remediation>
+    <translation lang="en">
+      <title>Wrong level inside a catch</title>
+      <description>Detects a catch that logs at info, warn, debug or fine instead of error.</description>
+      <rationale>A caught exception is a failure: the expected level is ERROR.</rationale>
+      <remediation>Replace the call with Logger.error inside the catch.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-010" enabled="true" scope="apex_trigger" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Mauvais niveau dans un catch de trigger</title>
+    <description>Detecte un catch de trigger qui journalise a un niveau autre que error.</description>
+    <rationale>L'echec d'un trigger doit rester visible au niveau ERROR.</rationale>
+    <remediation>Journaliser l'exception du trigger avec Logger.error.</remediation>
+    <translation lang="en">
+      <title>Wrong level inside a trigger catch</title>
+      <description>Detects a trigger catch that logs at a level other than error.</description>
+      <rationale>A trigger failure must stay visible at ERROR level.</rationale>
+      <remediation>Log the trigger exception with Logger.error.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-011" enabled="true" scope="apex_class" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>DML partiel sans log du resultat</title>
+    <description>Detecte Database.insert, update, upsert ou delete avec allOrNone a false sans Logger.error sur le resultat.</description>
+    <rationale>Les echecs partiels ne levent pas d'exception. Ils doivent etre journalises via SaveResult ou DeleteResult.</rationale>
+    <remediation>Passer le SaveResult ou le DeleteResult a Logger.error pour chaque echec partiel.</remediation>
+    <translation lang="en">
+      <title>Partial DML without a result log</title>
+      <description>Detects Database.insert, update, upsert or delete with allOrNone false and no Logger.error on the result.</description>
+      <rationale>Partial failures do not throw. They must be logged through SaveResult or DeleteResult.</rationale>
+      <remediation>Pass the SaveResult or DeleteResult to Logger.error for each partial failure.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-011" enabled="true" scope="apex_trigger" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>DML partiel de trigger sans log du resultat</title>
+    <description>Detecte un DML partiel dans un trigger dont le resultat n'est pas passe a Logger.error.</description>
+    <rationale>Un echec partiel dans un trigger reste silencieux s'il n'est pas journalise.</rationale>
+    <remediation>Journaliser le SaveResult ou le DeleteResult avec Logger.error.</remediation>
+    <translation lang="en">
+      <title>Trigger partial DML without a result log</title>
+      <description>Detects a partial DML in a trigger whose result is not passed to Logger.error.</description>
+      <rationale>A partial failure in a trigger stays silent when it is not logged.</rationale>
+      <remediation>Log the SaveResult or DeleteResult with Logger.error.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-APEX-012" enabled="true" scope="apex_class" category="Easy" subcategory="Maintainability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Tag de log hors liste</title>
+    <description>Detecte addTag avec une valeur absente de la liste configuree.</description>
+    <rationale>Les tags servent a filtrer et a reporter. Leur nombre est limite et valide par l'architecture.</rationale>
+    <remediation>Utiliser un tag de la liste, ou ajouter le nouveau tag dans la configuration Nebula.</remediation>
+    <translation lang="en">
+      <title>Log tag outside the list</title>
+      <description>Detects addTag with a value absent from the configured list.</description>
+      <rationale>Tags are used to filter and report. Their number is limited and approved by architecture.</rationale>
+      <remediation>Use a tag from the list, or add the new tag in the Nebula configuration.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-TRIG-012" enabled="true" scope="apex_trigger" category="Easy" subcategory="Maintainability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Tag de trigger hors liste</title>
+    <description>Detecte addTag dans un trigger avec une valeur absente de la liste configuree.</description>
+    <rationale>Un tag de trigger non convenu casse les rapports partages.</rationale>
+    <remediation>Utiliser un tag autorise, par exemple Trigger ou Integration-Systeme.</remediation>
+    <translation lang="en">
+      <title>Trigger tag outside the list</title>
+      <description>Detects addTag in a trigger with a value absent from the configured list.</description>
+      <rationale>An unapproved trigger tag breaks shared reports.</rationale>
+      <remediation>Use an allowed tag, for example Trigger or Integration-System.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-FLOW-001" enabled="true" scope="flow" category="Trusted" subcategory="Reliable"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Chemin d'erreur sans log Nebula</title>
+    <description>Detecte un chemin d'erreur qui n'atteint ni l'action Add Log Entry ni l'action Save Log.</description>
+    <rationale>Le standard place l'enregistrement du log sur le fault path du flow.</rationale>
+    <remediation>Enchainer Add Log Entry puis Save Log sur chaque chemin d'erreur.</remediation>
+    <translation lang="en">
+      <title>Fault path without a Nebula log</title>
+      <description>Detects a fault path that reaches neither the Add Log Entry action nor the Save Log action.</description>
+      <rationale>The standard places log persistence on the flow fault path.</rationale>
+      <remediation>Chain Add Log Entry then Save Log on every fault path.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-FLOW-002" enabled="true" scope="flow" category="Easy" subcategory="Readability"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message de flow hors format</title>
+    <description>Detecte un message Add Log Entry qui ne respecte pas le format configure.</description>
+    <rationale>Le message de flow suit [NomDuFlow.etape] action.</rationale>
+    <remediation>Reecrire le message au format configure, par exemple [NomDuFlow.etape] Failed.</remediation>
+    <translation lang="en">
+      <title>Flow message outside the format</title>
+      <description>Detects an Add Log Entry message that does not match the configured format.</description>
+      <rationale>The flow message follows [FlowName.step] action.</rationale>
+      <remediation>Rewrite the message in the configured format, for example [FlowName.step] Failed.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-FLOW-008" enabled="true" scope="flow" category="Trusted" subcategory="Secure"
+        severity="Critical" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Donnee sensible dans un log de flow</title>
+    <description>Detecte un mot de passe, un jeton, un secret ou une donnee bancaire dans le message d'un log de flow.</description>
+    <rationale>Le message de flow est stocke au meme titre qu'un log Apex.</rationale>
+    <remediation>Retirer la valeur sensible du parametre message.</remediation>
+    <translation lang="en">
+      <title>Sensitive data in a flow log</title>
+      <description>Detects a password, token, secret or banking datum in a flow log message.</description>
+      <rationale>The flow message is stored in the same way as an Apex log.</rationale>
+      <remediation>Remove the sensitive value from the message parameter.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-FLOW-009" enabled="true" scope="flow" category="Easy" subcategory="Readability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message de flow non anglais</title>
+    <description>Detecte un message de flow en francais ou termine par une ponctuation.</description>
+    <rationale>Les messages de flow suivent la meme convention que les messages Apex.</rationale>
+    <remediation>Reecrire le message en anglais, sans ponctuation finale.</remediation>
+    <translation lang="en">
+      <title>Non-English flow message</title>
+      <description>Detects a flow message written in French or ending with punctuation.</description>
+      <rationale>Flow messages follow the same convention as Apex messages.</rationale>
+      <remediation>Rewrite the message in English, without trailing punctuation.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-FLOW-012" enabled="true" scope="flow" category="Easy" subcategory="Maintainability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Tag de flow hors liste</title>
+    <description>Detecte un tag de log de flow absent de la liste configuree.</description>
+    <rationale>Les tags de flow alimentent les memes rapports que les tags Apex.</rationale>
+    <remediation>Utiliser un tag autorise, par exemple Flow ou Integration-Systeme.</remediation>
+    <translation lang="en">
+      <title>Flow tag outside the list</title>
+      <description>Detects a flow log tag absent from the configured list.</description>
+      <rationale>Flow tags feed the same reports as Apex tags.</rationale>
+      <remediation>Use an allowed tag, for example Flow or Integration-System.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-001" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Appel console dans un LWC</title>
+    <description>Detecte console.log, console.warn, console.error, console.debug ou console.info.</description>
+    <rationale>Le point d'entree LWC du standard est logger, pas la console du navigateur.</rationale>
+    <remediation>Remplacer l'appel console par logger au niveau adapte.</remediation>
+    <translation lang="en">
+      <title>Console call in an LWC</title>
+      <description>Detects console.log, console.warn, console.error, console.debug or console.info.</description>
+      <rationale>The LWC entry point of the standard is logger, not the browser console.</rationale>
+      <remediation>Replace the console call with logger at the appropriate level.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-002" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Major" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>saveLog absent dans un LWC</title>
+    <description>Detecte une fonction qui appelle logger sans logger.saveLog().</description>
+    <rationale>Sans saveLog, l'entree creee dans le navigateur n'est pas envoyee.</rationale>
+    <remediation>Appeler logger.saveLog() dans la meme fonction.</remediation>
+    <translation lang="en">
+      <title>saveLog missing in an LWC</title>
+      <description>Detects a function that calls logger without logger.saveLog().</description>
+      <rationale>Without saveLog, the entry created in the browser is not sent.</rationale>
+      <remediation>Call logger.saveLog() in the same function.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-003" enabled="true" scope="lwc" category="Easy" subcategory="Readability"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message LWC hors format</title>
+    <description>Detecte un message logger dont le libelle ne respecte pas le format configure.</description>
+    <rationale>Le message LWC suit [composant.gestionnaire] action.</rationale>
+    <remediation>Reecrire le message au format configure.</remediation>
+    <translation lang="en">
+      <title>LWC message outside the format</title>
+      <description>Detects a logger message whose text does not match the configured format.</description>
+      <rationale>The LWC message follows [component.handler] action.</rationale>
+      <remediation>Rewrite the message in the configured format.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-004" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Minor" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>setError absent sur logger.error</title>
+    <description>Detecte logger.error dans un catch qui n'enchaine pas setError.</description>
+    <rationale>Le squelette LWC du standard attache l'erreur JavaScript avec setError.</rationale>
+    <remediation>Enchainer .setError(error) sur logger.error dans le catch.</remediation>
+    <translation lang="en">
+      <title>setError missing on logger.error</title>
+      <description>Detects logger.error in a catch that does not chain setError.</description>
+      <rationale>The LWC skeleton of the standard attaches the JavaScript error with setError.</rationale>
+      <remediation>Chain .setError(error) on logger.error inside the catch.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-008" enabled="true" scope="lwc" category="Trusted" subcategory="Secure"
+        severity="Critical" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Donnee sensible dans un log LWC</title>
+    <description>Detecte un mot de passe, un jeton, un secret ou une donnee bancaire dans un log LWC.</description>
+    <rationale>Le log LWC est envoye et stocke. Il suit la meme interdiction que le log Apex.</rationale>
+    <remediation>Retirer la valeur sensible du message logger.</remediation>
+    <translation lang="en">
+      <title>Sensitive data in an LWC log</title>
+      <description>Detects a password, token, secret or banking datum in an LWC log.</description>
+      <rationale>The LWC log is sent and stored. It follows the same prohibition as an Apex log.</rationale>
+      <remediation>Remove the sensitive value from the logger message.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-009" enabled="true" scope="lwc" category="Easy" subcategory="Readability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Message LWC non anglais</title>
+    <description>Detecte un message LWC en francais ou termine par une ponctuation.</description>
+    <rationale>Les messages LWC suivent la meme convention linguistique que les messages Apex.</rationale>
+    <remediation>Reecrire le message en anglais, sans ponctuation finale.</remediation>
+    <translation lang="en">
+      <title>Non-English LWC message</title>
+      <description>Detects an LWC message written in French or ending with punctuation.</description>
+      <rationale>LWC messages follow the same language convention as Apex messages.</rationale>
+      <remediation>Rewrite the message in English, without trailing punctuation.</remediation>
+    </translation>
+  </rule>
+
+  <rule id="NEBULA-LWC-012" enabled="true" scope="lwc" category="Easy" subcategory="Maintainability"
+        severity="Info" source="Standard de logs Nebula Logger (octobre 2026)"
+        reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
+    <title>Tag LWC hors liste</title>
+    <description>Detecte addTag dans un LWC avec une valeur absente de la liste configuree.</description>
+    <rationale>Les tags LWC alimentent les memes rapports que les autres tags.</rationale>
+    <remediation>Utiliser un tag autorise, par exemple LWC ou Integration-Systeme.</remediation>
+    <translation lang="en">
+      <title>LWC tag outside the list</title>
+      <description>Detects addTag in an LWC with a value absent from the configured list.</description>
+      <rationale>LWC tags feed the same reports as the other tags.</rationale>
+      <remediation>Use an allowed tag, for example LWC or Integration-System.</remediation>
+    </translation>
+  </rule>
 </rules>

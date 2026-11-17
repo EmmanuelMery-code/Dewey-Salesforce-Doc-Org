@@ -140,7 +140,8 @@ def analyze_flow(flow: FlowInfo, catalog: RuleCatalog) -> list[Finding]:
             )
         )
 
-    # FLOW-REL-001 : elements faillibles sans fault path
+    # FLOW-REL-001 : elements faillibles sans fault path.
+    # fault_capable_elements exclut deja les recordUpdates before-save et les elements Nebula.
     rule = catalog.get("FLOW-REL-001")
     if rule and rule.enabled:
         eligible = flow.fault_capable_elements

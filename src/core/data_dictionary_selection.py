@@ -11,6 +11,7 @@ writer, hence this shared description of a selection.
 
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Mapping, Sequence
@@ -46,7 +47,9 @@ class DataDictionarySelection:
     #: ``{object_api_name: {"label": str}}`` for objects declared in the
     #: screen but absent from the parsed metadata.
     virtual_objects: dict[str, dict[str, str]] = field(default_factory=dict)
-    #: ``{object_api_name: {field_api_name: {"label": str, "type": str}}}``
+    #: ``{object_api_name: {field_api_name: {"label", "type", "description", "required"}}}``.
+    #: ``description`` and ``required`` (``Oui``, ``Non`` or ``Système``) fill the
+    #: columns a metadata field would have carried.
     virtual_fields: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
     include_comment: bool = True
     include_piloted_by: bool = True
@@ -163,6 +166,8 @@ class DataDictionarySelection:
                 api_name=api_name,
                 label=info.get("label") or api_name,
                 data_type=info.get("type", ""),
+                description=info.get("description") or "",
+                required=_virtual_field_required(info.get("required", "")),
                 custom=api_name.endswith("__c"),
                 dewey_comment=comments.get(api_name, ""),
                 dewey_piloted_by=piloted_by.get(api_name, ""),
@@ -189,6 +194,18 @@ class DataDictionarySelection:
             "include_field_automation": self.include_field_automation,
             "concat_description": self.concat_description,
         }
+
+
+def _virtual_field_required(value: str) -> bool:
+    """True when a declared field was marked mandatory.
+
+    ``Système`` counts as mandatory: it is how a system-managed Name field
+    was qualified in the source workbook, and the dictionary only has a
+    yes/no Obligatoire column.
+    """
+    token = unicodedata.normalize("NFKD", value or "")
+    token = "".join(char for char in token if not unicodedata.combining(char))
+    return token.strip().lower() in {"oui", "yes", "true", "1", "systeme"}
 
 
 def _flag(settings: Mapping[str, Any], key: str) -> bool:

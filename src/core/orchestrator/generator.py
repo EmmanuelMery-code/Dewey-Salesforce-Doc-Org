@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from src.analyzer.engine import AnalyzerEngine
+from src.analyzer.nebula_config import NebulaConfig
 from src.analyzer.rule_catalog import RuleCatalog
 from src.core.ai_usage import compute_ai_usage_stats, scan_ai_usage
 from src.core.customization_metrics import (
@@ -46,6 +47,7 @@ class SalesforceDocumentationGenerator(
         generate_sarif: bool = False,
         generate_data_dictionary_excel: bool = False,
         generate_findings_excel: bool = False,
+        generate_data_model_diagram_only: bool = False,
         findings_qualifications_path: str | Path | None = None,
         findings_history_path: str | Path | None = None,
         data_dictionary_selection: DataDictionarySelection | None = None,
@@ -70,6 +72,9 @@ class SalesforceDocumentationGenerator(
         language: str = "fr",
         include_comparison: bool = False,
         comparison_target: str = "auto",
+        nebula_rules_enabled: bool = False,
+        nebula_log_format: str | None = None,
+        nebula_tags: list[str] | tuple[str, ...] | None = None,
         log_callback: LogCallback | None = None,
     ) -> None:
         self.source_dir = Path(source_dir).resolve()
@@ -89,6 +94,7 @@ class SalesforceDocumentationGenerator(
         self.generate_sarif = generate_sarif
         self.generate_data_dictionary_excel = generate_data_dictionary_excel
         self.generate_findings_excel = generate_findings_excel
+        self.generate_data_model_diagram_only = generate_data_model_diagram_only
         # Store of the TechLead columns imported from a reviewed findings
         # workbook. Left unset in headless mode, where the workbook is not
         # meant to be round-tripped through Excel.
@@ -142,6 +148,9 @@ class SalesforceDocumentationGenerator(
         self.language = language if language in {"fr", "en"} else "fr"
         self.include_comparison = include_comparison
         self.comparison_target = comparison_target or "auto"
+        self.nebula = NebulaConfig.from_values(
+            nebula_rules_enabled, nebula_log_format, nebula_tags
+        )
         self.log = log_callback or (lambda message: None)
         self.alias = ""  # Will be set by the caller if needed for history
 
@@ -194,6 +203,10 @@ class SalesforceDocumentationGenerator(
 
         self._generate_data_model_diagram(snapshot, result)
 
+        if self.generate_data_model_diagram_only:
+            self._log_generation_duration(start_time)
+            return result
+
         if not self.generate_html:
             self.log("Generation HTML desactivee dans la configuration.")
 
@@ -218,7 +231,15 @@ class SalesforceDocumentationGenerator(
         self.log(
             f"Catalogue analyzer : {enabled_count}/{total_count} regles actives."
         )
-        analyzer_engine = AnalyzerEngine(analyzer_catalog, exclusion_path=self.exclusion_config_path)
+        if self.nebula.enabled:
+            self.log("Detection Nebula Logger activee.")
+        else:
+            self.log("Detection Nebula Logger desactivee.")
+        analyzer_engine = AnalyzerEngine(
+            analyzer_catalog,
+            exclusion_path=self.exclusion_config_path,
+            nebula=self.nebula,
+        )
         analyzer_report = analyzer_engine.analyze_snapshot(snapshot)
         result.analyzer_report = analyzer_report
         snapshot.findings_summary = analyzer_report.severity_counts()
@@ -320,11 +341,14 @@ class SalesforceDocumentationGenerator(
 
         self._save_to_history(snapshot, result, analyzer_report)
 
-        end_time = time.time()
-        duration = end_time - start_time
+        self._log_generation_duration(start_time)
+        return result
+
+    def _log_generation_duration(self, start_time: float) -> None:
+        import time
+
+        duration = time.time() - start_time
         minutes = int(duration // 60)
         seconds = int(duration % 60)
         time_str = f"{minutes} min {seconds} s" if minutes > 0 else f"{seconds} s"
-
         self.log(f"Generation terminee en {time_str}.")
-        return result
