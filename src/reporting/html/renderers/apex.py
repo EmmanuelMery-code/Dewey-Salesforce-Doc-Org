@@ -16,7 +16,6 @@ from src.core.models import (
     ReviewResult,
 )
 from src.core.utils import html_value, safe_slug, write_text
-
 from src.reporting.html.dependencies import (
     apex_dependencies,
     build_apex_reference_index,
@@ -42,6 +41,33 @@ from src.reporting.i18n import t
 
 
 LogCallback = Callable[[str], None]
+
+
+def render_findings_lines(findings: list[Finding]) -> str:
+    """Links to the source lines carrying findings, shown next to the kind badge.
+
+    Hidden until the "Code source" tab is active; empty when no finding is
+    tied to a line.
+    """
+
+    titles_by_line: dict[int, list[str]] = {}
+    for finding in findings:
+        if finding.line:
+            titles = titles_by_line.setdefault(finding.line, [])
+            if finding.rule.title not in titles:
+                titles.append(finding.rule.title)
+    if not titles_by_line:
+        return ""
+    links = " ".join(
+        f"<a href='#apex-L{line}' data-apex-line='{line}' title='"
+        f"{html.escape(t('apex_code_findings_tooltip', line=line, titles=' / '.join(titles)), quote=True)}'>"
+        f"{line}</a>"
+        for line, titles in sorted(titles_by_line.items())
+    )
+    return (
+        f"<span class='apex-findings-lines' id='apex-findings-lines' hidden>"
+        f"{html_value(t('apex_code_findings_label'))} : {links}</span>"
+    )
 
 
 def render_apex_page(
@@ -99,7 +125,8 @@ def render_apex_page(
                 "message": pmd.message,
                 "priority": pmd.priority,
             })
-    ann_json = json.dumps(ann_map)
+    code_meta_json = json.dumps({"annotations": ann_map}).replace("</", "<\\/")
+    findings_lines_html = render_findings_lines(findings)
 
     # Findings without a line number → global banner shown above the code
     global_findings = [f for f in findings if f.line is None]
@@ -119,9 +146,13 @@ def render_apex_page(
     code_tab_html = f"""
 <style>
   .apex-ann {{
-    display: block; font-family: sans-serif; font-style: normal; font-size: 0.8em;
-    padding: 3px 8px 3px 2em; margin: 1px 0; border-left: 3px solid; border-radius: 2px;
+    display: inline-block; font-family: sans-serif; font-style: normal; font-size: 0.8em;
+    padding: 0 8px; margin-left: 1em; border-left: 3px solid; border-radius: 2px;
   }}
+  .apex-ann-global {{ display: block; margin: 1px 0; padding: 3px 8px 3px 2em; }}
+  .apex-findings-lines {{ margin-left: .6em; color: #b00000; font-weight: 600; }}
+  .apex-findings-lines a {{ margin-left: .3em; font-weight: normal; }}
+  .line-numbers-rows > span.apex-line-flash {{ background: rgba(255,215,0,.45); }}
   .apex-ann-critical  {{ background: rgba(255,50,50,.15); border-color: #ff4444; color: #ff8888; }}
   .apex-ann-major     {{ background: rgba(255,140,0,.15); border-color: #ff8c00; color: #ffb040; }}
   .apex-ann-minor     {{ background: rgba(240,220,0,.12); border-color: #ccbb00; color: #ddcc44; }}
@@ -135,35 +166,97 @@ def render_apex_page(
   .apex-ann-global.apex-ann-pmd      {{ color: #5500aa; }}
 </style>
 {global_banners_html}<pre class="line-numbers" style="max-height:80vh;overflow:auto;">
-<code class="language-java">{html.escape(code_preview)}</code></pre>
+<code id="apex-source-code" class="language-java">{html.escape(code_preview)}</code></pre>
 <script>
 (function() {{
-  var ANNOTATIONS = {ann_json};
-  function inject() {{
-    var code = document.querySelector('pre.line-numbers code.language-java');
-    if (!code) return;
-    var lines = code.innerHTML.split('\\n');
-    var out = [];
-    for (var i = 0; i < lines.length; i++) {{
-      out.push(lines[i]);
-      var anns = ANNOTATIONS[i + 1];
-      if (anns) {{
-        for (var j = 0; j < anns.length; j++) {{
-          var a = anns[j];
-          var cls = 'apex-ann apex-ann-' + a.severity.toLowerCase();
-          var icon = a.source === 'pmd' ? '🔍' : '⚠';
-          var detail = a.priority ? ' [P' + a.priority + ']' : '';
-          out.push('<span class="' + cls + '">' + icon + ' <strong>' + a.title + detail + '</strong> — ' + a.message + '</span>');
-        }}
-      }}
-    }}
-    code.innerHTML = out.join('\\n');
-    if (window.Prism) window.Prism.highlightElement(code);
+  var META = {code_meta_json};
+  var code = document.getElementById('apex-source-code');
+  var decorated = false;
+
+  function el(tag, className, text) {{
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
   }}
+
+  function annotation(a) {{
+    var node = el('span', 'apex-ann apex-ann-' + String(a.severity).toLowerCase());
+    node.appendChild(document.createTextNode((a.source === 'pmd' ? '🔍' : '⚠') + ' '));
+    node.appendChild(el('strong', '', a.title + (a.priority ? ' [P' + a.priority + ']' : '')));
+    node.appendChild(document.createTextNode(' — ' + a.message));
+    return node;
+  }}
+
+  function flashRow(line) {{
+    var rows = code.parentNode.querySelectorAll('.line-numbers-rows > span');
+    var row = rows[line - 1];
+    if (!row) return;
+    row.classList.add('apex-line-flash');
+    setTimeout(function() {{ row.classList.remove('apex-line-flash'); }}, 1500);
+  }}
+
+  function wireFindingsLines() {{
+    var list = document.getElementById('apex-findings-lines');
+    var panel = code && code.closest('[data-tab-panel]');
+    if (!list || !panel) return;
+    var sync = function() {{ list.hidden = !panel.classList.contains('active'); }};
+    new MutationObserver(sync).observe(panel, {{ attributes: true, attributeFilter: ['class'] }});
+    sync();
+    list.querySelectorAll('a[data-apex-line]').forEach(function(link) {{
+      link.addEventListener('click', function(event) {{
+        var line = Number(link.getAttribute('data-apex-line'));
+        var target = document.getElementById('apex-L' + line);
+        if (!target) return;
+        event.preventDefault();
+        target.scrollIntoView({{ block: 'center' }});
+        flashRow(line);
+      }});
+    }});
+  }}
+
+  function lineEnd(line) {{
+    return (META.annotations[line] || []).map(annotation);
+  }}
+
+  function anchor(line) {{
+    var node = el('span', 'apex-line-anchor');
+    node.id = 'apex-L' + line;
+    return node;
+  }}
+
+  function decorate() {{
+    if (decorated || !code) return;
+    decorated = true;
+    var walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
+    var texts = [];
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    var line = 1;
+    code.insertBefore(anchor(1), code.firstChild);
+    texts.forEach(function(text) {{
+      var index;
+      while ((index = text.data.indexOf('\\n')) !== -1) {{
+        var newline = text.splitText(index);
+        lineEnd(line).forEach(function(node) {{ newline.parentNode.insertBefore(node, newline); }});
+        text = newline.splitText(1);
+        line += 1;
+        newline.parentNode.insertBefore(anchor(line), text);
+      }}
+    }});
+    lineEnd(line).forEach(function(node) {{ code.appendChild(node); }});
+  }}
+
+  if (window.Prism && window.Prism.hooks) {{
+    window.Prism.hooks.add('complete', function(env) {{
+      if (env.element === code) decorate();
+    }});
+    if (code && code.querySelector('.token')) decorate();
+  }}
+  window.addEventListener('load', decorate);
   if (document.readyState === 'loading') {{
-    document.addEventListener('DOMContentLoaded', inject);
+    document.addEventListener('DOMContentLoaded', wireFindingsLines);
   }} else {{
-    inject();
+    wireFindingsLines();
   }}
 }})();
 </script>
@@ -207,7 +300,7 @@ def render_apex_page(
     body = f"""
 {index_back_link(current_path, output_dir, "apex-trigger")}
 <h1>{html_value(artifact.name)}</h1>
-<span class="badge">{html_value(artifact.kind)}</span>
+<span class="badge">{html_value(artifact.kind)}</span>{findings_lines_html}
 {tabs}
 """
     return render_page(artifact.name, body, current_path, assets_dir, include_prism=True)
