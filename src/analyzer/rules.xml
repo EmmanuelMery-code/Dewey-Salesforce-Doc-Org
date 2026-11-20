@@ -1425,12 +1425,12 @@
         severity="Critical" source="Standard de logs Nebula Logger (octobre 2026)"
         reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
     <title>Donnee sensible dans un log</title>
-    <description>Detecte un mot de passe, un jeton, un secret ou une donnee bancaire dans un appel Logger.</description>
+    <description>Detecte une variable mot de passe, jeton, secret ou donnee bancaire passee a un appel Logger. Un terme uniquement present dans une chaine n'est pas signale.</description>
     <rationale>Les logs sont conserves et consultes. Ils ne doivent contenir ni PII secrete, ni donnee bancaire.</rationale>
     <remediation>Retirer la valeur sensible et ne conserver qu'un identifiant non sensible.</remediation>
     <translation lang="en">
       <title>Sensitive data in a log</title>
-      <description>Detects a password, token, secret or banking datum inside a Logger call.</description>
+      <description>Detects a password, token, secret or banking variable passed to a Logger call. A term that appears only inside a string is not reported.</description>
       <rationale>Logs are retained and read. They must not contain secrets or banking data.</rationale>
       <remediation>Remove the sensitive value and keep only a non-sensitive identifier.</remediation>
     </translation>
@@ -1440,12 +1440,12 @@
         severity="Critical" source="Standard de logs Nebula Logger (octobre 2026)"
         reference="https://github.com/jongpie/nebula-logger" min_api_version="10.0" max_api_version="100.0">
     <title>Donnee sensible dans un log de trigger</title>
-    <description>Detecte un mot de passe, un jeton, un secret ou une donnee bancaire dans un log de trigger.</description>
+    <description>Detecte une variable mot de passe, jeton, secret ou donnee bancaire passee a un log de trigger. Un terme uniquement present dans une chaine n'est pas signale.</description>
     <rationale>Un trigger journalise souvent des champs d'enregistrement : les secrets ne doivent pas y figurer.</rationale>
     <remediation>Retirer la valeur sensible du message de log du trigger.</remediation>
     <translation lang="en">
       <title>Sensitive data in a trigger log</title>
-      <description>Detects a password, token, secret or banking datum inside a trigger log.</description>
+      <description>Detects a password, token, secret or banking variable passed to a trigger log. A term that appears only inside a string is not reported.</description>
       <rationale>A trigger often logs record fields: secrets must not appear there.</rationale>
       <remediation>Remove the sensitive value from the trigger log message.</remediation>
     </translation>

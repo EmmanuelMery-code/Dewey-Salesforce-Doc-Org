@@ -15,6 +15,7 @@ from src.analyzer.nebula_config import (
 from src.analyzer.nebula_scan import (
     add_finding,
     apex_method_ranges,
+    code_slice,
     code_spans,
     find_calls,
     first_string_in,
@@ -109,7 +110,7 @@ def analyze_nebula_apex(
                 if issues:
                     language_lines.append(line)
                     language_words.extend(issues)
-            terms = sensitive_terms(args)
+            terms = sensitive_terms(code_slice(source, spans, args_start, args_end))
             if terms:
                 sensitive_lines.append(line)
                 sensitive_words.extend(terms)

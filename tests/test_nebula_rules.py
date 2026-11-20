@@ -98,6 +98,50 @@ public with sharing class AccountService {
     }
 
 
+def test_sensitive_word_inside_a_string_is_not_a_finding() -> None:
+    body = """
+public with sharing class AccountService {
+    public static void mergeDuplicates(List<Id> accountIds) {
+        Logger.info('[AccountService.mergeDuplicates] Start | password=' + accountIds.size());
+        try {
+            Logger.info('[AccountService.mergeDuplicates] End | token=redacted');
+        } catch (Exception e) {
+            Logger.error('[AccountService.mergeDuplicates] Failed', e);
+            throw e;
+        } finally {
+            Logger.saveLog();
+        }
+    }
+}
+"""
+    findings = analyze_nebula_apex(
+        _apex("AccountService", body), _catalog(), NebulaConfig.from_values(True, None, None)
+    )
+    assert "NEBULA-APEX-008" not in _ids(findings)
+
+
+def test_sensitive_variable_in_a_log_is_a_finding() -> None:
+    body = """
+public with sharing class AccountService {
+    public static void mergeDuplicates(String password) {
+        Logger.info('[AccountService.mergeDuplicates] Start | value=' + password);
+        try {
+            Logger.info('[AccountService.mergeDuplicates] End | merged=1');
+        } catch (Exception e) {
+            Logger.error('[AccountService.mergeDuplicates] Failed', e);
+            throw e;
+        } finally {
+            Logger.saveLog();
+        }
+    }
+}
+"""
+    findings = analyze_nebula_apex(
+        _apex("AccountService", body), _catalog(), NebulaConfig.from_values(True, None, None)
+    )
+    assert "NEBULA-APEX-008" in _ids(findings)
+
+
 def test_missing_save_log_is_limited_to_the_method() -> None:
     body = """
 public with sharing class AccountService {

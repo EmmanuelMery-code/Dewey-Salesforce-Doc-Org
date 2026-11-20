@@ -84,6 +84,19 @@ def index_in_spans(spans: list[tuple[int, int]], index: int) -> bool:
     return False
 
 
+def code_slice(source: str, spans: list[tuple[int, int]], start: int, end: int) -> str:
+    """Return the non-comment, non-string fragment of ``source[start:end]``."""
+
+    pieces: list[str] = []
+    for span_start, span_end in spans:
+        if span_end <= start:
+            continue
+        if span_start >= end:
+            break
+        pieces.append(source[max(span_start, start) : min(span_end, end)])
+    return " ".join(pieces)
+
+
 def match_closer(
     source: str, open_at: int, open_ch: str, close_ch: str, js: bool = False
 ) -> int:
