@@ -20,6 +20,7 @@ from src.analyzer.nebula_scan import (
     index_in_spans,
     line_of,
     match_closer,
+    resolve_message,
     string_literals,
 )
 from src.analyzer.rule_catalog import RuleCatalog
@@ -89,7 +90,7 @@ def analyze_nebula_lwc(
             save_gaps.append(level_calls[0][0])
         catches = _catch_bodies(source, spans, region)
         for line, args_start, args_end, match in level_calls:
-            message = first_string_in(literals, args_start, args_end)
+            message = resolve_message(source, spans, args_start, args_end, region[0], js=True)
             if message is not None and not message_matches(message, pattern):
                 format_lines.append(line)
             if message is not None:

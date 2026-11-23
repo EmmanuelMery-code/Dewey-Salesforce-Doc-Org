@@ -227,6 +227,64 @@ public with sharing class AccountService {
     assert "NEBULA-APEX-012" not in _ids(findings)
 
 
+def _format_ids(body: str) -> set[str]:
+    findings = analyze_nebula_apex(
+        _apex("Handler", body), _catalog(), NebulaConfig.from_values(True, None, None)
+    )
+    return _ids(findings)
+
+
+def test_format_prefix_held_in_a_variable_is_not_a_false_positive() -> None:
+    body = """
+public with sharing class ChallengesTriggerHandler {
+    public static void run(String operation) {
+        String scope = '[ChallengesTriggerHandler.' + operation + '] ';
+        Logger.info(scope + 'Start | records=' + Trigger.new.size());
+        Logger.saveLog();
+    }
+}
+"""
+    assert "NEBULA-APEX-007" not in _format_ids(body)
+
+
+def test_format_prefix_in_a_class_constant_is_not_a_false_positive() -> None:
+    body = """
+public with sharing class Handler {
+    private static final String SCOPE = '[Handler.run] ';
+    public static void run() {
+        Logger.info(SCOPE + 'Start | records=1');
+        Logger.saveLog();
+    }
+}
+"""
+    assert "NEBULA-APEX-007" not in _format_ids(body)
+
+
+def test_format_is_still_flagged_when_the_variable_has_no_prefix() -> None:
+    body = """
+public with sharing class Handler {
+    public static void run() {
+        String scope = 'Handler ';
+        Logger.info(scope + 'Start | records=1');
+        Logger.saveLog();
+    }
+}
+"""
+    assert "NEBULA-APEX-007" in _format_ids(body)
+
+
+def test_format_is_not_judged_when_the_start_of_the_message_is_unknown() -> None:
+    body = """
+public with sharing class Handler {
+    public static void run(String scope) {
+        Logger.info(scope + 'Start | records=1');
+        Logger.saveLog();
+    }
+}
+"""
+    assert "NEBULA-APEX-007" not in _format_ids(body)
+
+
 def test_engine_ignores_nebula_until_the_switch_is_on() -> None:
     artifact = _apex("AccountService", "public class AccountService { public void run() { System.debug('x'); } }")
     catalog = _catalog()

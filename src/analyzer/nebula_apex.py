@@ -22,6 +22,7 @@ from src.analyzer.nebula_scan import (
     index_in_spans,
     line_of,
     match_closer,
+    resolve_message,
     string_literals,
 )
 from src.analyzer.rule_catalog import RuleCatalog
@@ -102,7 +103,7 @@ def analyze_nebula_apex(
         for line, args_start, args_end, match in level_calls:
             level = match.group(1)
             args = source[args_start:args_end]
-            message = first_string_in(literals, args_start, args_end)
+            message = resolve_message(source, spans, args_start, args_end, region[0])
             if message is not None and not message_matches(message, pattern):
                 format_lines.append(line)
             if message is not None:
